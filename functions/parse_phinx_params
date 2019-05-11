@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+
+for i in "${@:1}"; do
+    case $i in
+        --host=*)
+            DB_HOST="-e PHINX_DB_HOST=${i#*=}"
+            ;;
+
+        --user=*)
+            DB_USER="-e PHINX_DB_USER=${i#*=}"
+            ;;
+
+        --password=*)
+            DB_PASSWORD="-e PHINX_DB_PASS=${i#*=}"
+            ;;
+
+        --port=*)
+            DB_PORT="-e PHINX_DB_PORT=${i#*=}"
+            ;;
+    esac
+done

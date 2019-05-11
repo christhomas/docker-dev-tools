@@ -1,0 +1,194 @@
+#!/usr/bin/env bash
+
+# foreground colours
+blk="\033[30m"
+red="\033[31m"
+grn="\033[32m"
+yel="\033[33m"
+blu="\033[34m"
+mag="\033[35m"
+cyn="\033[36m"
+wht="\033[37m"
+
+# background colours
+blk_b="\033[40m"
+red_b="\033[41m"
+grn_b="\033[42m"
+yel_b="\033[43m"
+blu_b="\033[44m"
+mag_b="\033[45m"
+cyn_b="\033[46m"
+
+# reset whatever terminal stuff you've done
+end="\033[0m"
+
+# Some icons
+chk=$'\xE2\x9C\x94 '
+mss=$'\xE2\x9D\x8C '
+wrn=$'\xE2\x9A\xA0 '
+
+function textbox () {
+    background="${@:1:1}_b"
+    foreground="${@:2:1}"
+    text="    ${@:3}    "
+
+    eval foreground="\$$foreground"
+    eval background="\$$background"
+
+    echo -e "${foreground}${background}\n\n${text}\n${end}\n"
+}
+
+function text ()
+{
+    colour="${@:1:1}"
+    text="${@:2}"
+
+    # the subcommand $() && echo stops this from breaking on some terminals
+    colour=$(eval colour=\${$colour} 2> /dev/null && echo ${colour})
+
+    [ $? -eq 0 ] && [ ! -z "${colour}" ] && echo -e "${colour}${text}${end}" || echo -e "$@"
+}
+
+# A little code to set the os_name
+export os=$(uname | awk '{ print tolower($0) }')
+[ "${os}" = "darwin" ] && export os_name="Apple Mac OS"
+[ "${os}" = "linux" ] && export os_name="Linux"
+
+function ddt_default_setup_dir() {
+    sd=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )/../../
+    echo $(ddt_realpath ${sd})
+}
+
+function ddt_app_start ()
+{
+    # This is a nice cheap way to know whether this is a recursive call and don't print out the application header for each "sub-command"
+    # index 1 to BASH_SOURCE will be the name of the script which called this one, we check whether the "process name" is the same as this bash script name
+    # if they match, then surely this is a "recursive" call?
+    if [[ -z $(ps $PPID | tail -n 1 | grep $(basename ${BASH_SOURCE[1]})) ]]; then
+        [ -z "$1" ] && text red "You must provide a title to this function"
+
+        title=$(text blu $1)
+        subtitle=$(text yel $2)
+
+        [ -z "$2" ] && text "${title}" || text "${title}: ${subtitle}"
+    fi
+}
+
+function ddt_app_error () {
+
+    [ -z "$1" ] && $1="No error message specified"
+
+    echo -e "${red}$1${end}\n" 1>&2
+
+    # This does not kill process zero, it kills the entire process group (all shells and subshells)
+    kill 0
+}
+
+function ddt_test_docker () {
+    printf "${yel}Testing docker is installed:${end} "
+
+    DOCKER_VERSION=$(docker version -f "Client[{{.Client.Version}}], Server[{{.Server.Version}}]" 2>/dev/null)
+
+    [ ! "$?" -eq 0 ] && ddt_app_error "No docker was installed, cannot continue" || echo -e "${DOCKER_VERSION}\n"
+}
+
+function ddt_realpath ()
+{
+    [ -z "$1" ] && ddt_app_error "ddt_realpath: There was no path supplied here, check and try again"
+
+    # the 2>/dev/null here redirects all stderr to the dev null blackhole
+    # we do this because on mac realpath is not a valid command, so I have to supress its "command not found" error
+    # the || here will then on linux take the first input, but on mac realpath will fail, so it will fallback to the php version
+    DIR=$(realpath $1 2>/dev/null || php -r "print realpath('$1');")
+
+    [ ! -e "${DIR}" ] && ddt_app_error "ddt_realpath: The path '${DIR}' calculated from '$1' was not found"
+
+    echo ${DIR}
+}
+
+function ddt_clone_function ()
+{
+    local ORIG_FUNC=$(declare -f $1)
+    local NEW_FUNC="$2${ORIG_FUNC#$1}"
+    eval "$NEW_FUNC"
+}
+
+function find_api_server_database ()
+{
+    docker run --network backbone alpine:latest sh -c 'nc -z api-server-mysql 3306; echo $?'
+}
+
+function docker_running_id ()
+{
+    if [ -z "$1" ]; then ddt_app_error "Must pass the name of the container as the first parameter"; fi
+
+    docker ps | grep "$1" | awk '{ print $1 }'
+}
+
+function docker_container_id ()
+{
+    if [ -z "$1" ]; then ddt_app_error "Must pass the name of the container as the first parameter"; fi
+
+    docker container ls --all | grep "$1" | awk '{ print $1 }'
+}
+
+# This command always needs sudo to run one of its subcommands,
+# but its really annoying to have to wait 2 minutes before it
+# asks you. So I'll put this little sudo command at the top so
+# it asks straight away and then it has the permission for a
+# small window of time
+function grant_early_sudo ()
+{
+    echo "Early request for sudo access: "
+    sudo echo "Sudo access was granted."
+}
+
+function get_yn_answer ()
+{
+    question=$(echo -e $1)
+
+    while true; do
+        read -p "$question " yn
+        case $yn in
+            [YyNn]* ) echo $yn | awk '{print tolower($0)}'; break;;
+            * ) echo "Please answer type y or n.";;
+        esac
+    done
+}
+
+function get_http_code ()
+{
+    curl -s -o /dev/null -I -w "%{http_code}" $1
+}
+
+function is_port_open ()
+{
+    nc -z $1 $2 && echo "yes" || echo "no"
+}
+
+function can_ping ()
+{
+    ping_ok="failure"
+
+    output=$(ping -c 1 -W 1 $1 2>&1)
+
+    name=$(echo ${output} | awk '{if(NR<2)print $2}')
+    ip_address=$(echo ${output} | awk '{if(NR<2)print $3}' | sed s:[\(\)\:]::g)
+    packet_loss=$(echo ${output} | grep -E -i "(100|100.0)\% packet loss")
+    can_resolve=$([ -z "$(echo ${output} | grep -E -i "cannot resolve")" ] && echo yes || echo no)
+
+    [ -z "${name}" ] && name=$1
+
+    [ -z "${packet_loss}" ] && [ "${can_resolve}" = "yes" ] && ping_ok="success"
+
+    [ "${ping_ok}" = "success" ] && message=${ping_ok}
+    [ "${ping_ok}" = "failure" ] && message="${ping_ok} ${blu}Can Resolve${end}: ${yel}${can_resolve}${end}"
+
+    text "${yel}Ping '${name}' (${ip_address}) status${end}: ${message}\n"
+}
+
+# We need to manually export functions like this to make them available to subshells (urgh, fucking bash!!)
+export -f ddt_app_error
+export -f ddt_realpath
+export -f docker_running_id
+export -f grant_early_sudo

@@ -1,0 +1,67 @@
+#!/usr/bin/env bash
+
+function help_brew ()
+{
+    text "${yel}Installation Help:${end} You must run the following command manuaally"
+    text "$(help_brew_command)"
+}
+
+function help_brew_command ()
+{
+    echo "/usr/bin/ruby -e \"\$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)\""
+}
+
+function help_docker ()
+{
+    text "${yel}Installation Help:${end} You must install edge version of docker community edition from docker.com"
+}
+
+function help_docker_compose ()
+{
+    help_docker
+}
+
+function help_php ()
+{
+    text "${yel}Installation Help:${end} PHP Should already be install on your Mac machine, there is no specific help for this error"
+}
+
+function help_php_command ()
+{
+    help=$(text "${red}Unable to comply:${end} On MacOS, PHP is supposed to be installed by default, there are no specific help for this error")
+    help=$(echo "\\t$help")
+    echo "echo -e \"$help\""
+}
+
+function help_node ()
+{
+    text "${yel}Installation Help:${end} You must run the following command manually"
+    text "$(help_node_command)"
+}
+
+function help_node_command ()
+{
+    echo "brew install -f node"
+}
+
+function help_npm ()
+{
+    text "${yel}Installation Help:${end} You must run the following command manually"
+    text "$(help_npm_command)"
+}
+
+function help_npm_command ()
+{
+    echo "brew install -f npm"
+}
+
+function help_git ()
+{
+    text "${yel}Installation Help:${end} You must run the following command manually"
+    text "$(help_git_command)"
+}
+
+function help_git_command ()
+{
+    echo "brew install -f git"
+}
