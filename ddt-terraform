@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+
+file=$HOME/.aws/credentials
+
+if [ -z "${AWS_ACCESS_KEY_ID}" ]; then
+    if [ -f ${file} ]; then
+        AWS_ACCESS_KEY_ID=$(cat ${file} | grep -o 'aws_access_key_id=.*' | cut -f2- -d=)
+    else
+        echo "You must provide the AWS_ACCESS_KEY_ID environment variable"
+        exit 1
+    fi
+fi
+
+if [ -z "${AWS_SECRET_ACCESS_KEY}" ]; then
+    if [ -f ${file} ]; then
+        AWS_SECRET_ACCESS_KEY=$(cat ${file} | grep -o 'aws_secret_access_key.*' | cut -f2- -d=)
+    else
+        echo "You must provide the AWS_SECRET_ACCESS_KEY environment variable"
+        exit 1
+    fi
+fi
+
+AWS_ACCESS_KEY_ID=$(echo ${AWS_ACCESS_KEY_ID} | xargs)
+AWS_SECRET_ACCESS_KEY=$(echo ${AWS_SECRET_ACCESS_KEY} | xargs)
+AWS_DEFAULT_REGION=eu-west-1
+
+[ ! -z "${TF_LOG}" ] && LOGGING="--env TF_LOG=${TF_LOG}" || LOGGING=""
+
+docker run ${INTERACTIVE} ${LOGGING} \
+    --env AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID} \
+    --env AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} \
+    --network backbone \
+    -v ${PWD}:/app \
+    -w /app \
+    hashicorp/terraform:light $@
