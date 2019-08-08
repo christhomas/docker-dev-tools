@@ -9,7 +9,7 @@ ddt_app_start \
     "Reverse proxy for all docker compose applications"
 
 docker_image="christhomas/nginx-proxy:alpine"
-network_name="proxy_ddt"
+network_name="backbone"
 name="ddt-proxy"
 
 function help ()
@@ -17,6 +17,7 @@ function help ()
     text "${blu}DDT Proxy:${end} (club bouncer says) if your names not down, you're not coming in"
     text "${yel}Usage:${end} ddt-proxy --start"
     text "Options:"
+    text "    --network-name=XXX: Override the default network with a custom name (NOTE: To work correctly this needs to be the first parameter)"
     text "    --start: Run the Nginx proxy"
     text "    --stop: Stop the Nginx proxy"
     text "    --restart: Does a restart (just --stop && --start after each other)"
@@ -37,7 +38,7 @@ function get_network_id ()
 {
     if [ -z "$1" ]; then ddt_app_error "You must pass the name of the network as the first parameter"; fi
 
-    docker network ls | grep "$1" | awk '{ print $1 }'
+    docker network ls | grep ^$1$ | awk '{ print $1 }'
 }
 
 function create_network ()
@@ -50,6 +51,8 @@ function create_network ()
     if [[ -z "$network_id" ]]; then
         network_id=$(docker network create $1)
         text "${blu}Create ddt network:${end} $1 (id: ${network_id})"
+    else
+        text "Network '$1' already exists"
     fi
 }
 
@@ -60,7 +63,6 @@ function start_proxy ()
 
     # Create the network to bind all the containers onto
     create_network $2
-    create_network backbone
 
     # Run the proxy container
     container_id=$(docker_running_id $1)
@@ -68,7 +70,7 @@ function start_proxy ()
     if [[ ! -z "${container_id}" ]]; then
         stop_proxy $1 ${container_id}
     fi
-    
+
     text "${blu}Starting the nginx proxy container:${end} $1..."
 
     docker container prune -f
@@ -107,7 +109,7 @@ function stop_proxy ()
     if [ -z "$2" ]; then ddt_app_error "You must pass the container id as the second parameter in order to stop it"; fi
 
     text "${blu}Stopping the nginx proxy container:${end} $1..."
-    
+
     docker kill $2 &>/dev/null
     docker rm -f $2 &>/dev/null
 
@@ -117,6 +119,10 @@ function stop_proxy ()
 
 for i in "${@:1}"; do
     case $i in
+        --network-name=*)
+            network_name=${i#*=}
+        ;;
+
         --start)
             start_proxy ${docker_image} ${network_name}
 
