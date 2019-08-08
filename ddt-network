@@ -16,17 +16,22 @@ dns_ip_address=127.0.0.1
 docker_image="christhomas/supervisord-dnsmasq"
 name="ddt-dnsmasq"
 
-function network_install_domain_supervisor_dnsmasq ()
+function network_install_domain ()
 {
-    if [ ! $# -eq 3 ]; then ddt_app_error "The function '${FUNCNAME}' must be given 3 parameters, given '$#'"; fi
-    if [ -z "$1" ]; then ddt_app_error "Must pass the container id name as the first parameter"; fi
-    if [ -z "$2" ]; then ddt_app_error "Must pass the dns ip address as the second parameter"; fi
-    if [ -z "$3" ]; then ddt_app_error "Must pass the domain name as the third parameter"; fi
+    if [ -z "$1" ]; then ddt_app_error "Must pass the dns ip address as the second parameter"; fi
+    if [ -z "$2" ]; then ddt_app_error "Must pass the domain name as the third parameter"; fi
 
-    text "${blu}Installing domain:${end} ${yel}'$3'${end} with ip address ${yel}'$2'${end} into dnsmasq configuration in container id ${yel}'$1'${end}"
+    container_id=$(docker_running_id ${docker_image})
 
-    docker exec -it $1 /bin/sh -c "echo 'address=/$3/$2' > /etc/dnsmasq.d/$3.conf"
-    docker exec -it $1 kill -s SIGHUP 1
+    if [ -z "${container_id}" ]; then
+        textbox red wht "The Local DNS Container '${docker_image}' is not running, cannot execute request"
+        ddt_app_error "Exiting..."
+    fi
+
+    text "${blu}Installing domain:${end} ${yel}'$2'${end} with ip address ${yel}'$1'${end} into dnsmasq configuration in container id ${yel}'${container_id}'${end}"
+
+    docker exec -it ${container_id} /bin/sh -c "echo 'address=/$2/$1' > /etc/dnsmasq.d/$2.conf"
+    docker exec -it ${container_id} kill -s SIGHUP 1
 
     sleep 2
 }
@@ -127,40 +132,33 @@ for i in "${@:1}"; do
 
         --start-dns)
             text "${blu}Docker:${end} Pulling '${docker_image}' before changing the dns"
-	        docker pull $docker_image
+	        docker pull ${docker_image}
 
-	        ddt-network --add-dns
+	        ${DIR}/ddt-network --add-dns
 
             network_start_dns ${docker_image}
 
-            ddt-network --add-domain=ddt.develop
+            ${DIR}/ddt-network --add-domain=ddt.develop
         ;;
 
         --stop-dns)
             network_stop_dns ${docker_image}
 
-            ddt-network --remove-dns
+            ${DIR}/ddt-network --remove-dns
 
             test_ping google.com
             test_ping ${domain}
         ;;
 
         --restart-dns)
-            ddt-network --stop-dns
-            ddt-network --start-dns
+            ${DIR}/ddt-network --stop-dns
+            ${DIR}/ddt-network --start-dns
         ;;
 
         --add-domain=*)
             domain=${i#*=}
 
-            container_id=$(docker_running_id ${docker_image})
-
-            if [ -z "${container_id}" ]; then
-                textbox red wht "The Local DNS Container '${docker_image}' is not running, cannot execute request"
-                ddt_app_error "Exiting..."
-            fi
-
-            network_install_domain_supervisor_dnsmasq ${container_id} ${alias_ip_address} ${domain}
+            network_install_domain ${alias_ip_address} ${domain}
 
             test_ping google.com
             test_ping ${domain}
