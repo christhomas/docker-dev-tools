@@ -130,7 +130,7 @@ for i in "${@:1}"; do
             network_remove_dns ${dns_ip_address}
         ;;
 
-        --start-dns)
+        --start|--start-dns)
             text "${blu}Docker:${end} Pulling '${docker_image}' before changing the dns"
 	        docker pull ${docker_image}
 
@@ -141,7 +141,7 @@ for i in "${@:1}"; do
             ${DIR}/ddt-network --add-domain=ddt.develop
         ;;
 
-        --stop-dns)
+        --stop|--stop-dns)
             network_stop_dns ${docker_image}
 
             ${DIR}/ddt-network --remove-dns
@@ -150,18 +150,9 @@ for i in "${@:1}"; do
             test_ping ${domain}
         ;;
 
-        --restart-dns)
+        --restart|--restart-dns)
             ${DIR}/ddt-network --stop-dns
             ${DIR}/ddt-network --start-dns
-        ;;
-
-        --add-domain=*)
-            domain=${i#*=}
-
-            network_install_domain ${alias_ip_address} ${domain}
-
-            test_ping google.com
-            test_ping ${domain}
         ;;
 
         --logs)
@@ -207,8 +198,22 @@ for i in "${@:1}"; do
             echo "${mapping_list[@]}" | tr '*' '\n' | column -t -s"'"
         ;;
 
-        --help|*)
+        --help)
             help
+        ;;
+    esac
+done
+
+# We must execute add-domain last because it has to process ALL OTHER OPTIONS first, so we just do this for safety
+for i in "${@:1}"; do
+    case $i in
+        --add-domain=*)
+            domain=${i#*=}
+
+            network_install_domain ${alias_ip_address} ${domain}
+
+            test_ping google.com
+            test_ping ${domain}
         ;;
     esac
 done
