@@ -131,6 +131,7 @@ for i in "${@:1}"; do
             start_proxy ${docker_image} ${network_name}
 
             print_running_containers
+            ddt-proxy --domains
         ;;
 
         --stop)
@@ -148,7 +149,6 @@ for i in "${@:1}"; do
         --restart)
             ddt-proxy --stop
             ddt-proxy --start --network-name=${network_name}
-            ddt-proxy --networks
         ;;
 
         --logs)
