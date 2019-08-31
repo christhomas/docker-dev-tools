@@ -9,7 +9,7 @@ ddt_app_start \
     "Reverse proxy for all docker compose applications"
 
 docker_image="christhomas/nginx-proxy:alpine"
-network_name="backbone"
+network_name="ddt_proxy"
 name="ddt-proxy"
 
 function help ()
@@ -17,7 +17,7 @@ function help ()
     text "${blu}DDT Proxy:${end} (club bouncer says) if your names not down, you're not coming in"
     text "${yel}Usage:${end} ddt-proxy --start"
     text "Options:"
-    text "    --network-name=XXX: Override the default network with a custom name (NOTE: To work correctly this needs to be the first parameter)"
+    text "    --network-name=XXX: Override the default network with a custom name"
     text "    --start: Run the Nginx proxy"
     text "    --stop: Stop the Nginx proxy"
     text "    --restart: Does a restart (just --stop && --start after each other)"
@@ -35,35 +35,15 @@ function print_running_containers ()
     docker ps
 }
 
-function get_network_id ()
-{
-    if [ -z "$1" ]; then ddt_app_error "You must pass the name of the network as the first parameter"; fi
-
-    docker network ls | grep ^$1$ | awk '{ print $1 }'
-}
-
-function create_network ()
-{
-    if [ -z "$1" ]; then ddt_app_error "You must pass the name of the network as the first parameter"; fi
-
-    network_id=$(get_network_id $1)
-
-    # Create the ddt network if it isn't already created
-    if [[ -z "$network_id" ]]; then
-        network_id=$(docker network create $1)
-        text "${blu}Create ddt network:${end} $1 (id: ${network_id})"
-    else
-        text "Network '$1' already exists"
-    fi
-}
-
 function start_proxy ()
 {
     if [ -z "$1" ]; then ddt_app_error "You must pass the name of the proxy docker image as the first parameter"; fi
     if [ -z "$2" ]; then ddt_app_error "You must pass the name of the network to run the proxy on as the second parameter"; fi
 
+    network=$2
+
     # Create the network to bind all the containers onto
-    create_network $2
+    docker_create_network ${network}
 
     # Run the proxy container
     container_id=$(docker_running_id $1)
@@ -85,7 +65,7 @@ function start_proxy ()
 
     container_id=$( \
         docker run -d --restart always \
-        --network $2 \
+        --network ${network} \
         --name ${name} \
         -p 80:80 \
         -p 443:443 \
@@ -96,9 +76,7 @@ function start_proxy ()
     )
     text "Running '${name}', container id: ${container_id}"
 
-    if [ ! -z "${container_id}" ]; then
-        docker network connect backbone ${container_id}
-    else
+    if [ -z "${container_id}" ]; then
         textbox red wht "The container ${name} did not start correctly"
         ddt_app_error "Exiting..."
     fi
@@ -131,12 +109,17 @@ function get_networks ()
     fi
 }
 
+# We search and process this option first, because we need it before all others (it doesn't really hurt performance)
 for i in "${@:1}"; do
     case $i in
         --network-name=*)
             network_name=${i#*=}
         ;;
+    esac
+done
 
+for i in "${@:1}"; do
+    case $i in
         --networks|--networks=*)
             option=${i#*=}
 
@@ -163,7 +146,8 @@ for i in "${@:1}"; do
 
         --restart)
             ddt-proxy --stop
-            ddt-proxy --start
+            ddt-proxy --start --network-name=${network_name}
+            ddt-proxy --networks
         ;;
 
         --logs)
@@ -217,7 +201,7 @@ for i in "${@:1}"; do
             echo "${mapping_list[@]}" | tr '*' '\n' | column -t -s"'"
         ;;
 
-        *|--help)
+        --help)
             help
         ;;
     esac

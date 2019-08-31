@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+. ${DIR}/functions/docker
+
 # foreground colours
 blk="\033[30m"
 red="\033[31m"
@@ -113,34 +115,6 @@ function ddt_clone_function ()
     eval "$NEW_FUNC"
 }
 
-function find_api_server_database ()
-{
-    docker run --network backbone alpine:latest sh -c 'nc -z api-server-mysql 3306; echo $?'
-}
-
-function docker_running_id ()
-{
-    if [ -z "$1" ]; then ddt_app_error "Must pass the name of the container as the first parameter"; fi
-
-    docker ps | grep "$1" | awk '{ print $1 }'
-}
-
-function docker_container_id ()
-{
-    if [ -z "$1" ]; then ddt_app_error "Must pass the name of the container as the first parameter"; fi
-
-    docker container ls --all | grep "$1" | awk '{ print $1 }'
-}
-
-function docker_container_networks ()
-{
-    if [ -z "$1" ]; then ddt_app_error "Must pass the name of the container as the first parameter"; fi
-
-    container_id=$(docker_running_id $1)
-
-    docker inspect --format '{{ range $p, $conf := .NetworkSettings.Networks }} {{$p}} {{end}}' ${container_id}
-}
-
 # This command always needs sudo to run one of its subcommands,
 # but its really annoying to have to wait 2 minutes before it
 # asks you. So I'll put this little sudo command at the top so
@@ -199,5 +173,4 @@ function can_ping ()
 # We need to manually export functions like this to make them available to subshells (urgh, fucking bash!!)
 export -f ddt_app_error
 export -f ddt_realpath
-export -f docker_running_id
 export -f grant_early_sudo
