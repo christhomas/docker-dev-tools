@@ -118,6 +118,19 @@ function stop_proxy ()
     # just leave it and reuse it when necessary
 }
 
+function get_networks ()
+{
+    networks=$(docker_container_networks ${name})
+
+    if [ "$1" == "no-pretty" ]; then
+        echo ${networks}
+    else
+        for n in ${networks}; do
+            text "${blu}Network${end}: ${n}"
+        done
+    fi
+}
+
 for i in "${@:1}"; do
     case $i in
         --network-name=*)
@@ -126,15 +139,8 @@ for i in "${@:1}"; do
 
         --networks|--networks=*)
             option=${i#*=}
-            networks=$(docker_container_networks ${name})
 
-            if [ ${option} == "no-pretty" ]; then
-                echo ${networks}
-            else
-                for n in ${networks}; do
-                    text "${blu}Network${end}: ${n}"
-                done
-            fi
+            get_networks ${option}
         ;;
 
         --start)
@@ -190,6 +196,8 @@ for i in "${@:1}"; do
                 textbox red wht "The nginx proxy (${docker_image}) is not running, cannot execute request"
                 ddt_app_error "Exiting..."
             fi
+
+            get_networks ${option}
 
             container_list=$(docker exec -it ${container_id} cat /etc/nginx/conf.d/default.conf | grep "upstream" | awk '{ print $2 }')
 
