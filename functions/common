@@ -132,6 +132,15 @@ function docker_container_id ()
     docker container ls --all | grep "$1" | awk '{ print $1 }'
 }
 
+function docker_container_networks ()
+{
+    if [ -z "$1" ]; then ddt_app_error "Must pass the name of the container as the first parameter"; fi
+
+    container_id=$(docker_running_id $1)
+
+    docker inspect --format '{{ range $p, $conf := .NetworkSettings.Networks }} {{$p}} {{end}}' ${container_id}
+}
+
 # This command always needs sudo to run one of its subcommands,
 # but its really annoying to have to wait 2 minutes before it
 # asks you. So I'll put this little sudo command at the top so

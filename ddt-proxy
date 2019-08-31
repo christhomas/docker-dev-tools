@@ -24,6 +24,7 @@ function help ()
     text "    --logs: View the logs from the Nginx proxy container"
     text "    --logs-f: View and follow the logs from the Nginx proxy container"
     text "    --domains: Show the domains that the Nginx proxy will respond to"
+    text "    --networks: Show the list of networks that the Nginx proxy is operating on"
 
     ddt_app_error "Missing command, choose from one of the above commands"
 }
@@ -121,6 +122,19 @@ for i in "${@:1}"; do
     case $i in
         --network-name=*)
             network_name=${i#*=}
+        ;;
+
+        --networks|--networks=*)
+            option=${i#*=}
+            networks=$(docker_container_networks ${name})
+
+            if [ ${option} == "no-pretty" ]; then
+                echo ${networks}
+            else
+                for n in ${networks}; do
+                    text "${blu}Network${end}: ${n}"
+                done
+            fi
         ;;
 
         --start)
