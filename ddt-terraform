@@ -22,7 +22,7 @@ if [ ! -z "${role}" ] && [ ! -z "${keys}" ]; then
     AWS_SECRET_ACCESS_KEY=$(echo ${credentials[1]} | tr -d '[:space:]')
     AWS_SESSION_TOKEN=$(echo ${credentials[2]} | tr -d '[:space:]')
     AWS_SECURITY_TOKEN=$(echo ${credentials[2]} | tr -d '[:space:]')
-    else
+else
     echo -e "No AWS Role Found, attempting to acquire static credentials instead: \c"
 
     AWS_ACCESS_KEY_ID=$(ddt-awscli configure get aws_access_key_id --profile ${workspace} 2>/dev/null | tr -dc '[[:print:]]' || echo "")
