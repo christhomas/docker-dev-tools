@@ -22,6 +22,7 @@ function help ()
     text "    --restart: Does a restart (just --stop && --start after each other)"
     text "    --config: Output the raw /etc/nginx/conf.d/default.conf which is generated when containers start and stop"
     text "    --network-name=XXX: Override the default network with a custom name"
+    text "    --add-network=XXX: Add a new network to a running proxy without needing to restart it"
     text "    --logs: View the logs from the Nginx proxy container"
     text "    --logs-f: View and follow the logs from the Nginx proxy container"
     text "    --domains: Show the domains that the Nginx proxy will respond to"
@@ -206,6 +207,18 @@ for i in "${@:1}"; do
             container_id=$(docker_running_id ${docker_image})
 
             docker exec -it ${container_id} cat /etc/nginx/conf.d/default.conf
+        ;;
+
+	--add-network=*)
+            network=${i#*=}
+            text blu "Connecting a new network '${network}' to the proxy"
+
+            container_id=$(docker_container_id ${docker_image})
+
+            exists=$(docker network ls | grep ${network})
+            [ -z "${exists}" ] && docker network create ${network}
+
+            docker network connect ${network} ${container_id}
         ;;
 
         --help)
