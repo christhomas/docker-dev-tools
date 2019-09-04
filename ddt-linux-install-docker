@@ -1,0 +1,69 @@
+#!/usr/bin/env bash
+
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+SCRIPT=$(basename ${BASH_SOURCE[0]})
+
+. ${DIR}/functions/common
+. ${DIR}/functions/${os}_help
+
+ddt_app_start \
+    "DDT LINUX DOCKER INSTALL SCRIPT" \
+    "Because you're lazy and you just don't want to admit it"
+
+if [ "${os}" != "linux" ]; then
+    ddt_app_error "This script is only for running on linux"
+fi
+
+text "${blu}Removing:${end} Old docker version"
+sudo apt-get remove docker docker-engine docker.io docker-compose
+
+text "${blu}Install:${end} Update system and install base packages"
+sudo apt-get update
+sudo apt-get install -y \
+    apt-transport-https \
+    ca-certificates \
+    curl \
+    software-properties-common
+
+text "${blu}Install:${end} Setup Docker Registry"
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+
+for dist in "$(lsb_release -cs)" "bionic"; do
+    text "Testing Distribution '$dist' for docker package. \c"
+    stability=stable
+    code=$(get_http_code https://download.docker.com/linux/ubuntu/dists/${dist}/${stability}/)
+
+    if [ "${code}" = "200" ]; then
+        text grn "Found docker version"
+        installed=true
+
+        sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu ${dist} ${stability}"
+    else
+        text red "Did not find a docker to install"
+    fi
+done
+
+if [ -z "${installed}" ]; then
+    ddt_app_error "There was not a version of docker found to install"
+fi
+
+sudo apt-get update
+
+text "${blu}Install:${end} docker"
+sudo apt-get install -y docker-ce
+
+text "${blu}Install:${end} docker-compose"
+version=1.22.0
+system=$(uname -s)
+arch=$(uname -m)
+sudo rm -f /usr/local/bin/docker-compose
+sudo curl -L https://github.com/docker/compose/releases/download/${version}/docker-compose-${system}-${arch} -o /usr/local/bin/docker-compose
+sudo chmod +x /usr/local/bin/docker-compose
+
+text "${blu}Install:${end} Running docker service"
+sudo systemctl restart docker
+
+text "${blu}Install:${end} Adding user to docker group"
+sudo usermod -aG docker $USER
+text "${red}Warning:${end} This change will not take effect until you reboot your laptop (it's not safe to just logout)"
+kill 0
