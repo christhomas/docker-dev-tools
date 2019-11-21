@@ -1,17 +1,16 @@
 #!/usr/bin/env bash
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-SCRIPT=$(basename ${BASH_SOURCE[0]})
 
-. ${DIR}/functions/common
-. ${DIR}/functions/${os}_help
+source ${DIR}/../functions/common
+source ${DIR}/../functions/${os}_help
 
-ddt_app_start \
+tool_start \
     "DDT LINUX DOCKER INSTALL SCRIPT" \
     "Because you're lazy and you just don't want to admit it"
 
 if [ "${os}" != "linux" ]; then
-    ddt_app_error "This script is only for running on linux"
+    tool_fatal_error "This script is only for running on linux"
 fi
 
 text "${blu}Removing:${end} Old docker version"
@@ -44,7 +43,7 @@ for dist in "$(lsb_release -cs)" "bionic"; do
 done
 
 if [ -z "${installed}" ]; then
-    ddt_app_error "There was not a version of docker found to install"
+    tool_fatal_error "There was not a version of docker found to install"
 fi
 
 sudo apt-get update

@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+
+source $(this_dir)/colours.ini
+
+function textbox () {
+    background="${@:1:1}_b"
+    foreground="${@:2:1}"
+    text="    ${@:3}    "
+
+    eval foreground="\$$foreground"
+    eval background="\$$background"
+
+    echo -e "${foreground}${background}\n\n${text}\n${end}\n"
+}
+
+function text ()
+{
+    colour="${@:1:1}"
+    text="${@:2}"
+
+    # the subcommand $() && echo stops this from breaking on some terminals
+    colour=$(eval colour=\${$colour} 2> /dev/null && echo ${colour})
+
+    [ $? -eq 0 ] && [ ! -z "${colour}" ] && echo -e "${colour}${text}${end}" || echo -e "$@"
+}
+
+export -f textbox
+export -f text
+

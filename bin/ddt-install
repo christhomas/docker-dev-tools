@@ -1,17 +1,16 @@
 #!/usr/bin/env bash
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-SCRIPT=$(basename ${BASH_SOURCE[0]})
 
-source ${DIR}/functions/common
+source ${DIR}/../functions/common
 
-ddt_app_start \
+tool_start \
     "DOCKER DEVELOPMENT TOOLS (DDT) INSTALL SCRIPT" \
     "This script will install the stack in the path so it's tools can be used with various projects"
 
 echo -e "${yel}Warning: This script might not take care of every situation, it might need customising for various environments${end}\n"
 
 # This is the path that will be added to the profile setup
-new_path='PATH=$PATH:'$DIR
+new_path='PATH=$PATH:'$(this_dir)
 has_updated=0
 has_installed=0
 
@@ -20,13 +19,13 @@ function test_installed ()
     echo -e "Testing whether the tools are already installed: \c"
 
     for path in $(which -a ddt-install); do
-        if [[ "$path" == "$DIR/ddt-install" ]]; then
+        if [[ "$path" == "$DIR/$(this_script)" ]]; then
             echo -e "${red}ddt-install already in the path at ${path}, do not need to install${end}\n"
             exit 0
         fi
     done
 
-    echo -e "${mag}${SCRIPT} was not found!${end}\n"
+    echo -e "${mag}The tools are not installed!${end}\n"
 }
 
 function update_file () 
@@ -52,15 +51,15 @@ function update_file ()
 function install_fallback ()
 {
     echo -e "\n${red}No installation locations found, defaulting to creating a .bash_profile as a backup plan${end}\n"
-    echo -e "#!/bin/bash\n\n$new_path\n" >> ~/.bash_profile
+    echo -e "#!/bin/bash\n\n$new_path\n" >> $HOME/.bash_profile
 }
 
 test_installed
 
 echo -e "Adding an updated shell path to one or all of the following files if they are present in your system:\n"
-update_file ~/.bash_profile ${new_path}
-update_file ~/.zshrc ${new_path}
-update_file ~/.bashrc ${new_path}
+update_file $HOME/.bash_profile ${new_path}
+update_file $HOME/.zshrc ${new_path}
+update_file $HOME/.bashrc ${new_path}
 
 if [ "${has_updated}" == "1" ]; then
     echo -e "${grn}Complete: You must open a new terminal for this change to take effect${end}\n"

@@ -2,33 +2,35 @@
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
-. ${DIR}/functions/common
+. ${DIR}/../functions/common
 
-ddt_app_start \
-    "DDT DOCKER COMPOSE PROXY" \
+read_config ${DIR}/../.env
+
+tool_start \
+    "${proxy_tool_name}" \
     "Reverse proxy for all docker compose applications"
 
 docker_image="christhomas/nginx-proxy:alpine"
-network_name="ddt_proxy"
-name="ddt-proxy"
+network_name=${proxy_network_name}
+name=${proxy_container_name}
 
 function help ()
 {
-    text "${blu}DDT Proxy:${end} (club bouncer says) if your names not down, you're not coming in"
-    text "${yel}Usage:${end} ddt-proxy --start"
+    text "Running Help:"
+    text "${blu}${proxy_tool_name}:${end} (club bouncer says) if your names not down, you're not coming in"
+    text "${yel}Usage:${end} ${self} --start"
     text "Options:"
-    text "    --start: Run the Nginx proxy"
+    text "    --start[=XXX]: Run the Nginx proxy, with an optional assignment for the network name to use"
     text "    --stop: Stop the Nginx proxy"
     text "    --restart: Does a restart (just --stop && --start after each other)"
     text "    --config: Output the raw /etc/nginx/conf.d/default.conf which is generated when containers start and stop"
-    text "    --network-name=XXX: Override the default network with a custom name"
     text "    --add-network=XXX: Add a new network to a running proxy without needing to restart it"
     text "    --logs: View the logs from the Nginx proxy container"
     text "    --logs-f: View and follow the logs from the Nginx proxy container"
     text "    --domains: Show the domains that the Nginx proxy will respond to"
     text "    --networks: Show the list of networks that the Nginx proxy is operating on"
 
-    ddt_app_error "Missing command, choose from one of the above commands"
+    tool_fatal_error "Missing command, choose from one of the above commands"
 }
 
 function print_running_containers ()
@@ -37,10 +39,30 @@ function print_running_containers ()
     docker ps
 }
 
+function get_network_id ()
+{
+    if [ -z "$1" ]; then tool_fatal_error "You must pass the name of the network as the first parameter"; fi
+
+    docker network ls | grep "$1" | awk '{ print $1 }'
+}
+
+function create_network ()
+{
+    if [ -z "$1" ]; then tool_fatal_error "You must pass the name of the network as the first parameter"; fi
+
+    network_id=$(get_network_id $1)
+
+    # Create the ddt proxy network if it isn't already created
+    if [[ -z "$network_id" ]]; then
+        network_id=$(docker network create $1)
+        text "${blu}Create proxy network:${end} $1 (id: ${network_id})"
+    fi
+}
+
 function start_proxy ()
 {
-    if [ -z "$1" ]; then ddt_app_error "You must pass the name of the proxy docker image as the first parameter"; fi
-    if [ -z "$2" ]; then ddt_app_error "You must pass the name of the network to run the proxy on as the second parameter"; fi
+    if [ -z "$1" ]; then tool_fatal_error "You must pass the name of the proxy docker image as the first parameter"; fi
+    if [ -z "$2" ]; then tool_fatal_error "You must pass the name of the network to run the proxy on as the second parameter"; fi
 
     network=$2
 
@@ -53,13 +75,13 @@ function start_proxy ()
     if [[ ! -z "${container_id}" ]]; then
         stop_proxy $1 ${container_id}
     fi
-
+    
     text "${blu}Starting the nginx proxy container:${end} $1..."
 
     docker container prune -f
 
     if [ ! -z "$(docker container ls | grep ${name})" ]; then
-        # first, remove the container that was previously built, cause otherwise it'll crash with "The container name /ddt-proxy" is already in use by container "xxxx" and this stops that
+        # first, remove the container that was previously built, cause otherwise it'll crash with "The container name /xxx" is already in use by container "xxxx" and this stops that
         text "Deleting container: \c"
         docker container rm ${name} 2>&1
         docker rm ${name} 2>&1
@@ -67,7 +89,6 @@ function start_proxy ()
 
     container_id=$( \
         docker run -d --restart always \
-        --network ${network} \
         --name ${name} \
         -p 80:80 \
         -p 443:443 \
@@ -78,19 +99,25 @@ function start_proxy ()
     )
     text "Running '${name}', container id: ${container_id}"
 
+    network=$(csv_to_array ${network});
+    for n in ${network[@]}; do
+      text "Connecting container '${container_id}' to network '${n}'"
+      docker network connect ${n} ${container_id}
+    done
+
     if [ -z "${container_id}" ]; then
         textbox red wht "The container ${name} did not start correctly"
-        ddt_app_error "Exiting..."
+        tool_fatal_error "Exiting..."
     fi
 }
 
 function stop_proxy ()
 {
-    if [ -z "$1" ]; then ddt_app_error "You must pass the docker image as the first parameter"; fi
-    if [ -z "$2" ]; then ddt_app_error "You must pass the container id as the second parameter in order to stop it"; fi
+    if [ -z "$1" ]; then tool_fatal_error "You must pass the docker image as the first parameter"; fi
+    if [ -z "$2" ]; then tool_fatal_error "You must pass the container id as the second parameter in order to stop it"; fi
 
     text "${blu}Stopping the nginx proxy container:${end} $1..."
-
+    
     docker kill $2 &>/dev/null
     docker rm -f $2 &>/dev/null
 
@@ -101,9 +128,13 @@ function stop_proxy ()
 function get_networks ()
 {
     networks=$(docker_container_networks ${name})
+    # we don't count the bridge network when performing this action
+    networks=$(echo ${networks} | sed s/bridge// | xargs)
 
     if [ "$1" == "no-pretty" ]; then
         echo ${networks}
+    elif [ "$1" == "csv" ]; then
+        echo "$(space_sep_to_csv ${networks})"
     else
         for n in ${networks}; do
             text "${blu}Network${end}: ${n}"
@@ -111,28 +142,21 @@ function get_networks ()
     fi
 }
 
-# We search and process this option first, because we need it before all others (it doesn't really hurt performance)
-for i in "${@:1}"; do
-    case $i in
-        --network-name=*)
-            network_name=${i#*=}
-        ;;
-    esac
-done
-
 for i in "${@:1}"; do
     case $i in
         --networks|--networks=*)
-            option=${i#*=}
+            [ "${i#*=}" != "--networks" ] && option=${i#*=}
 
             get_networks ${option}
         ;;
 
-        --start)
+        --start|--start=*)
+            [ "${i#*=}" != "--start" ] && network_name=${i#*=}
+
             start_proxy ${docker_image} ${network_name}
 
             print_running_containers
-            ddt-proxy --domains
+            ${self} --domains
         ;;
 
         --stop)
@@ -148,8 +172,10 @@ for i in "${@:1}"; do
         ;;
 
         --restart)
-            ddt-proxy --stop
-            ddt-proxy --start --network-name=${network_name}
+            network_name=$(${self} --networks=csv | awk '{if(NR>0)print}')
+
+            ${self} --stop
+            ${self} --start=${network_name}
         ;;
 
         --logs)
@@ -157,7 +183,7 @@ for i in "${@:1}"; do
 
             if [ -z "${container_id}" ]; then
                 textbox red wht "The nginx proxy (${docker_image}) is not running, cannot execute request"
-                ddt_app_error "Exiting..."
+                tool_fatal_error "Exiting..."
             fi
 
             docker logs ${container_id}
@@ -168,7 +194,7 @@ for i in "${@:1}"; do
 
             if [ -z "${container_id}" ]; then
                 textbox red wht "The nginx proxy (${docker_image}) is not running, cannot execute request"
-                ddt_app_error "Exiting..."
+                tool_fatal_error "Exiting..."
             fi
 
             docker logs -f ${container_id}
@@ -180,7 +206,7 @@ for i in "${@:1}"; do
 
             if [ -z "${container_id}" ]; then
                 textbox red wht "The nginx proxy (${docker_image}) is not running, cannot execute request"
-                ddt_app_error "Exiting..."
+                tool_fatal_error "Exiting..."
             fi
 
             get_networks ${option}
@@ -209,16 +235,18 @@ for i in "${@:1}"; do
             docker exec -it ${container_id} cat /etc/nginx/conf.d/default.conf
         ;;
 
-	--add-network=*)
+        --add-network=*)
             network=${i#*=}
             text blu "Connecting a new network '${network}' to the proxy"
 
-            container_id=$(docker_container_id ${docker_image})
+            container_id=$(docker_running_id ${docker_image})
 
             exists=$(docker network ls | grep ${network})
             [ -z "${exists}" ] && docker network create ${network}
 
             docker network connect ${network} ${container_id}
+
+            get_networks
         ;;
 
         --help)

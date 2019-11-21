@@ -1,0 +1,16 @@
+{
+  "scripts": {
+    "up": "docker-compose up -d {{SERVICE}}",
+    "down": "docker-compose stop {{SERVICE}}",
+    "composer-update": "ddt-php-composer --update"
+  },
+  "healthchecks": {
+
+  },
+  "config": {
+
+  },
+  "stacks": {
+
+  }
+}

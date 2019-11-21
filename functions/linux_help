@@ -8,20 +8,20 @@ function help_docker ()
 
 function help_docker_command ()
 {
-    echo "ddt-linux-install-docker"
+    text "ddt-linux-install-docker"
 }
 
 function help_docker_compose ()
 {
     text "${yel}Installation Help:${end} You must run the following commands manually"
-    echo -e "$(help_docker_compose_command)"
+    text "$(help_docker_compose_command)"
 }
 
 function help_docker_compose_command ()
 {
-    echo "version=1.21.2 && system=$(uname -s) && arch=$(uname -m);"
-    echo "sudo curl -L https://github.com/docker/compose/releases/download/\${version}/docker-compose-\${system}-\${arch} -o /usr/local/bin/docker-compose;"
-    echo "sudo chmod +x /usr/local/bin/docker-compose;"
+    text "version=1.21.2 && system=$(uname -s) && arch=$(uname -m);"
+    text "sudo curl -L https://github.com/docker/compose/releases/download/\${version}/docker-compose-\${system}-\${arch} -o /usr/local/bin/docker-compose;"
+    text "sudo chmod +x /usr/local/bin/docker-compose;"
 }
 
 function help_php ()
@@ -31,30 +31,30 @@ function help_php ()
 
 function help_php_command ()
 {
-    echo "sudo apt-get update && sudo apt-get install -y php php-curl php-mysql"
+    text "sudo apt-get update && sudo apt-get install -y php php-curl php-mysql"
 }
 
 function help_node ()
 {
     text "${yel}Installation Help:${end} You must run the following command manually"
-    echo "$(help_node_command)"
+    text "$(help_node_command)"
 }
 
 function help_node_command ()
 {
     url="https://deb.nodesource.com/setup_8.x"
 
-    echo "curl -sL ${url} | sudo -E bash - && sudo apt-get install -y nodejs"
+    text "curl -sL ${url} | sudo -E bash - && sudo apt-get install -y nodejs"
 }
 
 function help_npm () 
 {
-    echo "There is no help for this"
+    text "There is no help for this"
 }
 
 function help_npm_command () 
 {
-    echo "There is no help for this"
+    text "There is no help for this"
 }
 
 function help_git ()
@@ -65,5 +65,5 @@ function help_git ()
 
 function help_git_command ()
 {
-    echo "sudo apt-get update && sudo apt-get install -y git"
+    text "sudo apt-get update && sudo apt-get install -y git"
 }

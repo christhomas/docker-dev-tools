@@ -1,0 +1,229 @@
+#!/usr/bin/env bash
+
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+source ${DIR}/../functions/common
+source ${DIR}/../functions/${os}_network
+
+read_config ${DIR}/../.env
+
+tool_start \
+    "${dns_tool_name}" \
+    "Turn your network on....or...off...."
+
+# Configuration values
+localhost=127.0.0.1
+
+function get_dns_container ()
+{
+  container_id=$(docker_running_id ${dns_docker_image})
+
+  if [ -z "${container_id}" ] && [ "$1" = "die-on-failure" ]; then
+      textbox red wht "The Local DNS Container '${dns_docker_image}' is not running, cannot execute request"
+      tool_fatal_error "Exiting..."
+  fi
+
+  echo ${container_id}
+}
+
+function add_domain ()
+{
+  [ -z "$1" ] && tool_fatal_error "Must pass the dns ip address as the first parameter"
+  [ -z "$2" ] && tool_fatal_error "Must pass the domain name as the second parameter"
+
+  container_id=$(get_dns_container die-on-failure)
+
+  text "${blu}Installing domain:${end} ${yel}'$2'${end} with ip address ${yel}'$1'${end} into dnsmasq configuration in container id ${yel}'${container_id}'${end}"
+
+  docker exec -it ${container_id} /bin/sh -c "echo 'address=/$2/$1' > /etc/dnsmasq.d/$2.conf"
+  docker exec -it ${container_id} kill -s SIGHUP 1
+
+  sleep 2
+}
+
+function remove_domain ()
+{
+  [ -z "$1" ] && tool_fatal_error "Must pass the domain name as the first parameter"
+
+  container_id=$(get_dns_container die-on-failure)
+
+  text "${blu}Removing domain:${end} ${yel}'$1'${end} from dnsmasq configuration in container id ${yel}'${container_id}'${end}"
+
+  docker exec -it ${container_id} /bin/sh -c "f=/etc/dnsmasq.d/$1.conf && [ -f \$f ] && rm \$f"
+  docker exec -it ${container_id} kill -s SIGHUP 1
+
+  sleep 2
+}
+
+function network_start_dns ()
+{
+    [ -z "$1" ] && tool_fatal_error "Must pass the docker image name as the first parameter"
+
+    docker_image=$1
+
+    network_stop_dns ${docker_image}
+
+    text blu "Starting Supervisord DNSMasq..."
+
+    if [ ! -z "$(docker container ls --all | grep ${dns_container_name})" ]; then
+        text red "Removing DNS Container: ${dns_container_name}"
+        # first, remove the container that was previously built, cause otherwise it'll crash with "The container name /XXX" is already in use by container "xxxx" and this stops that
+        docker container rm ${dns_container_name} >/dev/null
+    else
+        text red "DNS Container ${dns_container_name} was not found"
+    fi
+
+    docker run -d --name ${dns_container_name} --restart=always -p 53:53/udp ${docker_image}:latest
+
+    sleep 2
+}
+
+function network_stop_dns ()
+{
+    [ -z "$1" ] && tool_fatal_error "Must pass the docker image name as the first parameter"
+
+    docker_image=$1
+
+    # Stop any running container
+    container_id=$(get_dns_container ignore-failure)
+
+    if [ ! -z "${container_id}" ]; then
+        text blu "Stopping Supervisord DNSMasq container..."
+        docker rm -f ${container_id} &>/dev/null
+    fi
+
+    # Remove any stopped container that will clash by name
+    container_id=$(docker_container_id ${dns_container_name})
+
+    if [ ! -z "${container_id}" ]; then
+        text blu "Removing old container..."
+        docker container rm ${container_id} &>/dev/null
+    fi
+}
+
+function test_ping ()
+{
+    [ -z "$1" ] && tool_fatal_error "Must pass the ip or hostname of what should be pinged"
+
+    text blu "Lets test whether ping for '$1' works...."
+    can_ping $1
+}
+
+function help ()
+{
+    text "${blu}${dns_tool_name}:${end} Configure all the internet things!"
+    text "${yel}Usage Example:${end} ${self} --start"
+    text "Options:"
+    text "    --start: Setup the DNS servers and start Supervisord-dnsmasq"
+    text "    --restart: Restart the Supervisord-dnsmasq"
+    text "    --stop: Stop the DNS servers and start Supervisord-dnsmasq"
+    text "    --add-domain=yourdomain.com: Add a domain to the running DNS server"
+    text "    --remove-domain=yourdomain.com: Remove a domain to the running DNS server (see also --ip-address)"
+    text "    --ip-address=xxx.xxx.xxx.xxx: Use this ip address when configuring the server instead of the default one"
+    text "    --logs: View the logs from the DNSMasq container"
+    text "    --logs-f: View and follow the logs from the DNSMasq container"
+    text "    --domains: View a list of all the domains that are registered with the DNSMasq server"
+    text " "
+
+    tool_fatal_error "No parameters given"
+}
+
+for i in "${@:1}"; do
+    case $i in
+        --start)
+            text "${blu}Docker:${end} Pulling '${dns_docker_image}' before changing the dns"
+            docker pull ${dns_docker_image}
+
+            network_setup_dns ${localhost}
+
+            network_start_dns ${dns_docker_image}
+
+            # Configure all the domains to be resolved on this computer
+            list=$(csv_to_array ${dns_domain_list})
+            for domain in ${list[@]}; do
+              echo "adding domain: ${domain}"
+              ${self} --add-domain=${domain}
+            done
+        ;;
+
+        --stop)
+            network_stop_dns ${dns_docker_image}
+
+            network_remove_dns ${localhost}
+
+            test_ping "google.com"
+
+            # Test all the domains to be resolved on this computer
+            list=$(csv_to_array ${dns_domain_list})
+            for domain in ${list[@]}; do
+              test_ping "${domain}"
+            done
+        ;;
+
+        --restart)
+            ${self} --stop
+            ${self} --start
+        ;;
+
+        --logs)
+            docker logs $(get_dns_container die-on-failure)
+        ;;
+
+        --logs-f)
+            docker logs -f $(get_dns_container die-on-failure)
+        ;;
+
+        --domains)
+            text blu Domains that are registered in the dns container:
+
+            container_id=$(get_dns_container die-on-failure)
+
+            mapping_list=(" Domains'|'IP Address*")
+            for file in $(docker exec -it ${container_id} find /etc/dnsmasq.d -name "*.conf" -type f); do
+                file=$(echo ${file} | tr -d '\r')
+                file=$(docker exec -it ${container_id} cat ${file})
+                domain=$(echo ${file} | cut -d/ -f2)
+                ip_address=$(echo ${file} | cut -d/ -f3)
+
+                mapping_list+=("${domain}'|'${ip_address}*")
+            done
+            echo "${mapping_list[@]}" | tr '*' '\n' | column -t -s"'"
+        ;;
+
+        --ip-address=*)
+          override_ip_alias=${i#*=}
+          text blu "Overriding IP Address from '${ip_local_ip_alias}' to '${override_ip_alias}'"
+          ip_local_ip_alias=${override_ip_alias}
+        ;;
+
+        --help)
+            help
+        ;;
+    esac
+done
+
+# We must execute add-domain last because it has to process ALL OTHER OPTIONS first, so we just do this for safety
+for i in "${@:1}"; do
+    case $i in
+      --add-domain=*)
+          domain=${i#*=}
+
+          add_domain ${ip_local_ip_alias} ${domain}
+
+          test_ping "google.com"
+          test_ping "${domain}"
+      ;;
+
+
+      --remove-domain=*)
+          domain=${i#*=}
+
+          remove_domain ${domain}
+
+          test_ping "google.com"
+          test_ping "${domain}"
+      ;;
+    esac
+done
+
+if [ $# -eq 0 ]; then help; fi

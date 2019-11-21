@@ -2,43 +2,94 @@
 
 network_add_ip_alias ()
 {
-    if [[ -z $1 ]]; then ddt_app_error "Must pass the alias ip address as the first parameter"; fi
+    if [[ -z $1 ]]; then tool_fatal_error "Must pass the alias ip address as the first parameter"; fi
 
-    text "${yel}Adding Loopback Alias IP Address:${end} '$1'"
-    sudo ifconfig lo0 alias $1
+    alias_ip_address="$1"
+
+    text "${yel}Adding Loopback Alias IP Address:${end} '${alias_ip_address}'"
+    sudo ifconfig lo0 alias ${alias_ip_address}
 }
 
 network_remove_ip_alias ()
 {
-    if [[ -z $1 ]]; then ddt_app_error "Must pass the alias ip address as the first parameter"; fi
+    if [[ -z $1 ]]; then tool_fatal_error "Must pass the alias ip address as the first parameter${end}"; fi
 
-    text "${yel}Removing Loopback Alias IP Address:${end} '$1'"
-    sudo ifconfig lo0 $1 delete
+    alias_ip_address="$1"
+
+    text "${yel}Removing Loopback Alias IP Address:${end} '${alias_ip_address}'"
+    sudo ifconfig lo0 ${alias_ip_address} delete
 }
 
 network_setup_dns ()
 {
-    if [[ -z $1 ]]; then ddt_app_error "Must pass the dns ip address as the first parameter"; fi
-
-    text "DNS Servers: ${yel}'$1'${end}"
-    sudo networksetup -setdnsservers 'Wi-Fi' $1
-
-    if [ ! -z $(command -v dscacheutil) ]; then
-        sudo dscacheutil -flushcache;
-    fi
-    sudo killall -HUP mDNSResponder
+    network_set_dns $@
 }
 
 network_remove_dns ()
 {
-    dns_ip_address="1.1.1.1 1.0.0.1"
-    text "DNS Servers: ${yel}'${dns_ip_address}'${end}"
-    sudo networksetup -setdnsservers 'Wi-Fi' ${dns_ip_address}
+    network_set_dns $(csv_to_array ${dns_public_ip})
+}
 
+network_set_dns ()
+{
+    [ "$#" -lt 1 ] && tool_fatal_error "Must pass at least one dns ip address"
+
+    OLD_IFS=${IFS}
+    IFS=","
+    interfaces=($(network_list_interfaces --return-interface))
+
+    text "DNS Servers: ${yel}'$@'${end}"
+    for i in ${interfaces[*]}; do
+        text "Configuring interface ${yel}'${i}'${end}"
+        sudo networksetup -setdnsservers "${i}" $@
+    done
+
+    IFS=${OLD_IFS}
+
+    network_flush_dns
+}
+
+network_flush_dns ()
+{
     if [ ! -z $(command -v dscacheutil) ]; then
         sudo dscacheutil -flushcache;
     fi
+
     sudo killall -HUP mDNSResponder
+}
+
+###################################################################################
+# Attribution
+# Thank you random internet person: https://apple.stackexchange.com/a/223446/119354
+###################################################################################
+network_list_interfaces ()
+{
+    services=$(networksetup -listnetworkserviceorder | grep 'Hardware Port')
+
+    output=()
+
+    while read line; do
+        sname=$(echo "${line}" | sed -nE 's/^\(Hardware Port: (.*), Device: (.*)\)$/\1/p')
+        sdev=$(echo "${line}" | sed -nE 's/^\(Hardware Port: (.*), Device: (.*)\)$/\2/p')
+
+        if [ -n "$sdev" ]; then
+            ifout="$(ifconfig $sdev 2>/dev/null)"
+            echo "$ifout" | grep 'status: active' > /dev/null 2>&1
+            rc="$?"
+            if [ "$rc" -eq 0 ]; then
+                currentservice="$sname"
+                currentdevice="$sdev"
+                currentmac=$(echo "$ifout" | awk '/ether/{print $2}')
+
+                # may have multiple active devices, so echo it here
+                device="$currentservice, $currentdevice, $currentmac"
+
+                [ "$1" == "--return-interface" ] && output+=("${currentservice}") || output+=("${device}")
+            fi
+        fi
+    done <<< "$(echo "${services}")"
+
+    echo "${output[*]}"
 }
 
 # Function exports and parameters

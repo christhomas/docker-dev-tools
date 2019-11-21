@@ -1,0 +1,82 @@
+#!/usr/bin/env php
+<?php
+require_once(__DIR__ . '/../functions/common.php');
+
+$env = parse_ini_file(__DIR__ . '/../.env');
+
+define("__DEBUG__", true);
+define("__TRACE__", true);
+define("__EXEC__", true);
+
+tool_start($env['stacks_tool_name'], '(sings) The foot bones connected to the leg bone, the leg bones connected to the thigh bone.....');
+
+$data = read_json(__DIR__ . '/../stacks.json');
+$scripts = $data['scripts'];
+$healthchecks = $data['healthchecks'];
+$config = $data['config'];
+$list_stacks = $data['stacks'];
+
+function trace($string)
+{
+    if(__TRACE__) print($string);
+}
+
+function is_project($name)
+{
+    return is_dir(__TOOL_DIR__ . '/' . $name);
+}
+
+function is_stack($name, $list_stacks)
+{
+    return array_key_exists($name, $list_stacks);
+}
+
+function process_stack($script, $project, $list_stacks)
+{
+    if(!is_stack($project, $list_stacks)){
+        tool_fatal_error("The stack '$project' does not exist");
+    }
+
+    $list = $list_stacks[$project];
+
+    foreach ($list as $key => $item) {
+		$containers = is_array($item) && array_key_exists("containers", $item)
+			? implode(" ",$item["containers"])
+			: "";
+
+		$command = str_replace("{{SERVICE}}", $containers, $script);
+
+        if(!is_assoc_array($list) && is_stack($item, $list_stacks) && $project !== $item){
+            trace("Recursing into '$item'\n");
+            process_stack($script, $item, $list_stacks);
+        }else{
+            if(is_string($key) && is_array($item)) {
+				trace("The '$key' is a subproject\n");
+
+				$subproject = $key;
+			}else{
+				trace("The '$item' is a top level project to execute\n");
+
+				$subproject = $item;
+			}
+
+            script_passthru(__TOOL_DIR__ . "/$subproject", $command);
+		}
+    }
+}
+
+foreach (array_slice($argv, 1) as $arg) {
+	list($script, $list_projects) = explode('=', $arg);
+	$script = trim($script, '--');
+	$list_projects = explode(',', $list_projects);
+
+	if (!array_key_exists($script, $scripts)) {
+		tool_fatal_error("The script '$script' is not configured");
+	}
+
+	$script = $scripts[$script];
+
+	foreach ($list_projects as $project) {
+		process_stack($script, $project, $list_stacks);
+	}
+}

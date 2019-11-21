@@ -1,0 +1,213 @@
+#!/usr/bin/env bash
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+source ${DIR}/../functions/common
+source ${DIR}/../functions/${os}_help
+
+read_config ${DIR}/../.env
+
+tool_start \
+    "${check_tool_name}" \
+    "This script will check if all required tools are installed"
+
+# We should grab sudo early just in case we need it later and then we have to interrupt the user again
+grant_early_sudo
+
+function shall_install ()
+{
+    get_yn_answer "Do you want to install this?"
+}
+
+function shall_uninstall ()
+{
+    get_yn_answer "Do you want to uninstall this?\c "
+}
+
+function check_darwin ()
+{
+    install_xcode
+    install_brew
+}
+
+function check_linux ()
+{
+    check_apt_get
+    check_elasticsearch
+}
+
+function install_xcode ()
+{
+    if [ -z "$(command -v gcc)" ]; then
+        sudo xcode-select --install
+    else
+        text grn "\t${chk} $(gcc -v 2>&1 | grep clang) found."
+    fi
+}
+
+function install_brew ()
+{
+    if [ -z "$(command -v brew)" ]; then
+        text "${red}\t${mss} Brew was missing. ${end}\c"
+
+        [ "$(shall_install)" = "y" ] && eval $(help_brew_command) || help_brew
+    else
+        text grn "\t${chk} $(brew --version | grep -E '^Homebrew\s+[0-9]+.[0-9]+.[0-9]+$') found."
+    fi
+}
+
+function check_apt_get ()
+{
+    if [ -z "$(command -v apt-get)" ]; then
+        text red "\t${mss} Command 'apt-get' not found. This linux system is not supported"
+    else
+        text grn "\t${chk} apt-get found."
+    fi
+}
+
+function check_php ()
+{
+    if [ -z "$(command -v php)" ]; then
+        text red "\t${mss} PHP not found. ${end}\c"
+
+        [ "$(shall_install)" = "y" ] && eval $(help_php_command) || help_php
+    else
+        text grn "\t${chk} PHP version $(php -r "echo PHP_VERSION;") found."
+    fi
+}
+
+function check_webserver ()
+{
+    process_list=$(sudo lsof -nP -iTCP:80 -sTCP:LISTEN | awk '{if(NR>1)print}')
+
+    if [ ! -z "${process_list}" ]; then
+        recheck=0
+
+        is_apache=$(echo ${process_list} | grep "apache")
+        is_httpd=$(echo ${process_list} | grep "httpd")
+        is_nginx=$(echo ${process_list} | grep "nginx")
+        is_docker=$(echo ${process_list} | grep "dock")
+
+        if [ "${os}" = "darwin" ]; then
+            [ ! -z "${is_httpd}" ] && text "\t${red}Found MacOs/Apache:${end} stopping...\c" && sudo apachectl stop && recheck=1
+            [ ! -z "${is_docker}" ] && text grn "\t${chk} Found MacOs/Docker + Nginx-proxy" && return
+        fi
+
+        if [ "${os}" = "linux" ]; then
+            [ ! -z "${is_apache}" ] && text "\t${red}Found Linux/Apache:${end} stopping...\c" && sudo service apache2 stop && recheck=1
+            [ ! -z "${is_nginx}" ] && text "\t${red}Found Linux/Nginx:${end} stopping...\c" && sudo service nginx stop && recheck=1
+        fi
+
+        if [ ${recheck} -eq 1 ]; then
+            if [ "$1" != "recheck" ]; then
+                echo -e "\tChecking webserver status to see if stopping the server was successful..."
+                check_webserver recheck
+            else
+                tool_fatal_error "\tAlready attempted to stop the webserver, but something has not completed successfully, please manually try to resolve this problem"
+            fi
+        fi
+    else
+        text grn "\t${chk} No webservers running"
+    fi
+}
+
+function check_docker ()
+{
+    if [ -z "$(command -v docker)" ]; then
+        text red "\t${mss} Docker not found."
+
+        if [ "$(shall_install)" = "y" ]; then
+            eval $(help_docker_command)
+    	    text yel "You must close this terminal and run the command again, your user was updated with new permissions"
+	        kill 0
+        else
+            help_docker
+        fi
+    else
+        text grn "\t${chk} $(docker -v) found."
+    fi
+}
+
+function check_docker_compose ()
+{
+    if [ -z "$(command -v docker-compose)" ]; then
+        text red "\t${mss} Docker Compose not found."
+
+        [ "$(shall_install)" = "y" ] && eval $(help_docker_compose_command) || help_docker_compose
+    else
+        text grn "\t${chk} $(docker-compose -v) found."
+    fi
+}
+
+function check_node ()
+{
+    if [ -z "$(command -v node)" ]; then
+        text "${yel}\t${mss} Node not found. ${end}\c"
+
+        if [ "$(shall_install)" = "y" ]; then
+            eval $(help_node_command)
+        else
+            REQUIRED=1
+            help_node
+        fi
+    else
+        text grn "\t${chk} Node version $(node -v) found."
+    fi
+}
+
+function check_npm ()
+{
+    if [ -z "$(command -v npm)" ]; then
+        text "${yel}\t${mss} NPM not found. ${end}\c"
+
+        if [ "$(shall_install)" = "y" ]; then
+            eval $(help_npm_command)
+        else
+            REQUIRED=1
+            help_npm
+        fi
+    else
+        text grn "\t${chk} NPM version $(npm -v) found."
+    fi
+}
+
+function check_git ()
+{
+    if [ -z "$(command -v git)" ]; then
+        text red "\t${mss} Git not found."
+
+        [ "$(shall_install)" = "y" ] && eval $(help_git_command) || help_git
+    else
+        text grn "\t${chk} $(git --version) found."
+    fi
+}
+
+function check_elasticsearch ()
+{
+    key=vm.max_map_count
+    value=262144
+
+    if [ -z "$(cat /etc/sysctl.conf | grep $key)" ]; then
+        text "${red}\t${mss} Elasticsearch, updating sysctl value ${end} '$key=$value': \c"
+
+        echo "" | sudo tee -a /etc/sysctl.conf >/dev/null
+        echo "# Because of elasticsearch" | sudo tee -a /etc/sysctl.conf >/dev/null
+        echo "$key=$value" | sudo tee -a /etc/sysctl.conf >/dev/null
+        sudo sysctl -f >/dev/null
+
+        text grn "Done!"
+    else
+        text "${grn}\t${chk} Elasticsearch, sysctl modifications '$key=$value' already found${end}"
+    fi
+}
+
+[ "${os}" = "darwin" ] && check_darwin || check_linux
+
+check_webserver
+check_php
+check_git
+check_docker
+check_docker_compose
+check_node
+check_npm
+
+[ ! -z ${REQUIRED} ] && tool_fatal_error "Some of the needed tools are missing, please install them and try again!"

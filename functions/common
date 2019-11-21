@@ -1,72 +1,49 @@
 #!/usr/bin/env bash
 
-. ${DIR}/functions/docker
+[ -z "${LC_ALL}" ] && export -p LC_ALL=C
+[ -z "${TOOL_PARENT}" ] && export -p TOOL_PARENT=${SHLVL}
 
-# foreground colours
-blk="\033[30m"
-red="\033[31m"
-grn="\033[32m"
-yel="\033[33m"
-blu="\033[34m"
-mag="\033[35m"
-cyn="\033[36m"
-wht="\033[37m"
-
-# background colours
-blk_b="\033[40m"
-red_b="\033[41m"
-grn_b="\033[42m"
-yel_b="\033[43m"
-blu_b="\033[44m"
-mag_b="\033[45m"
-cyn_b="\033[46m"
-
-# reset whatever terminal stuff you've done
-end="\033[0m"
-
-# Some icons
-chk=$'\xE2\x9C\x94 '
-mss=$'\xE2\x9D\x8C '
-wrn=$'\xE2\x9A\xA0 '
-
-function textbox () {
-    background="${@:1:1}_b"
-    foreground="${@:2:1}"
-    text="    ${@:3}    "
-
-    eval foreground="\$$foreground"
-    eval background="\$$background"
-
-    echo -e "${foreground}${background}\n\n${text}\n${end}\n"
-}
-
-function text ()
+function is_parent_script ()
 {
-    colour="${@:1:1}"
-    text="${@:2}"
-
-    # the subcommand $() && echo stops this from breaking on some terminals
-    colour=$(eval colour=\${$colour} 2> /dev/null && echo ${colour})
-
-    [ $? -eq 0 ] && [ ! -z "${colour}" ] && echo -e "${colour}${text}${end}" || echo -e "$@"
+  [ "${TOOL_PARENT}" = "${SHLVL}" ] && echo "yes" || echo "no"
 }
 
-# A little code to set the os_name
-export os=$(uname | awk '{ print tolower($0) }')
-[ "${os}" = "darwin" ] && export os_name="Apple Mac OS"
-[ "${os}" = "linux" ] && export os_name="Linux"
-
-function ddt_default_setup_dir() {
-    sd=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )/../../
-    echo $(ddt_realpath ${sd})
-}
-
-function ddt_app_start ()
+function is_child_script ()
 {
-    # This is a nice cheap way to know whether this is a recursive call and don't print out the application header for each "sub-command"
-    # index 1 to BASH_SOURCE will be the name of the script which called this one, we check whether the "process name" is the same as this bash script name
-    # if they match, then surely this is a "recursive" call?
-    if [[ -z $(ps $PPID | tail -n 1 | grep $(basename ${BASH_SOURCE[1]})) ]]; then
+  [ "${TOOL_PARENT}" = "${SHLVL}" ] && echo "no" || echo "yes"
+}
+
+function this_dir ()
+{
+  local b=(${BASH_SOURCE[@]})
+
+  [ "${#b[@]}" -gt 0 ] && b=("${b[@]:1}")
+
+  echo $(tool_realpath $(dirname "${b}"))
+}
+
+function this_script ()
+{
+  local b=(${BASH_SOURCE[@]})
+
+  [ "${#b[@]}" -gt 0 ] && b=("${b[@]:1}")
+
+  echo $(basename "${b}")
+}
+
+function this_script_title ()
+{
+    title=$(this_script)
+}
+
+function read_config ()
+{
+  [ -f "$1" ] && source $1 || tool_fatal_error "There was no /tools/.env file, you must copy the '.env.dist' file to '.env'"
+}
+
+function tool_start ()
+{
+    if [ "$(is_parent_script)" = "yes" ]; then
         [ -z "$1" ] && text red "You must provide a title to this function"
 
         title=$(text blu $1)
@@ -76,7 +53,7 @@ function ddt_app_start ()
     fi
 }
 
-function ddt_app_error () {
+function tool_fatal_error () {
 
     [ -z "$1" ] && $1="No error message specified"
 
@@ -86,29 +63,21 @@ function ddt_app_error () {
     kill 0
 }
 
-function ddt_test_docker () {
-    printf "${yel}Testing docker is installed:${end} "
-
-    DOCKER_VERSION=$(docker version -f "Client[{{.Client.Version}}], Server[{{.Server.Version}}]" 2>/dev/null)
-
-    [ ! "$?" -eq 0 ] && ddt_app_error "No docker was installed, cannot continue" || echo -e "${DOCKER_VERSION}\n"
-}
-
-function ddt_realpath ()
+function tool_realpath ()
 {
-    [ -z "$1" ] && ddt_app_error "ddt_realpath: There was no path supplied here, check and try again"
+    [ -z "$1" ] && tool_fatal_error "tool_realpath: There was no path supplied here, check and try again"
 
     # the 2>/dev/null here redirects all stderr to the dev null blackhole
     # we do this because on mac realpath is not a valid command, so I have to supress its "command not found" error
     # the || here will then on linux take the first input, but on mac realpath will fail, so it will fallback to the php version
     DIR=$(realpath $1 2>/dev/null || php -r "print realpath('$1');")
 
-    [ ! -e "${DIR}" ] && ddt_app_error "ddt_realpath: The path '${DIR}' calculated from '$1' was not found"
+    [ ! -e "${DIR}" ] && tool_fatal_error "tool_realpath: The path '${DIR}' calculated from '$1' was not found"
 
     echo ${DIR}
 }
 
-function ddt_clone_function ()
+function tool_clone_function ()
 {
     local ORIG_FUNC=$(declare -f $1)
     local NEW_FUNC="$2${ORIG_FUNC#$1}"
@@ -170,7 +139,38 @@ function can_ping ()
     text "${yel}Ping '${name}' (${ip_address}) status${end}: ${message}\n"
 }
 
+function space_sep_to_csv ()
+{
+  list=( $@ )
+  separator=","
+  output="$( printf "${separator}%s" "${list[@]}" )"
+  output="${output:${#separator}}" # remove leading separator
+
+  echo ${output}
+}
+
+function csv_to_array ()
+{
+  set -f
+  separator=","
+  array=(${1//${separator}/ })
+
+  echo ${array[@]}
+}
+
+# A little code to set the os_name
+export -p os=$(uname | awk '{ print tolower($0) }')
+[ "${os}" = "darwin" ] && export -p os_name="Apple Mac OS"
+[ "${os}" = "linux" ] && export -p os_name="Linux"
+
+source $(this_dir)/docker
+source $(this_dir)/text
+
 # We need to manually export functions like this to make them available to subshells (urgh, fucking bash!!)
-export -f ddt_app_error
-export -f ddt_realpath
+export -f this_dir
+export -f this_script
+export -f tool_fatal_error
+export -f tool_realpath
 export -f grant_early_sudo
+export -f space_sep_to_csv
+export -f csv_to_array

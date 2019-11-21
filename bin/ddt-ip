@@ -1,0 +1,59 @@
+#!/usr/bin/env bash
+
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+. ${DIR}/functions/common
+. ${DIR}/functions/${os}_network
+
+read_config ${DIR}/.env
+
+tool_start \
+    "${ip_tool_name}" \
+    "A Stable IP Address makes a happy network"
+
+self=$(basename $0)
+
+function test_ping ()
+{
+    if [ -z "$1" ]; then tool_fatal_error "Must pass the ip or hostname of what should be pinged"; fi
+
+    text blu "Lets test whether ping for '$1' works...."
+    can_ping $1
+}
+
+function help ()
+{
+    text "${blu}${ip_tool_name}:${end} Configure an IP Alias!"
+    text "${yel}Usage Example:${end} ${self} --add"
+    text "Options:"
+    text "    --add: Add ${ip_local_ip_alias} as an ip alias for 127.0.0.1 (for those times you need to access your machine, but 127.0.0.1 is ambiguous)"
+    text "    --remove: Remove ${ip_local_ip_alias} from your computer"
+    text "    --reset: Remove and Add the configuration again, just in case it broke somehow"
+    text " "
+
+    tool_fatal_error "No parameters given"
+}
+
+for i in "${@:1}"; do
+    case $i in
+        --add)
+            network_add_ip_alias ${ip_local_ip_alias}
+            test_ping ${ip_local_ip_alias}
+        ;;
+
+        --remove)
+            network_remove_ip_alias ${ip_local_ip_alias}
+            test_ping ${ip_local_ip_alias}
+        ;;
+
+        --reset)
+            ddt-ip --remove --add
+        ;;
+
+        --help|*)
+            help
+        ;;
+    esac
+done
+
+if [ $# -eq 0 ]; then help; fi
