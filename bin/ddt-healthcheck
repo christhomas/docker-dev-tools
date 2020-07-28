@@ -1,0 +1,91 @@
+#!/usr/bin/env php
+<?php
+$cli = require_once(__DIR__.'/../src/init.php');
+
+Execute::setDebug($cli->hasArg('debug'));
+
+$config = new Config();
+
+Script::title("Healthchecks", "Hopefully nobody died.....");
+
+// TODO: Make this a command line option
+$debug = false;
+
+foreach($argv as $arg){
+    if($arg === "--list"){
+		$list = $config->listHealthcheck();
+		print("Listing Healthchecks...\n");
+		foreach($list as $healthcheck){
+		    print("\t$healthcheck\n");
+        }
+		die();
+    }
+}
+
+$list = $config->listHealthcheck();
+$table = new TextTable();
+$table->setRightPadding(5);
+
+foreach($list as $name){
+	$healthcheck = $config->getHealthcheck($name);
+
+	$result = $healthcheck->run();
+
+    $url = $result['url'];
+
+	$access = $result['connected']
+        ? Text::green(Text::checkIcon() . " Connected")
+        : Text::red(Text::crossIcon() . " Failed");
+
+	if(array_key_exists('http_code', $result)){
+		$http_status = $result['http_code'] === 200
+			? Text::green(Text::checkIcon() . " HTTP Success ({$result['http_code']})")
+			: Text::red(Text::crossIcon() . " HTTP Failed ({$result['http_code']})");
+    }else{
+		$http_status = "";
+    }
+
+	if(array_key_exists('success', $result)){
+		if($result['success']){
+			$data_ok = Text::green(Text::checkIcon() . " Data OK");
+		}else{
+			$data_ok = Text::red(Text::crossIcon() . " Data Failed");
+		}
+    }else{
+	    $data_ok = "";
+    }
+
+	if(array_key_exists('db_status', $result) && is_array($result['db_status'])){
+	    $db_ok = array_reduce(array_keys($result['db_status']), function($c, $i) use ($result){
+	        $status = $result['db_status'][$i] === true ? Text::green($i) : Text::red($i);
+            return trim("$c, $status", " ,");
+        }, "");
+
+		$data_ok = "$data_ok Databases ($db_ok)";
+    }
+
+	$table->addRow([
+		ucwords(str_replace(["-","_"], " ", $name)).":",
+        $access,
+        $http_status,
+        $data_ok,
+        "URL: $url",
+    ]);
+
+	if($reasons = ArrayWrapper::get($result, 'reasons')){
+		array_map(function($r) use ($table) {
+			$table->addRow(["\t$r"], true);
+		}, $reasons);
+	}
+
+
+	if(is_string($debug)){
+		print("Server Replied: $debug\n");
+	}
+}
+
+print($table->render(true));
+
+if(empty($list)){
+    print(Text::yellow("There were no healthchecks found, nothing to test\n"));
+}

@@ -1,0 +1,128 @@
+#!/usr/bin/env php
+<?php
+$showErrors = true;
+$cli = require_once(__DIR__.'/../src/init.php');
+
+$config_file = "{$_SERVER["HOME"]}/.ddt-config.json";
+
+$exists = file_exists($config_file);
+
+function help(CLI $cli) {
+    $script = basename($cli->getScript());
+
+	print(Text::write(<<<EOF
+    {blu}Usage{end}: $script {yel}--filename --exists --reset --key=xxx --validate --version{end}
+        --filename: Returns a single string containing the filename
+        --exists: Script will exit with {yel}code 0{end} if configuration file exists or {yel}code 1{end} if it's missing
+        --reset: Will reset your configuration file to the default 'empty' configuration, {red}it will destroy any setup you already have{end}
+        --key=xxx: Will return a json encoded segment of the configuration, see below for more details
+        --show: Shortcut for '--key=.' option
+        --validate: Only validate the file, nothing else
+        --version: Return the version of the tools
+        --help: This information
+        
+    {blu}Regarding keys:{end}
+        
+        - Keys are a dotted syntax that allows you to pluck out a segment of the configuration
+        - There is a special case for '.' (without quotes) that will return the entire configuration
+        - If you ask for an invalid heirarchy. This function will return null
+        
+    {yel}Examples:{end}
+            $script --key=.
+            $script --key=type
+            $script --key=this.0.must.be.3.valid
+            
+        The last one will do a recursive lookup drilling down each level that are split by the dots
+            key(this) -> index(0) -> key(must) -> key(be) -> index(3) -> key(valid)
+            
+        The json for the above example could be:
+        {cyn}{
+            "this": [
+                {
+                    "must": {
+                        "be": [
+                            "not this",
+                            "or this",
+                            "neither this",
+                            {
+                                "valid": "this one! this is index 3",
+                                "json": "doesn't care if you mix strings with objects or sub-arrays"
+                            },
+                            "ignore this"
+                        ]
+                    }   
+                }
+            ]
+        }
+        
+        bash# ddt-config --key=this.0.must.be.3.valid
+        "this one! this is index 3"
+        {end}
+    EOF)."\n");
+	exit(0);
+}
+
+if($cli->hasArg('help')) help($cli);
+
+if($cli->hasArg('version')){
+    $config = new Config($config_file);
+    print($config->getVersion());
+    exit(0);
+}
+
+if($cli->hasArg('filename')){
+    print($config_file);
+    exit(0);
+}
+
+if($cli->hasArg('exists')){
+    $exists ? exit(0) : exit(1);
+}
+
+if($cli->hasArg('show')){
+    $cli->setArg('key', '.');
+}
+
+$key = $key = $cli->getArg('key');
+if($key && $key != 'true'){
+    $config = new Config($config_file);
+    print($config->getKeyAsJson($key)."\n");
+    exit(0);
+}
+
+$write = false;
+
+$reset = $cli->hasArg('reset');
+
+if($exists === true && $reset === true) {
+	$reply = CLI::ask('Are you sure you want to reset your configuration?', ['yes', 'no']);
+
+	if($reply !== 'yes'){
+	    exit(0);
+	}
+
+	$write = true;
+}
+
+if($exists === false) $write = true;
+
+if(!$cli->hasArg('validate')){
+	if($exists === true && $write === false){
+		print(Text::write("The configuration file '{yel}$config_file{end}' already exists\n"));
+		if($cli->hasArg('break-me')) file_put_contents($config_file, file_get_contents($config_file)."!@#@#^#$!@#");
+	}else{
+		print(Text::box("Writing the configuration file: $config_file", 'black', 'yellow'));
+		$config = new Config($cli->getToolRoot()."/defaults.json");
+		$config->write($config_file);
+	}
+}
+
+print(Text::blue("Testing if the file is valid by trying to decode it\n"));
+try{
+	$config = new Config($config_file);
+	print(Text::box("The file '$config_file' is valid", 'black', 'green'));
+	exit(0);
+}catch(Exception $e){
+	print(Text::box("The file '$config_file' could not be decoded, it's not valid", 'white', 'red'));
+	exit(1);
+}
