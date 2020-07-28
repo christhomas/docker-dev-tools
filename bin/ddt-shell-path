@@ -24,7 +24,7 @@ if($newPath = $cli->getArg('install')){
         {red}Sanity checks for this path failed. The following items are required to be valid:
         Folder: $newPath/bin
         File: $newPath/bin/$script{end}
-        EOF));
+EOF));
     }
 
     $pathConfig->install($newPath);
