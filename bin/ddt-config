@@ -58,7 +58,8 @@ function help(CLI $cli) {
         bash# ddt-config --key=this.0.must.be.3.valid
         "this one! this is index 3"
         {end}
-    EOF)."\n");
+EOF
+        )."\n");
 	exit(0);
 }
 

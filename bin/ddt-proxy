@@ -49,7 +49,8 @@ function help(CLI $cli)
         --get-docker-image: Return the configured docker image name
 
 
-    EOF);
+EOF
+    );
 
 	exit(0);
 }

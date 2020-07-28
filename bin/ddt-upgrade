@@ -20,7 +20,8 @@ try{
             3: delete tools and clone them fresh if you can't fix it yourself
 
             Then re-run this command. Exiting...\n\n
-        EOF);
+EOF
+        );
 		exit(1);
     }
 }

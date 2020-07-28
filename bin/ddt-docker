@@ -50,7 +50,8 @@ function help(CLI $cli)
         adding the {yel}--profile=staging{end} or not
 
 
-    EOF);
+EOF
+    );
 
 	exit(0);
 }
