@@ -35,7 +35,7 @@ function help(CLI $cli, $alias) {
         from your local machine, or inside docker containers.
         
 
-    EOF
+EOF
     );
 
     exit(0);

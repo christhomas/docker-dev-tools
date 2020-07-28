@@ -59,7 +59,7 @@ function help(CLI $cli) {
         "this one! this is index 3"
         {end}
 EOF
-    )."\n");
+        )."\n");
 	exit(0);
 }
 

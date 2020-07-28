@@ -64,7 +64,8 @@ function help(CLI $cli)
         docker container as well. So it's more like a hard reset.
 
 
-    EOF);
+EOF
+    );
 
 	exit(0);
 }
