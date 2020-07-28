@@ -1,0 +1,14 @@
+{
+  "description": "The Tools Configuration file",
+  "type": "toplevel",
+  "version": "1.0",
+  "ip_address": "10.254.254.254",
+  "dns": {
+    "docker_image": "christhomas/supervisord-dnsmasq",
+    "container_name": "ddt-dnsmasq"
+  },
+  "proxy": {
+    "docker_image": "christhomas/nginx-proxy:alpine",
+    "container_name": "ddt-proxy"
+  }
+}
