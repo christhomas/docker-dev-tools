@@ -144,7 +144,7 @@ class Config
 			? $this->scanConfigTree($key)
 			: $this->data[$this->filename];
 
-		if(is_countable($data) && count($data) === 1) $data = current($data);
+		if(is_array($data) && count($data) === 1) $data = current($data);
 
 		return $data;
 	}
