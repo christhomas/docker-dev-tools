@@ -15,7 +15,7 @@ class Watcher
 		$this->config = $config;
 		$this->docker = $docker;
 
-		if(!Execute::isCommand('fswatch')){
+		if(!Shell::isCommand('fswatch')){
 			throw new Exception("fswatch is not installed, please install it when requested or do it yourself");
 		}
 	}
@@ -130,7 +130,7 @@ class Watcher
 		$script = "$this->script --docker={$dockerProfile->getName()} --profile={$syncProfile->getName()}";
 		$command = "fswatch {$syncProfile->getLocalDir()} | while read file; do file=$(echo \"\$file\" | sed '/\~$/d'); $script --write=\"\$file\"; done";
 
-		return Execute::passthru($command) === 0;
+		return Shell::passthru($command) === 0;
 	}
 
 	public function write(SyncProfile $syncProfile, string $localFilename): bool

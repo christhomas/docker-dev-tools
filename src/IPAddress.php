@@ -42,7 +42,7 @@ class IPAddress
 		$ipAddress = $ipAddress ?: $this->get();
 
 		try{
-			$result = Execute::run("ping -c 1 -W 1 $ipAddress 2>&1");
+			$result = Shell::exec("ping -c 1 -W 1 $ipAddress 2>&1");
 		}catch(Exception $e){
 			$result = explode("\n",$e->getMessage());
 		}

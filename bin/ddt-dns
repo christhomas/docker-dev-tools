@@ -7,7 +7,7 @@ $docker = new Docker($config);
 $dns = new DNSMasq($config, $docker);
 $alias = new IPAddress($config);
 
-Execute::setDebug($cli->hasArg('debug'));
+Shell::setDebug($cli->hasArg('debug'));
 
 Script::title("DNS Server", "Turn your network on....or...off....");
 

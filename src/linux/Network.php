@@ -3,14 +3,14 @@ class Network
 {
 	public function __construct()
 	{
-
+	    $distro = Shell::exec("lsb_release -d")
 	}
 
 	public function installIPAddress(string $ipAddress): bool
 	{
 		try{
 			if(!empty($ipAddress)){
-				Shell::exec("sudo ifconfig lo0 alias $ipAddress");
+				Shell::exec("sudo ip addr add $ipAddress/24 dev lo label lo:40");
 				return true;
 			}
 		}catch(Exception $e){ }
@@ -26,34 +26,12 @@ class Network
 			}
 
 			if(!empty($ipAddress)){
-				Shell::exec("sudo ifconfig lo0 $ipAddress delete &>/dev/null");
+				Shell::exec("sudo ip addr del $ipAddress/24 dev lo");
 				return true;
 			}
 		}catch(Exception $e){ }
 
 		return false;
-	}
-
-	public function enumerateInterfaces()
-	{
-		$interfaces = [];
-
-		$hardwarePorts = Shell::exec("networksetup -listnetworkserviceorder | grep 'Hardware Port'");
-
-		foreach($hardwarePorts as $hwport){
-			if(preg_match("/Hardware Port:\s+(?P<name>[^,]+),\s+Device:\s+(?P<device>[^)]+)/", $hwport, $matches)){
-				try{
-					$dev = implode("\n",Shell::exec("ifconfig {$matches['device']} 2>/dev/null"));
-					if(strpos($dev, "status: active") !== false){
-						$interfaces[] = ['name' => $matches['name'], 'device' => $matches['device']];
-					}
-				}catch(Exception $e) {
-					// ignore this device
-				}
-			}
-		}
-
-		return $interfaces;
 	}
 
 	public function enableDNS(string $ipAddress)

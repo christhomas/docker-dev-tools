@@ -7,11 +7,11 @@ $config = new Config();
 $docker = new Docker($config);
 $proxy = new Proxy($config, $docker);
 
-Execute::setDebug($cli->hasArg('debug'));
+Shell::setDebug($cli->hasArg('debug'));
 
 Script::title("NGINX Frontend Proxy", "(club bouncer says) if your names not down, you're not coming in");
 
-if(Execute::isCommand('docker') === false){
+if(Shell::isCommand('docker') === false){
 	Script::die("Docker is required to run this tool, please install it");
 }
 
@@ -71,7 +71,7 @@ if($cli->hasArg('stop')){
         $proxy->stop();
 
 		Text::print("{blu}Running Containers{end}\n");
-		Execute::passthru('docker ps');
+		Shell::passthru('docker ps');
     }else{
         Text::print(Text::box("Status: Already Stopped", 'blk', 'yel'));
     }
@@ -86,7 +86,7 @@ if($network = $cli->getArg('start')){
 		$proxy->start($network);
 
 		Text::print("{blu}Running Containers{end}\n");
-		Execute::passthru('docker ps');
+		Shell::passthru('docker ps');
 
 		$cli->setArg('domains');
     }else{

@@ -13,7 +13,7 @@ class Docker
 		$this->profile = 'default';
 		$this->command = 'docker';
 
-		if(Execute::isCommand('docker') === false){
+		if(Shell::isCommand('docker') === false){
 			Script::die("Docker is required to run this tool, please install it\n");
 		}
 	}
@@ -21,7 +21,7 @@ class Docker
 	static public function isRunning(): bool
 	{
 		try{
-			Execute::run("docker version &>/dev/null");
+			Shell::exec("docker version &>/dev/null");
 			return true;
 		}catch(Exception $e){
 			return false;
@@ -30,12 +30,12 @@ class Docker
 
 	static public function pull(string $image): int
 	{
-		return Execute::passthru("docker pull $image");
+		return Shell::passthru("docker pull $image");
 	}
 
 	static public function findContainer(string $container): bool
 	{
-		$list = Execute::run("docker container ls");
+		$list = Shell::exec("docker container ls");
 
 		foreach($list as $line){
 			if(strpos($line, $container) !== false){
@@ -49,8 +49,8 @@ class Docker
 	static public function deleteContainer(string $container): bool
 	{
 		try{
-			Execute::run("docker container rm $container 2>&1");
-			Execute::run("docker rm $container 2>&1");
+			Shell::exec("docker container rm $container 2>&1");
+			Shell::exec("docker rm $container 2>&1");
 
 			return true;
 		}catch(Exception $e){
@@ -60,13 +60,13 @@ class Docker
 
 	static public function pruneContainer(): void
 	{
-		Execute::run("docker container prune -f &>/dev/null");
+		Shell::exec("docker container prune -f &>/dev/null");
 	}
 
 	static public function findRunning(string $image): ?string
 	{
 		try{
-			$output = Execute::run("docker ps --no-trunc");
+			$output = Shell::exec("docker ps --no-trunc");
 
 			array_shift($output);
 
@@ -102,7 +102,7 @@ class Docker
 		$command[] = $image;
 
 		try{
-			return Execute::run(implode(" ", $command), true);
+			return Shell::exec(implode(" ", $command), true);
 		}catch(Exception $e){
 			return null;
 		}
@@ -110,12 +110,12 @@ class Docker
 
 	public function logs(string $container): int
 	{
-		return Execute::passthru("docker logs $container");
+		return Shell::passthru("docker logs $container");
 	}
 
 	public function logsFollow(string $container): int
 	{
-		return Execute::passthru("docker logs -f $container");
+		return Shell::passthru("docker logs -f $container");
 	}
 
 	static public function getNetworkId(string $network): ?string
@@ -123,7 +123,7 @@ class Docker
 		if(empty($network)) return null;
 
 		try{
-			$networkId = Execute::run("docker network inspect $network -f '{{ .Id }}' 2>/dev/null", true);
+			$networkId = Shell::exec("docker network inspect $network -f '{{ .Id }}' 2>/dev/null", true);
 		}catch(Exception $e){
 			$networkId = null;
 		}
@@ -136,7 +136,7 @@ class Docker
 		$networkId = Docker::getNetworkId($network);
 
 		if(empty($networkId)){
-			$networkId = Execute::run("docker network create $network", true);
+			$networkId = Shell::exec("docker network create $network", true);
 			Text::print("{blu}Create Network:{end} '$network', id: '$networkId'\n");
 		}else{
 			Text::print("{yel}Network '$network' already exists{end}\n");
@@ -153,7 +153,7 @@ class Docker
 	static public function inspect($type, $name): array
 	{
 		try{
-			$result = Execute::run("docker $type inspect $name -f '{{json .}}'");
+			$result = Shell::exec("docker $type inspect $name -f '{{json .}}'");
 			$result = implode("\n",$result);
 
 			return json_decode($result, true);
@@ -171,7 +171,7 @@ class Docker
 				if($id === $containerId) return false;
 			}
 
-			Execute::run("docker network connect $network $containerId");
+			Shell::exec("docker network connect $network $containerId");
 
 			return true;
 		}catch(Exception $e){
@@ -182,7 +182,7 @@ class Docker
 	public function disconnectNetwork(string $network, string $containerId): ?bool
 	{
 		try{
-			Execute::run("docker network disconnect $network $containerId");
+			Shell::exec("docker network disconnect $network $containerId");
 			return true;
 		}catch(Exception $e){
 			return false;
@@ -276,11 +276,11 @@ class Docker
 
 	public function exec(string $subcommand): array
 	{
-		return Execute::exec("$this->command $subcommand");
+		return Shell::exec("$this->command $subcommand");
 	}
 
 	public function passthru(string $subcommand): int
 	{
-		return Execute::passthru("$this->command $subcommand");
+		return Shell::passthru("$this->command $subcommand");
 	}
 }

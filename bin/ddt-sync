@@ -7,22 +7,22 @@ try{
     $docker = new Docker($config);
     $watcher = new Watcher($cli->getScript(false), $config, $docker);
 }catch(Exception $e){
-    if(!Execute::isCommand('fswatch')){
+    if(!Shell::isCommand('fswatch')){
         $answer = CLI::ask("fswatch is not installed, install it?", ['yes', 'no']);
         if($answer === 'yes'){
             $os = strtolower(PHP_OS);
-            if($os === 'darwin') Execute::passthru('brew install fswatch');
-            if($os === 'linux') Execute::passthru('api-get install fswatch');
+            if($os === 'darwin') Shell::passthru('brew install fswatch');
+            if($os === 'linux') Shell::passthru('api-get install fswatch');
         }
     }
 
-    if(!Execute::isCommand('fswatch')){
+    if(!Shell::isCommand('fswatch')){
         Text::print(Text::box($e->getMessage(), 'white', 'red'));
         exit(1);
     }
 }
 
-Execute::setDebug($cli->hasArg('debug'));
+Shell::setDebug($cli->hasArg('debug'));
 
 function help(CLI $cli)
 {

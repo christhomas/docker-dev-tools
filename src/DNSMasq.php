@@ -60,12 +60,12 @@ class DNSMasq {
 	{
 		if($fromContainer === true){
 			$containerId = Docker::findRunning($this->getDockerImage());
-			$list = Execute::run("docker exec -it ${containerId} find /etc/dnsmasq.d -name \"*.conf\" -type f");
+			$list = Shell::exec("docker exec -it ${containerId} find /etc/dnsmasq.d -name \"*.conf\" -type f");
 
 			$domains = [];
 
 			foreach($list as $file){
-				$contents = Execute::run("docker exec -it ${containerId} cat ${file}", true);
+				$contents = Shell::exec("docker exec -it ${containerId} cat ${file}", true);
 				if(preg_match("/^[^\/]+\/(?P<domain>[^\/]+)\/(?P<ip_address>[^\/]+)/", $contents, $matches)){
 					$domains[] = ['domain' => $matches['domain'], 'ip_address' => $matches['ip_address']];
 				}
@@ -83,8 +83,8 @@ class DNSMasq {
 
 		Text::print("{blu}Installing domain:{end} '{yel}$domain{end}' with ip address '{yel}$ipAddress{end}' into dnsmasq configuration running in container '{yel}$containerId{end}'\n");
 
-		Execute::run("docker exec -it ${containerId} /bin/sh -c 'echo 'address=/$domain/$ipAddress' > /etc/dnsmasq.d/$domain.conf'");
-		Execute::run("docker exec -it ${containerId} kill -s SIGHUP 1");
+		Shell::exec("docker exec -it ${containerId} /bin/sh -c 'echo 'address=/$domain/$ipAddress' > /etc/dnsmasq.d/$domain.conf'");
+		Shell::exec("docker exec -it ${containerId} kill -s SIGHUP 1");
 
 		sleep(2);
 
@@ -103,8 +103,8 @@ class DNSMasq {
 
 		Text::print("{blu}Remove domain:{end} '{yel}$domain{end}' from dnsmasq configuration running in container '{yel}$containerId{end}'\n");
 
-		Execute::run("docker exec -it ${containerId} /bin/sh -c 'f=/etc/dnsmasq.d/$domain.conf && [ -f \$f ] && rm \$f'");
-		Execute::run("docker exec -it ${containerId} kill -s SIGHUP 1");
+		Shell::exec("docker exec -it ${containerId} /bin/sh -c 'f=/etc/dnsmasq.d/$domain.conf && [ -f \$f ] && rm \$f'");
+		Shell::exec("docker exec -it ${containerId} kill -s SIGHUP 1");
 
 		sleep(2);
 
@@ -168,7 +168,7 @@ class DNSMasq {
 
 		$dockerImage = $this->getDockerImage();
 		$containerName = $this->getContainerName();
-		Execute::run("docker run -d --name $containerName --restart=always -p 53:53/udp $dockerImage");
+		Shell::exec("docker run -d --name $containerName --restart=always -p 53:53/udp $dockerImage");
 
 		sleep(2);
 
@@ -185,16 +185,16 @@ class DNSMasq {
 		$containerId = Docker::findRunning($this->getDockerImage());
 
 		if(!empty($containerId)){
-			Execute::run("docker rm -f $containerId &>/dev/null");
+			Shell::exec("docker rm -f $containerId &>/dev/null");
 		}
 
 		$containerName = $this->getContainerName();
 
-		$containerId = Execute::run("docker container ls --all | grep '$containerName' | awk '{ print $1 }'", true);
+		$containerId = Shell::exec("docker container ls --all | grep '$containerName' | awk '{ print $1 }'", true);
 
 		try{
 			if(!empty($containerId)) {
-				Execute::run("docker container rm $containerId || true");
+				Shell::exec("docker container rm $containerId || true");
 			}
 		}catch(Exception $e){
 			var_dump($e->getMessage());

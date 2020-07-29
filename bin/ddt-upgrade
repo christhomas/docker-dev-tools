@@ -7,7 +7,7 @@ $cli = require_once(__DIR__.'/../src/init.php');
 ###################################################################
 try{
     if($cli->hasArg("skip-tool-upgrade") === false){
-		$output = Execute::passthru('plista-sync --filter=/tool');
+		$output = Shell::passthru('plista-sync --filter=/tool');
     }
 }catch(Exception $e){
     // Couldn't sync, we should fail here
@@ -32,8 +32,8 @@ EOF
 ###################################################################
 try{
     $newVersion = 1.0;
-	Execute::run(__DIR__ . "/ddt-config");
-	Execute::run(__DIR__ . "/ddt-shell-path --install");
+	Shell::exec(__DIR__ . "/ddt-config");
+	Shell::exec(__DIR__ . "/ddt-shell-path --install");
 }catch(Exception $e){
     print(Text::red("The upgrade to $newVersion has failed, please report this error\n"));
 

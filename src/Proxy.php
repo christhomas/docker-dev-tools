@@ -83,7 +83,7 @@ class Proxy
 		$containerId = $this->getContainerId();
 
 		try{
-			return implode("\n", Execute::run("docker exec -it $containerId cat /etc/nginx/conf.d/default.conf"));
+			return implode("\n", Shell::exec("docker exec -it $containerId cat /etc/nginx/conf.d/default.conf"));
 		}catch(Exception $e){
 			return "";
 		}
@@ -160,8 +160,8 @@ class Proxy
 	{
 		$containerId = $this->getContainerId();
 
-		Execute::run("docker kill $containerId &>/dev/null");
-		Execute::run("docker rm -f $containerId &>/dev/null");
+		Shell::exec("docker kill $containerId &>/dev/null");
+		Shell::exec("docker rm -f $containerId &>/dev/null");
 
 		// we don't delete the network since there is no real reason to want to do this
 		// just leave it and reuse it when necessary

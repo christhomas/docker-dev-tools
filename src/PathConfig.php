@@ -161,7 +161,7 @@ class PathConfig
 
 	public function test(string $toolPath, string $script): bool
 	{
-		$path = implode("\n",Execute::run("bash --login -c 'echo \$PATH'"));
+		$path = implode("\n",Shell::exec("bash --login -c 'echo \$PATH'"));
 		$path = explode(":", $path);
 
 		$toolPath = "$toolPath/bin";
@@ -169,8 +169,8 @@ class PathConfig
 		foreach($path as $segment){
 			if($toolPath === $segment){
 				try {
-					Execute::run("bash --login -c '$script --help'");
-					Execute::run("bash -c '$toolPath/$script --help'");
+					Shell::exec("bash --login -c '$script --help'");
+					Shell::exec("bash -c '$toolPath/$script --help'");
 					return true;
 				}catch(Exception $e){
 					Text::print($e->getMessage());

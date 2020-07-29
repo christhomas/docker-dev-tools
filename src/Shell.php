@@ -1,5 +1,5 @@
 <?php
-class Execute
+class Shell
 {
 	protected static $debug = false;
 	protected static $last_error = 0;
@@ -17,14 +17,14 @@ class Execute
 	static public function isCommand($command): bool
 	{
 		try{
-			Execute::run("command -v $command");
+			Shell::exec("command -v $command");
 			return true;
 		}catch(Exception $e){
 			return false;
 		}
 	}
 
-	static public function exec(string $command, bool $outputOptimise=false)
+	static public function exec(string $command, bool $firstLine=false)
 	{
 		if(self::$debug){
 			print(Text::blue("[DEBUG] Run command: ").$command."\n");
@@ -39,7 +39,7 @@ class Execute
 			throw new Exception(implode("\n", $output),$code);
 		}
 
-		return $outputOptimise ? current($output) : $output;
+		return $firstLine ? current($output) : $output;
 	}
 
 	static public function run(string $command, bool $outputOptimise=false)
