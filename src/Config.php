@@ -45,11 +45,12 @@ class Config
 		return $this->getType() === "toplevel";
 	}
 
-	public function getToolsPath(): string
+	public function getToolsPath(string $subpath = null): string
 	{
 		$path = ArrayWrapper::get($this->data[$this->filename], 'path');
+		$path = $path ?: dirname(__DIR__);
 
-		return $path ?: dirname(__DIR__);
+		return $path . $subpath;
 	}
 
 	public function setToolsPath(string $path): void
@@ -149,11 +150,9 @@ class Config
 		return $data;
 	}
 
-	public function getKeyAsJson(string $key, $default=null): string
+	public function getKeyAsJson(string $key): string
 	{
 		$data = $this->getKey($key);
-
-		// FIXME: What to do with the default parameter?
 
 		return json_encode($data, JSON_PRETTY_PRINT);
 	}
