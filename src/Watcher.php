@@ -31,12 +31,12 @@ class Watcher
 		return $profileList;
 	}
 
-	public function getProfile(DockerProfile $dockerProject, string $syncProfile): ?SyncProfile
+	public function getProfile(DockerProfile $dockerProject, string $syncProfile): ?DockerSyncProfile
 	{
 		$profile = $this->config->getKey(implode('.',[$this->profileKey, $dockerProject->getName(), $syncProfile]));
 
 		if(ArrayWrapper::hasAll($profile, ['container', 'local_dir', 'remote_dir'])){
-			return new SyncProfile(
+			return new DockerSyncProfile(
 				$syncProfile,
 				$profile['container'],
 				$profile['local_dir'],
@@ -49,7 +49,7 @@ class Watcher
 
 	public function addProfile(DockerProfile $dockerProfile, string $syncProfile, string $container, string $localDir, string $remoteDir): bool
 	{
-		$syncProfile = new SyncProfile($syncProfile, $container, $localDir, $remoteDir);
+		$syncProfile = new DockerSyncProfile($syncProfile, $container, $localDir, $remoteDir);
 
 		$this->config->setKey(implode('.',[$this->profileKey,$dockerProfile->getName(),$syncProfile->getName()]),$syncProfile);
 		$this->config->write();
@@ -101,7 +101,7 @@ class Watcher
 		$this->setIgnoreRules($list);
 	}
 
-	public function shouldIgnore(SyncProfile $syncProfile, string $filename): bool
+	public function shouldIgnore(DockerSyncProfile $syncProfile, string $filename): bool
 	{
 		$list = $this->listIgnoreRules();
 
@@ -125,7 +125,7 @@ class Watcher
 		return false;
 	}
 
-	public function watch(DockerProfile $dockerProfile, SyncProfile $syncProfile): bool
+	public function watch(DockerProfile $dockerProfile, DockerSyncProfile $syncProfile): bool
 	{
 		$script = "$this->script --docker={$dockerProfile->getName()} --profile={$syncProfile->getName()}";
 		$command = "fswatch {$syncProfile->getLocalDir()} | while read file; do file=$(echo \"\$file\" | sed '/\~$/d'); $script --write=\"\$file\"; done";
@@ -133,7 +133,7 @@ class Watcher
 		return Shell::passthru($command) === 0;
 	}
 
-	public function write(SyncProfile $syncProfile, string $localFilename): bool
+	public function write(DockerSyncProfile $syncProfile, string $localFilename): bool
 	{
 		try{
 			$container = $syncProfile->getContainer();

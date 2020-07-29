@@ -1,6 +1,6 @@
 <?php declare(strict_types=1);
 
-class SyncProfile implements JsonSerializable
+class DockerSyncProfile implements JsonSerializable
 {
 	protected $name;
 	protected $container;
