@@ -1,5 +1,5 @@
 #!/usr/bin/env php
-<?php
+<?php declare(strict_types=1);
 $cli = require_once(__DIR__.'/../src/init.php');
 
 Script::title("DDT DOCKER SYNC", "Transport files into running containers");
@@ -147,17 +147,17 @@ if(($syncProfile = $cli->getArgWithVal('add-profile')) !== null){
     if($remoteDir === null) Script::failure("--remote-dir parameter was not valid");
 
     if($watcher->addProfile($dockerProfile, $syncProfile, $container, $localDir, $remoteDir)){
-		Script::success("Sync Profile '$syncProfile' using docker '{$dockerProfile->getName()}' and target container '$container' between '$localDir' to '$remoteDir' was written successfully");
+		Script::success("Docker Sync Profile '$syncProfile' using docker '{$dockerProfile->getName()}' and target container '$container' between '$localDir' to '$remoteDir' was written successfully");
 	}else{
-		Script::failure("Sync Profile '$syncProfile' using docker '{$dockerProfile->getName()}' did not write successfully");
+		Script::failure("Docker Sync Profile '$syncProfile' using docker '{$dockerProfile->getName()}' did not write successfully");
     }
 }
 
 if(($syncProfile = $cli->getArgWithVal('remove-profile')) !== null){
     if($watcher->removeProfile($dockerProfile, $syncProfile)){
-		Script::success("Sync Profile '$syncProfile' using docker '{$dockerProfile->getName()}' was removed successfully");
+		Script::success("Docker Sync Profile '$syncProfile' using docker '{$dockerProfile->getName()}' was removed successfully");
 	}else{
-		Script::failure("Sync Profile '$syncProfile' using docker '{$dockerProfile->getName()}' did not remove successfully");
+		Script::failure("Docker Sync Profile '$syncProfile' using docker '{$dockerProfile->getName()}' did not remove successfully");
     }
 }
 
