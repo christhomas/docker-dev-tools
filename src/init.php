@@ -9,7 +9,7 @@ spl_autoload_register(function ($class_name) {
 	$file = __DIR__ . '/exceptions/' . $class_name . '.php';
 	if(file_exists($file)) require_once($file);
 });
-Text::print(strtolower(PHP_OS));
+
 if(!isset($showErrors)) $showErrors = false;
 
 return new CLI($argv, $showErrors);

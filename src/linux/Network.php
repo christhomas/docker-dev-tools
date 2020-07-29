@@ -1,21 +1,33 @@
 <?php
 class Network
 {
+    private $distroName;
+    private $distro;
+
 	public function __construct()
 	{
-	    $distro = Shell::exec("lsb_release -d")
+	    list($ignore,$distro) = explode(":",Shell::exec("lsb_release -d", true));
+	    $this->distroName = trim($distro);
+
+        $this->distro = null;
+
+        switch(true){
+            case strpos($this->distroName, "20.04") !== false:
+                $this->distro = new Ubuntu2004();
+                break;
+        }
 	}
 
 	public function installIPAddress(string $ipAddress): bool
 	{
 		try{
 			if(!empty($ipAddress)){
-				Shell::exec("sudo ip addr add $ipAddress/24 dev lo label lo:40");
-				return true;
-			}
+                Shell::exec("sudo ip addr add $ipAddress/24 dev lo label lo:40");
+                return true;
+            }
 		}catch(Exception $e){ }
 
-		return false;
+        return false;
 	}
 
 	public function uninstallIPAddress(string $ipAddress): bool
@@ -34,41 +46,30 @@ class Network
 		return false;
 	}
 
-	public function enableDNS(string $ipAddress)
-	{
-		$name = $ipAddress === 'empty' ? 'Reset back to router' : $ipAddress;
-		$name = $ipAddress === 'docker' ? 'Docker Container' : $name;
+    public function enableDNS(string $ipAddress): bool
+    {
+        if(!$this->distro) {
+            throw new UnsupportedDistroException($this->distroName);
+        }
 
-		if($ipAddress === 'docker'){
-			$ipAddress = '0.0.0.0';
-		}
+        return $this->distro->enableDNS($ipAddress);
+    }
 
-		Text::print("DNS Servers: '{yel}$name{end}'\n");
+    public function disableDNS(): void
+    {
+        if(!$this->distro) {
+            throw new UnsupportedDistroException($this->distroName);
+        }
 
-		$interfaces = $this->enumerateInterfaces();
-		foreach($interfaces as $i){
-			Text::print("Configuring interface '{yel}{$i['name']}{end}'\n");
-			Shell::exec("sudo networksetup -setdnsservers '{$i['name']}' $ipAddress");
-		}
+        $this->distro->disableDNS();
+    }
 
-		$this->flushDNS();
-	}
+    public function flushDNS(): void
+    {
+        if(!$this->distro) {
+            throw new UnsupportedDistroException($this->distroName);
+        }
 
-	public function disableDNS()
-	{
-		$this->enableDNS('empty');
-	}
-
-	public function flushDNS()
-	{
-		Text::print("Flushing DNS Cache: ");
-
-		if(Shell::isCommand('dscacheutil')){
-			Shell::exec('sudo dscacheutil -flushcache');
-		}
-
-		Shell::exec('sudo killall -HUP mDNSResponder');
-
-		Text::print("{grn}FLUSHED{end}\n");
-	}
+        $this->distro->flushDNS();
+    }
 }

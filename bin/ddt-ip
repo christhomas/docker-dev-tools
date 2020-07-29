@@ -41,70 +41,74 @@ EOF
     exit(0);
 }
 
-$ipAddress = new IPAddress($config);
-$alias = $ipAddress->get();
+try{
+    $ipAddress = new IPAddress($config);
+    $alias = $ipAddress->get();
 
-if($cli->hasArg('help') || $cli->countArgs() === 0){
-    help($cli, $alias);
-}
-
-if($cli->hasArg('get')){
-    Text::print("IP Address: '{yel}$alias{end}'\n");
-}
-
-if($newIpAddress = $cli->getArgWithVal('set')){
-    Text::print("Writing IP Address '{yel}$newIpAddress{end}': ");
-
-    if($ipAddress->set($newIpAddress)){
-        Text::print("{grn}SUCCESS{end}\n");
-    }else{
-        Text::print("{red}FAILURE{end}\n");
-        exit(1);
+    if($cli->hasArg('help') || $cli->countArgs() === 0){
+        help($cli, $alias);
     }
-}
 
-if($cli->hasArg('add')){
-	Text::print("Installing IP Address '{yel}$alias{end}': ");
-    $status = $ipAddress->install();
-    $cli->setArg('ping', true);
+    if($cli->hasArg('get')){
+        Text::print("IP Address: '{yel}$alias{end}'\n");
+    }
 
-	if($status === true){
-		Text::print("{grn}SUCCESS{end}\n");
-	}else{
-		Text::print("{red}FAILURE{end}\n");
-		Script::failure();
-	}
-}
+    if($newIpAddress = $cli->getArgWithVal('set')){
+        Text::print("Writing IP Address '{yel}$newIpAddress{end}': ");
 
-if($cli->hasArg('remove')){
-	Text::print("Uninstalling IP Address '{yel}$alias{end}': ");
-	$status = $ipAddress->uninstall();
-	$cli->setArg('ping', false);
+        if($ipAddress->set($newIpAddress)){
+            Text::print("{grn}SUCCESS{end}\n");
+        }else{
+            Text::print("{red}FAILURE{end}\n");
+            exit(1);
+        }
+    }
 
-	if($status === true){
-		Text::print("{grn}SUCCESS{end}\n");
-	}else{
-		Text::print("{red}FAILURE{end}\n");
-		Script::failure();
-	}
-}
+    if($cli->hasArg('add')){
+        Text::print("Installing IP Address '{yel}$alias{end}': ");
+        $status = $ipAddress->install();
+        $cli->setArg('ping', true);
 
-if($cli->hasArg('reset')){
-    Text::print("{blu}Resetting IP Address:{end}\n");
+        if($status === true){
+            Text::print("{grn}SUCCESS{end}\n");
+        }else{
+            Text::print("{red}FAILURE{end}\n");
+            Script::failure();
+        }
+    }
 
-    Text::print("\t{blu}Uninstalling:{end} ");
-    $result = $ipAddress->uninstall() ? "{grn}success{end}" : "{red}failure{end}";
-    Text::print("$result\n");
+    if($cli->hasArg('remove')){
+        Text::print("Uninstalling IP Address '{yel}$alias{end}': ");
+        $status = $ipAddress->uninstall();
+        $cli->setArg('ping', false);
 
-    Text::print("\t{blu}Installing:{end} ");
-    $result = $ipAddress->install() ? "{grn}success{end}" : "{red}failure{end}";
-	Text::print("$result\n");
-}
+        if($status === true){
+            Text::print("{grn}SUCCESS{end}\n");
+        }else{
+            Text::print("{red}FAILURE{end}\n");
+            Script::failure();
+        }
+    }
 
-if($wantedResult = $cli->getArg('ping') !== null){
-	$result = $ipAddress->ping();
+    if($cli->hasArg('reset')){
+        Text::print("{blu}Resetting IP Address:{end}\n");
 
-	Format::ping($ipAddress->ping());
+        Text::print("\t{blu}Uninstalling:{end} ");
+        $result = $ipAddress->uninstall() ? "{grn}success{end}" : "{red}failure{end}";
+        Text::print("$result\n");
+
+        Text::print("\t{blu}Installing:{end} ");
+        $result = $ipAddress->install() ? "{grn}success{end}" : "{red}failure{end}";
+        Text::print("$result\n");
+    }
+
+    if($wantedResult = $cli->getArg('ping') !== null){
+        $result = $ipAddress->ping();
+
+        Format::ping($ipAddress->ping());
+    }
+}catch(UnsupportedDistroException $e){
+    Script::failure("Sorry but this distribution '".$e->getMessage()."' is not supported, probably the IP Address cannot be correctly configured. Please ask for support");
 }
 
 exit(0);

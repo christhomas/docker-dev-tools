@@ -56,7 +56,7 @@ class Network
 		return $interfaces;
 	}
 
-	public function enableDNS(string $ipAddress)
+	public function enableDNS(string $ipAddress): bool
 	{
 		$name = $ipAddress === 'empty' ? 'Reset back to router' : $ipAddress;
 		$name = $ipAddress === 'docker' ? 'Docker Container' : $name;
@@ -74,6 +74,8 @@ class Network
 		}
 
 		$this->flushDNS();
+
+		return true;
 	}
 
 	public function disableDNS()
