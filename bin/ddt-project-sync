@@ -22,15 +22,18 @@ function help(CLI $cli)
 
     {blu}Options:{end}
         {cyn}Synchronising projects{end}
+        --push (optional): This will push all projects to their repositories instead of by default, pulling
         --prune-local (optional): This will prune any local branch from your system which was already merged
         --filter=XXX (optional): This will sync only the projects which have the mentioned text given to this parameter
         --show-branch=XXX (optional): This will only show the branches for each project, the optional XXX part will show only the filtered project
         --help: This help information
         
         {cyn}Managing Hooks{end}
+        --list-hooks: This will list all the configured hooks with their respective scripts
         --add-hook=xxx: This will add a script to the named hook in this parameter
         --remove-hook=xxx: This will remove a script from the named hook in this parameter
         --script=xxx: This script will be added or removed to the hook given in the --add-hook parameter
+        --all: WARNING! This is a useful feature for --remove-hook when you want to just remove everything
      
     {blu}Notes:{end}
         Projects that have local changes will be skipped. No changes will be made because it's unsafe to 
@@ -39,7 +42,8 @@ function help(CLI $cli)
         Hooks are unique, therefore a script can only appear once and duplicate hooks will not be added.
         There is no way to reorder hooks, they must be added one by one in the sequence desired.
         Supported Hooks:
-            - {yel}onsuccess{end}: Will be executed after the project sync was completed
+            - {yel}after_pull{end}: Will be executed after the project git pull was completed
+            - {yel}after_push{end}: Will be executed after the project git push was completed
         Supported Template parameters:
             - {yel}file{end}: Will use the enclosed string as a filename and test it's existence. It will remove the entire command if it failed the test
                 - {cyn}Example{end}: "sh {file}{project_dir}/setup.sh{file}" will test if file "{project_dir}/setup.sh" exists 
@@ -55,6 +59,21 @@ EOF
 
 if($cli->hasArg('help')){
     help($cli);
+}
+
+if($cli->getArg("list-hook") || $cli->getArg("list-hooks")){
+    $list = $projectSync->listHookNames();
+    foreach($list as $name){
+        Text::print("{blu}Hook{end}: {yel}$name{end}\n");
+        $scripts = $projectSync->listHook($name);
+        if(!empty($scripts)) {
+            Text::print(" - " . implode("\n - ", $scripts) . "\n\n");
+        }else{
+            Text::print(" --- NO SCRIPTS --- \n\n");
+        }
+    }
+
+    exit(0);
 }
 
 if(($name = $cli->getArgWithVal("add-hook")) !== null){
@@ -84,13 +103,21 @@ if(($name = $cli->getArgWithVal("remove-hook")) !== null){
         }
     }
 
+    $all = $cli->getArg("all");
+    if($all){
+        foreach($list as $key => $value){
+            if($projectSync->removeHook($name, $key)) $removed = true;
+        }
+    }
+
     if($removed){
-        Script::success("Project Sync Hook '$name' has successfully removed the script '$script'");
+        Script::success("Project Sync Hook '$name' has successfully removed the script(s)");
     }else{
-        Script::failure("Project Sync Hook '$name' has failed to remove script '$script'");
+        Script::failure("Project Sync Hook '$name' has failed to remove the script(s)");
     }
 }
 
+$action     = $cli->getArg("push") ? "push" : "pull";
 $showBranch = $cli->getArgWithVal("show-branch");
 $filter     = $cli->getArgWithVal("filter") ?: $showBranch;
 $prune      = $cli->getArg("prune");
@@ -111,16 +138,18 @@ foreach(glob(CLI::getToolPath("/../**/.git"), GLOB_ONLYDIR) as $dir){
     if($showBranch){
         Text::print("{blu}Project:{end} {yel}$project ($branch){end}. Has Changes: {yel}$changes{end}\n");
     }else if($changes === "no"){
-        Text::print("{blu}Updating the project:{end} {yel}$project ($branch){end} ");
+        Text::print("{blu}".ucwords($action)."ing the project:{end} {yel}$project ($branch){end} ");
 
-        Shell::exec("$git pull");
+        Shell::exec("$git $action");
         Shell::exec("$git fetch -p");
 
         Text::print("{grn}Done{end}\n");
 
-        $onSuccess = $projectSync->listHook("onsuccess", ["project_dir" => $dir]);
-        foreach($onSuccess as $script){
-            Shell::passthru($script);
+        if($action === "pull"){
+            $afterPull = $projectSync->parseHook("after_pull", ["project_dir" => $dir]);
+            foreach($afterPull as $script){
+                Shell::passthru($script);
+            }
         }
     }else{
         Text::print("{red}Skipping the project:{end} {yel}$project ($branch){end} because it has changes\n");

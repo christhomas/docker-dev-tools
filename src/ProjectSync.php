@@ -8,9 +8,21 @@ class ProjectSync
         $this->config = $config;
     }
 
-    public function listHook(string $name, array $tokens = []): array
+    public function listHookNames(): array
     {
-        $list = $this->config->getKey("project_sync.hooks.$name");
+        $list = $this->config->getKey("project_sync.hooks");
+
+        return array_keys($list);
+    }
+
+    public function listHook(string $name): array
+    {
+        return $this->config->getKey("project_sync.hooks.$name");
+    }
+
+    public function parseHook(string $name, array $tokens = []): array
+    {
+        $list = $this->listHook($name);
 
         foreach($list as $i => $s){
             foreach($tokens as $t => $r){
