@@ -131,27 +131,39 @@ foreach(glob(CLI::getToolPath("/../**/.git"), GLOB_ONLYDIR) as $dir){
         continue;
     }
 
-    $git = "git -C ${dir}";
-    $changes = Shell::exec("$git status -s", true) !== false ? "yes" : "no";
-    $branch = Shell::exec("$git rev-parse --abbrev-ref HEAD", true);
+    try{
+        $git = "git -C ${dir}";
+        $changes = Shell::exec("$git status -s", true) !== false ? "yes" : "no";
+        $branch = Shell::exec("$git rev-parse --abbrev-ref HEAD", true);
 
-    if($showBranch){
-        Text::print("{blu}Project:{end} {yel}$project ($branch){end}. Has Changes: {yel}$changes{end}\n");
-    }else if($changes === "no"){
-        Text::print("{blu}".ucwords($action)."ing the project:{end} {yel}$project ($branch){end} ");
+        if($showBranch){
+            Text::print("{blu}Project:{end} {yel}$project ($branch){end}. Has Changes: {yel}$changes{end}\n");
+        }else if($changes === "no"){
+            Text::print("{blu}".ucwords($action)."ing the project:{end} {yel}$project ($branch){end} ");
 
-        Shell::exec("$git $action");
-        Shell::exec("$git fetch -p");
+            Shell::exec("$git $action");
+            Shell::exec("$git fetch -p");
 
-        Text::print("{grn}Done{end}\n");
+            Text::print("{grn}Done{end}\n");
 
-        if($action === "pull"){
-            $afterPull = $projectSync->parseHook("after_pull", ["project_dir" => $dir]);
-            foreach($afterPull as $script){
-                Shell::passthru($script);
+            if($action === "pull"){
+                $afterPull = $projectSync->parseHook("after_pull", ["project_dir" => $dir]);
+                foreach($afterPull as $script){
+                    Shell::passthru($script);
+                }
             }
+        }else{
+            Text::print("{red}Skipping the project:{end} {yel}$project ($branch){end} because it has changes\n");
         }
-    }else{
-        Text::print("{red}Skipping the project:{end} {yel}$project ($branch){end} because it has changes\n");
+    }catch(Exception $e){
+        if(strpos($e->getMessage(), "no tracking information") !== false){
+            Text::print("{red}No tracking branch configured{end}\n");
+        }else if(strpos($e->getMessage(), "Could not read from remote repository") !== false){
+            Text::print("{red}Failed{end}. There was a connectivity issue\n");
+        }else{
+            Text::print("{red}Failed{end}. The command failed and threw an exception\n");
+        }
+
+        Text::print("Error Output: " . $e->getMessage());
     }
 }
