@@ -7,6 +7,22 @@ class Docker
 	private $profile;
 	private $key = "docker";
 
+	const DOCKER_NOT_RUNNING = "The docker daemon is not running";
+	const DOCKER_PORT_ALREADY_IN_USE = "Something is already using port 80 on this machine, please stop any local nginx or apache services";
+
+	private function parseCommonErrors(string $message)
+	{
+		if(strpos($message, "Got permission denied while trying to connect to the Docker daemon socket") !== false){
+			return self::DOCKER_NOT_RUNNING;
+		}
+
+		if(strpos($message, "address already in use") !== false){
+			return self::DOCKER_PORT_ALREADY_IN_USE;
+		}
+
+		return $message;
+	}
+
 	public function __construct(Config $config)
 	{
 		$this->config = $config;
@@ -18,55 +34,72 @@ class Docker
 		}
 	}
 
-	static public function isRunning(): bool
+	public function isRunning(): bool
 	{
 		try{
-			Shell::exec("docker version &>/dev/null");
+			Shell::exec("$this->command version &>/dev/null");
 			return true;
 		}catch(Exception $e){
+			Text::print("{red}".$this->parseCommonErrors($e->getMessage())."{end}");
 			return false;
 		}
 	}
 
-	static public function pull(string $image): int
+	public function pull(string $image): int
 	{
-		return Shell::passthru("docker pull $image");
+		try{
+			return Shell::passthru("$this->command pull $image");
+		}catch(Exception $e){
+			Text::print("{red}".$this->parseCommonErrors($e->getMessage())."{end}");
+		}
+
+		return 1;
 	}
 
-	static public function findContainer(string $container): bool
+	public function findContainer(string $container): bool
 	{
-		$list = Shell::exec("docker container ls");
+		try{
+			$list = Shell::exec("$this->command container ls");
 
-		foreach($list as $line){
-			if(strpos($line, $container) !== false){
-				return true;
+			foreach($list as $line){
+				if(strpos($line, $container) !== false){
+					return true;
+				}
 			}
+		}catch(Exception $e){
+			Text::print("{red}".$this->parseCommonErrors($e->getMessage())."{end}");
 		}
 
 		return false;
 	}
 
-	static public function deleteContainer(string $container): bool
+	public function getContainerId(string $name): string
+	{
+		return Shell::exec("$this->command container ls --all | grep '$name' | awk '{ print $1 }'", true);
+	}
+
+	public function deleteContainer(string $container): bool
 	{
 		try{
-			Shell::exec("docker container rm $container 2>&1");
-			Shell::exec("docker rm $container 2>&1");
+			Shell::exec("$this->command container rm $container 2>&1");
+			Shell::exec("$this->command rm $container 2>&1");
 
 			return true;
 		}catch(Exception $e){
+			Text::print("{red}".$this->parseCommonErrors($e->getMessage())."{end}");
 			return false;
 		}
 	}
 
-	static public function pruneContainer(): void
+	public function pruneContainer(): void
 	{
-		Shell::exec("docker container prune -f &>/dev/null");
+		Shell::exec("$this->command container prune -f &>/dev/null");
 	}
 
-	static public function findRunning(string $image): ?string
+	public function findRunning(string $image): ?string
 	{
 		try{
-			$output = Shell::exec("docker ps --no-trunc");
+			$output = Shell::exec("$this->command ps --no-trunc");
 
 			array_shift($output);
 
@@ -78,15 +111,16 @@ class Docker
 				}
 			}
 		}catch(Exception $e){
+			Script::failure("{red}".$this->parseCommonErrors($e->getMessage())."{end}\n");
 			// catch exception, return null
 		}
 
     	return null;
 	}
 
-	static public function run(string $image, string $name, array $ports, array $volumes, bool $restart=true): ?string
+	public function run(string $image, string $name, array $ports = [], array $volumes = [], bool $restart = true): ?string
 	{
-		$command = ["docker run -d"];
+		$command = ["$this->command run -d"];
 
 		if($restart) $command[] = '--restart always';
 
@@ -104,30 +138,41 @@ class Docker
 		try{
 			return Shell::exec(implode(" ", $command), true);
 		}catch(Exception $e){
-			if(strpos($e->getMessage(), "address already in use") !== false){
-				Script::failure("Something is already using port 80 on this machine, please stop any local nginx or apache services");
-			}
-
-			return null;
+			Script::failure($this->parseCommonErrors($e->getMessage()));
 		}
+	}
+
+	public function exec(string $container, string $command, bool $firstLine=false): array
+	{
+		return Shell::exec("$this->command exec -it $container $command", $firstLine);
+	}
+
+	public function command(string $subcommand): array
+	{
+		return Shell::exec("$this->command $subcommand");
+	}
+
+	public function passthru(string $subcommand): int
+	{
+		return Shell::passthru("$this->command $subcommand");
 	}
 
 	public function logs(string $container): int
 	{
-		return Shell::passthru("docker logs $container");
+		return Shell::passthru("$this->command logs $container");
 	}
 
 	public function logsFollow(string $container): int
 	{
-		return Shell::passthru("docker logs -f $container");
+		return Shell::passthru("$this->command logs -f $container");
 	}
 
-	static public function getNetworkId(string $network): ?string
+	public function getNetworkId(string $network): ?string
 	{
 		if(empty($network)) return null;
 
 		try{
-			$networkId = Shell::exec("docker network inspect $network -f '{{ .Id }}' 2>/dev/null", true);
+			$networkId = Shell::exec("$this->command network inspect $network -f '{{ .Id }}' 2>/dev/null", true);
 		}catch(Exception $e){
 			$networkId = null;
 		}
@@ -137,10 +182,10 @@ class Docker
 
 	public function createNetwork(string $network)
 	{
-		$networkId = Docker::getNetworkId($network);
+		$networkId = $this->docker->getNetworkId($network);
 
 		if(empty($networkId)){
-			$networkId = Shell::exec("docker network create $network", true);
+			$networkId = Shell::exec("$this->command network create $network", true);
 			Text::print("{blu}Create Network:{end} '$network', id: '$networkId'\n");
 		}else{
 			Text::print("{yel}Network '$network' already exists{end}\n");
@@ -149,15 +194,15 @@ class Docker
 		return $networkId;
 	}
 
-	static public function deleteNetwork(string $network)
+	public function deleteNetwork(string $network)
 	{
 		// TODO
 	}
 
-	static public function inspect($type, $name): array
+	public function inspect($type, $name): array
 	{
 		try{
-			$result = Shell::exec("docker $type inspect $name -f '{{json .}}'");
+			$result = Shell::exec("$this->command $type inspect $name -f '{{json .}}'");
 			$result = implode("\n",$result);
 
 			return json_decode($result, true);
@@ -169,13 +214,13 @@ class Docker
 	public function connectNetwork($network, $containerId): ?bool
 	{
 		try{
-			$networkData = Docker::inspect('network', $network);
+			$networkData = $this->docker->inspect('network', $network);
 
 			foreach(array_keys($networkData['Containers']) as $id){
 				if($id === $containerId) return false;
 			}
 
-			Shell::exec("docker network connect $network $containerId");
+			Shell::exec("$this->command network connect $network $containerId");
 
 			return true;
 		}catch(Exception $e){
@@ -186,7 +231,7 @@ class Docker
 	public function disconnectNetwork(string $network, string $containerId): ?bool
 	{
 		try{
-			Shell::exec("docker network disconnect $network $containerId");
+			Shell::exec("$this->command network disconnect $network $containerId");
 			return true;
 		}catch(Exception $e){
 			return false;
@@ -276,15 +321,5 @@ class Docker
 
 		$this->profile = $profile->getName();
 		$this->command = implode(" ", $command);
-	}
-
-	public function exec(string $subcommand): array
-	{
-		return Shell::exec("$this->command $subcommand");
-	}
-
-	public function passthru(string $subcommand): int
-	{
-		return Shell::passthru("$this->command $subcommand");
 	}
 }

@@ -62,7 +62,6 @@ class Ubuntu_16_04
 
     public function flushDNS(): void
     {
-        // for linux we don't have anything to do
-		Script::failure("flush dns not implemented");
+		// for linux we don't have anything to do
     }
 }

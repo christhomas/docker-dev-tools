@@ -70,7 +70,7 @@ class Proxy
 
 	public function getContainerId(): ?string
 	{
-		return Docker::findRunning($this->getDockerImage());
+		return $this->docker->findRunning($this->getDockerImage());
 	}
 
 	public function isRunning(): bool
@@ -99,7 +99,7 @@ class Proxy
 		$containerId = $this->getContainerId();
 
 		try{
-			$json = Docker::inspect('container', $containerId);
+			$json = $this->docker->inspect('container', $containerId);
 			$networkList = array_keys($json["NetworkSettings"]["Networks"]);
 			$networkList = array_filter($networkList, function($v){
 				return strpos($v, 'bridge') === false;
@@ -117,16 +117,16 @@ class Proxy
 		$proxy = $this->getContainerName();
 		$path = $this->config->getToolsPath();
 
-		Docker::pruneContainer();
+		$this->docker->pruneContainer();
 
 		// Remove the container that was previously built
 		// cause otherwise it'll crash with "The container name /xxx" is already in use by container "xxxx"
-		if(Docker::findContainer($proxy) !== null){
+		if($this->docker->findContainer($proxy) !== null){
 			Text::print("Deleting Containers\n");
-			Docker::deleteContainer($proxy);
+			$this->docker->deleteContainer($proxy);
 		}
 
-		$containerId = Docker::run(
+		$containerId = $this->docker->run(
 			$dockerImage,
 			$proxy,
 			['80:80', '443:443'],
@@ -230,7 +230,7 @@ class Proxy
 		foreach($containers as $c){
 			$upstream[$c] = ['host' => '<empty>', 'port' => 80, 'path' => '/', 'networks' => '<empty>'];
 
-			$json = Docker::inspect('container', $c);
+			$json = $this->docker->inspect('container', $c);
 			foreach($json['Config']['Env'] as $e){
 				list($key, $value) = explode("=", $e);
 				if($key === 'VIRTUAL_HOST') $upstream[$c]['host'] = $value;
