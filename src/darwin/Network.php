@@ -63,6 +63,8 @@ class Network
 
 		if($mode === 'docker'){
 			$ipAddress = '0.0.0.0';
+		}else{
+			$ipAddress = $mode;
 		}
 
 		Text::print("DNS Servers: '{yel}$name{end}'\n");
