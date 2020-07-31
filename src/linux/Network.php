@@ -3,6 +3,12 @@ class Network
 {
     private $distroName;
     private $distro;
+    private $distroMap = [
+		"16.04" => Ubuntu_16_04::class,
+		"16.10" => Ubuntu_16_04::class,
+		"18.04" => Ubuntu_18_04::class,
+		"18.10" => Ubuntu_18_04::class,
+	];
 
 	public function __construct()
 	{
@@ -11,15 +17,11 @@ class Network
 
         $this->distro = null;
 
-        switch(true){
-			case strpos($this->distroName, "16.04") !== false:
-				$this->distro = new Ubuntu_16_04();
-				break;
-
-            case strpos($this->distroName, "18.10") !== false:
-                $this->distro = new Ubuntu_18_10();
-                break;
-        }
+        foreach($this->distroMap as $version => $class){
+        	if(strpos($this->distroName, $version) !== false){
+				$this->distro = new $class();
+			}
+		}
 	}
 
 	public function installIPAddress(string $ipAddress): bool
