@@ -8,16 +8,23 @@ class Docker
 	private $key = "docker";
 
 	const DOCKER_NOT_RUNNING = "The docker daemon is not running";
-	const DOCKER_PORT_ALREADY_IN_USE = "Something is already using port 80 on this machine, please stop any local nginx or apache services";
+	const DOCKER_PORT_ALREADY_IN_USE = "Something is already using port '{port}' on this machine, please stop that service and try again";
 
-	private function parseCommonErrors(string $message)
+	private function parseCommonErrors(string $message, array $tokens = []): string
 	{
 		if(strpos($message, "Got permission denied while trying to connect to the Docker daemon socket") !== false){
-			return self::DOCKER_NOT_RUNNING;
+			$message = self::DOCKER_NOT_RUNNING;
 		}
 
 		if(strpos($message, "address already in use") !== false){
-			return self::DOCKER_PORT_ALREADY_IN_USE;
+			$message = self::DOCKER_PORT_ALREADY_IN_USE;
+		}
+
+		foreach($tokens as $search => $replace){
+			if(is_array($replace)){
+				$replace = implode(", ", $replace);
+			}
+			$message = str_replace($search, $replace, $message);
 		}
 
 		return $message;
@@ -81,8 +88,8 @@ class Docker
 	public function deleteContainer(string $container): bool
 	{
 		try{
-			Shell::exec("$this->command container rm $container 2>&1");
-			Shell::exec("$this->command rm $container 2>&1");
+			Shell::exec("$this->command container rm $container &>/dev/null");
+			Shell::exec("$this->command rm $container &>/dev/null");
 
 			return true;
 		}catch(Exception $e){
@@ -138,7 +145,7 @@ class Docker
 		try{
 			return Shell::exec(implode(" ", $command), true);
 		}catch(Exception $e){
-			Script::failure($this->parseCommonErrors($e->getMessage()));
+			Script::failure($this->parseCommonErrors($e->getMessage(), ["{port}" => $ports]));
 		}
 	}
 
