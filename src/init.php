@@ -1,4 +1,8 @@
 <?php
+if (version_compare(phpversion(), '7.2', '<')) {
+    die("Sorry but the tools require at least PHP 7.2, you have ".phpversion()." installed\n");
+}
+
 spl_autoload_register(function ($class_name) {
 	$file = __DIR__ . "/" . $class_name . '.php';
 	if(file_exists($file)) require_once($file);
