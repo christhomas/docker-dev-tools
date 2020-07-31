@@ -123,17 +123,13 @@ if($cli->hasArg('start')){
 }
 
 if($cli->hasArg('logs')){
-    if($dns->isRunning()){
-		$dns->logs();
-    }else{
+    if(!$dns->logs()){
 		Script::failure("DNS Container could not be found");
     }
 }
 
 if($cli->hasArg('logs-f')){
-	if($dns->isRunning()){
-		$dns->logsFollow();
-	}else{
+	if(!$dns->logsFollow()){
 		Script::failure("DNS Container could not be found");
 	}
 }

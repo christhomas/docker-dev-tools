@@ -117,21 +117,27 @@ class DNSMasq {
 		$this->config->write();
 	}
 
-	public function logs()
+	public function logs(): bool
 	{
 		$container = Docker::findRunning($this->getDockerImage());
 
 		if($container){
 			$this->docker->logs($container);
+			return true;
+		}else{
+			return false;
 		}
 	}
 
-	public function logsFollow()
+	public function logsFollow(): bool
 	{
 		$container = Docker::findRunning($this->getDockerImage());
 
-		if(!$container){
+		if($container){
 			$this->docker->logsFollow($container);
+			return true;
+		}else{
+			return false;
 		}
 	}
 
