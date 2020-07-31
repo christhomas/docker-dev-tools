@@ -88,8 +88,8 @@ class Docker
 	public function deleteContainer(string $container): bool
 	{
 		try{
-			Shell::exec("$this->command container rm $container &>/dev/null");
-			Shell::exec("$this->command rm $container &>/dev/null");
+			Shell::exec("$this->command kill $container 1>&2");
+			Shell::exec("$this->command container rm $container 1>&2");
 
 			return true;
 		}catch(Exception $e){

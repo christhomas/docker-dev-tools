@@ -26,7 +26,7 @@ class Ubuntu_18_04
         $ipAddress = '127.0.0.1';
 
         Text::print("{blu}DNS:{end} Resetting DNS Configuration back to sensible defaults\n");
-        Shell::exec('sudo sed -i "s/^DNS='.$ipAddress.'/#DNS=/i" /etc/systemd/resolved.conf');
+        Shell::exec('sudo sed -i "s/^DNS=.*\?/#DNS=/i" /etc/systemd/resolved.conf');
         Shell::exec('sudo sed -i "s/^DNSStubListener=.*\?/#DNSStubListener=yes/i" /etc/systemd/resolved.conf');
 
         Text::print("{blu}DNS:{end} Restarting 'systemd-resolved' to set DNS to use default resolver\n");

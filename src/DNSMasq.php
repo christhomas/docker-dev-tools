@@ -172,13 +172,13 @@ class DNSMasq {
 
 		Text::print("{blu}Starting DNSMasq Container...{end}\n");
 
+		$this->enable();
+
 		$dockerImage = $this->getDockerImage();
 		$containerName = $this->getContainerName();
 		$this->docker->run($dockerImage, $containerName, ["53:53/udp"], [], true);
 
 		sleep(2);
-
-		$this->enable();
 	}
 
 	public function stop(): void
@@ -187,6 +187,8 @@ class DNSMasq {
 			Text::print("{red}Docker is not running{end}\n");
 			return;
 		}
+
+		$this->disable();
 
 		$containerId = $this->docker->findRunning($this->getDockerImage());
 
@@ -204,7 +206,5 @@ class DNSMasq {
 		}catch(Exception $e){
 			Text::print("Exception: ".$e->getMessage());
 		}
-
-		$this->disable();
 	}
 }
