@@ -104,6 +104,10 @@ class Docker
 		try{
 			return Shell::exec(implode(" ", $command), true);
 		}catch(Exception $e){
+			if(strpos($e->getMessage(), "address already in use") !== false){
+				Script::failure("Something is already using port 80 on this machine, please stop any local nginx or apache services");
+			}
+
 			return null;
 		}
 	}
