@@ -22,7 +22,7 @@ class Config
 
 //		if($this->isTopLevel()){
 //			if($this->getHost() === null){
-//				Script::die("The toplevel config has no host data, it must contain this element to be valid");
+//				Script::failure("The toplevel config has no host data, it must contain this element to be valid");
 //			}
 //		}
 //

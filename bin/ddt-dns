@@ -126,7 +126,7 @@ if($cli->hasArg('logs')){
     if($dns->isRunning()){
 		$dns->logs();
     }else{
-		Script::die("DNS Container could not be found");
+		Script::failure("DNS Container could not be found");
     }
 }
 
@@ -134,7 +134,7 @@ if($cli->hasArg('logs-f')){
 	if($dns->isRunning()){
 		$dns->logsFollow();
 	}else{
-		Script::die("DNS Container could not be found");
+		Script::failure("DNS Container could not be found");
 	}
 }
 

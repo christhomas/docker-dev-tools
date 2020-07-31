@@ -123,7 +123,7 @@ if($cli->hasArg(['list-profile', 'list-profiles'])){
     try{
 		$profileList = $watcher->listProfiles($dockerProfile);
     }catch(Exception $e){
-        Script::die($e->getMessage(), 1);
+        Script::failure($e->getMessage());
     }
 
     Text::print("{blu}Profile List{end}:\n");

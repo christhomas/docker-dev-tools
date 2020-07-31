@@ -14,7 +14,7 @@ class Docker
 		$this->command = 'docker';
 
 		if(Shell::isCommand('docker') === false){
-			Script::die("Docker is required to run this tool, please install it\n");
+			Script::failure("Docker is required to run this tool, please install it\n");
 		}
 	}
 

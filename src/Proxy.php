@@ -152,7 +152,7 @@ class Proxy
 		if(!empty($containerId)){
 			Text::print("Running '$proxy', container id: '$containerId'\n");
 		}else{
-			Script::die("The container '$proxy' did not start correctly\n");
+			Script::failure("The container '$proxy' did not start correctly\n");
 		}
 	}
 
