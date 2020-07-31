@@ -78,9 +78,9 @@ class Network
 		return true;
 	}
 
-	public function disableDNS()
+	public function disableDNS(string $ipAddress): bool
 	{
-		$this->enableDNS('empty');
+		return $this->enableDNS('empty');
 	}
 
 	public function flushDNS()

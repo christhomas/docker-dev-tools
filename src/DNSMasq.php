@@ -142,7 +142,7 @@ class DNSMasq {
 
 	public function disable(): void
 	{
-		$this->network->disableDNS();
+		$this->network->disableDNS('docker');
 	}
 
 	public function pull(): void
@@ -197,7 +197,9 @@ class DNSMasq {
 				Shell::exec("docker container rm $containerId || true");
 			}
 		}catch(Exception $e){
-			var_dump($e->getMessage());
+			Text::print("Exception: ".$e->getMessage());
 		}
+
+		$this->disable();
 	}
 }

@@ -12,8 +12,8 @@ class Network
         $this->distro = null;
 
         switch(true){
-            case strpos($this->distroName, "20.04") !== false:
-                $this->distro = new Ubuntu2004();
+            case strpos($this->distroName, "18.10") !== false:
+                $this->distro = new Ubuntu_18_10();
                 break;
         }
 	}
@@ -55,13 +55,13 @@ class Network
         return $this->distro->enableDNS($ipAddress);
     }
 
-    public function disableDNS(): void
+    public function disableDNS(string $ipAddress): bool
     {
         if(!$this->distro) {
             throw new UnsupportedDistroException($this->distroName);
         }
 
-        $this->distro->disableDNS();
+        return $this->distro->disableDNS($ipAddress);
     }
 
     public function flushDNS(): void
