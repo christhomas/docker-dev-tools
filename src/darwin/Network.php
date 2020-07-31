@@ -56,12 +56,12 @@ class Network
 		return $interfaces;
 	}
 
-	public function enableDNS(string $ipAddress): bool
+	private function changeDNS(string $mode): bool
 	{
-		$name = $ipAddress === 'empty' ? 'Reset back to router' : $ipAddress;
-		$name = $ipAddress === 'docker' ? 'Docker Container' : $name;
+		$name = $mode === 'empty' ? 'Reset back to router' : $mode;
+		$name = $mode === 'docker' ? 'Docker Container' : $name;
 
-		if($ipAddress === 'docker'){
+		if($mode === 'docker'){
 			$ipAddress = '0.0.0.0';
 		}
 
@@ -78,9 +78,14 @@ class Network
 		return true;
 	}
 
-	public function disableDNS(string $ipAddress): bool
+	public function enableDNS(): bool
 	{
-		return $this->enableDNS('empty');
+		return $this->changeDNS('docker');
+	}
+
+	public function disableDNS(): bool
+	{
+		return $this->changeDNS('empty');
 	}
 
 	public function flushDNS()

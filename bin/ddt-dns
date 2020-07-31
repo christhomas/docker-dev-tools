@@ -105,7 +105,11 @@ if($cli->hasArg('stop')){
 if($cli->hasArg('start')){
 	Text::print("{blu}Starting DNS Container...{end}\n");
 
-    $dns->start();
+	try{
+		$dns->start();
+    }catch(UnsupportedDistroException $e){
+        Script::failure("This version of linux was not supported, version installed: ".$e->getMessage());
+    }
 
 	Format::ping($alias->ping('127.0.0.1'));
 	Format::ping($alias->ping('google.com'));

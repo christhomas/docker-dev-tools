@@ -24,7 +24,7 @@ class Shell
 		}
 	}
 
-	static public function exec(string $command, bool $firstLine=false)
+	static public function exec(string $command, bool $firstLine=false, bool $throw=true)
 	{
 		if(self::$debug){
 			print(Text::blue("[DEBUG] Run command: ").$command."\n");
@@ -35,19 +35,14 @@ class Shell
 		exec("$command $redirect", $output, $code);
 		self::$last_error = $code;
 
-		if($code !== 0){
+		if($code !== 0 && $throw === true){
 			throw new Exception(implode("\n", $output),$code);
 		}
 
 		return $firstLine ? current($output) : $output;
 	}
 
-	static public function run(string $command, bool $outputOptimise=false)
-	{
-		return self::exec($command, $outputOptimise);
-	}
-
-	static public function passthru($command): int
+	static public function passthru(string $command, bool $throw=true): int
 	{
 		if(self::$debug){
 			print(Text::blue("[DEBUG] Passthru command: ").$command."\n");
@@ -58,7 +53,7 @@ class Shell
 		passthru("$command $redirect", $code);
 		self::$last_error = $code;
 
-		if ($code !== 0){
+		if ($code !== 0 && $throw === true){
 			throw new Exception(__METHOD__.": error with command '$command'\n");
 		}
 

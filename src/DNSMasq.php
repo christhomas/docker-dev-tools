@@ -137,12 +137,12 @@ class DNSMasq {
 
 	public function enable(): void
 	{
-		$this->network->enableDNS('docker');
+		$this->network->enableDNS();
 	}
 
 	public function disable(): void
 	{
-		$this->network->disableDNS('docker');
+		$this->network->disableDNS();
 	}
 
 	public function pull(): void
