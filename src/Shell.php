@@ -32,14 +32,28 @@ class Shell
 
 		$redirect = self::$debug ? "" : "2>&1";
 
-		exec("$command $redirect", $output, $code);
+		$proc = proc_open("$command $redirect",[
+			1 => ['pipe','w'],
+			2 => ['pipe','w'],
+		],$pipes);
+
+		$stdout = stream_get_contents($pipes[1]);
+		fclose($pipes[1]);
+
+		$stderr = stream_get_contents($pipes[2]);
+		fclose($pipes[2]);
+
+		$code = proc_close($proc);
+
 		self::$last_error = $code;
 
 		if($code !== 0 && $throw === true){
-			throw new Exception(implode("\n", $output),$code);
+			throw new Exception("$stdout $stderr",$code);
 		}
 
-		return $firstLine ? current($output) : $output;
+		$stdout = explode("\n", $stdout);
+
+		return $firstLine ? current($stdout) : $stdout;
 	}
 
 	static public function passthru(string $command, bool $throw=true): int
