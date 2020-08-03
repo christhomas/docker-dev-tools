@@ -2,7 +2,6 @@
 <?php declare(strict_types=1);
 $showErrors = true;
 $cli = require_once(__DIR__.'/../src/init.php');
-Shell::setDebug($cli->hasArg('debug'));
 
 $config = new Config();
 

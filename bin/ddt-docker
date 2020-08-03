@@ -4,8 +4,6 @@ $cli = require_once(__DIR__.'/../src/init.php');
 
 Script::title("DDT DOCKER FRONTEND", "Configure docker profiles and easily interface with remote docker daemons");
 
-Shell::setDebug($cli->hasArg('debug'));
-
 function help(CLI $cli)
 {
 	$script = $cli->getScript(false);

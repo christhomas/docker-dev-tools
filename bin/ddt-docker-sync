@@ -24,8 +24,6 @@ try{
     }
 }
 
-Shell::setDebug($cli->hasArg('debug'));
-
 function help(CLI $cli)
 {
 	$script = $cli->getScript(false);

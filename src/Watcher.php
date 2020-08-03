@@ -127,7 +127,7 @@ class Watcher
 
 	public function watch(DockerProfile $dockerProfile, DockerSyncProfile $syncProfile): bool
 	{
-		$script = "$this->script --docker={$dockerProfile->getName()} --profile={$syncProfile->getName()}";
+		$script = "$this->script --docker={$dockerProfile->getName()} --profile={$syncProfile->getName()} --quiet";
 		$command = "fswatch {$syncProfile->getLocalDir()} | while read file; do file=$(echo \"\$file\" | sed '/\~$/d'); $script --write=\"\$file\"; done";
 
 		return Shell::passthru($command) === 0;
@@ -141,8 +141,8 @@ class Watcher
 
 			$temp = "/tmp/".implode('_', [bin2hex(random_bytes(8)), basename($remoteFilename)]);
 
-			$this->docker->exec("cp -a $localFilename $container:$temp");
-			$this->docker->exec("exec -i --user=0 $container mv -f $temp $remoteFilename");
+			$this->docker->command("cp -a $localFilename $container:$temp");
+			$this->docker->command("exec -i --user=0 $container mv -f $temp $remoteFilename");
 
 			return true;
 		}catch(Exception $e){

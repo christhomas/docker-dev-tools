@@ -7,8 +7,6 @@ $config = new Config();
 $docker = new Docker($config);
 $proxy = new Proxy($config, $docker);
 
-Shell::setDebug($cli->hasArg('debug'));
-
 Script::title("NGINX Frontend Proxy", "(club bouncer says) if your names not down, you're not coming in");
 
 if(Shell::isCommand('docker') === false){
