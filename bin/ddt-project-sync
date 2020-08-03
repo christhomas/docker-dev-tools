@@ -134,7 +134,7 @@ foreach(glob(CLI::getToolPath("/../**/.git"), GLOB_ONLYDIR) as $dir){
     try{
         $git = "git -C ${dir}";
         $status = Shell::exec("$git status -s");
-        $changes = count($status) > 0 ? "yes" : "no";
+        $changes = empty($status) ? "no" : "yes";
         $branch = Shell::exec("$git rev-parse --abbrev-ref HEAD", true);
 
         if($showBranch){

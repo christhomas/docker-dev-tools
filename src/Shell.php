@@ -37,10 +37,10 @@ class Shell
 			2 => ['pipe','w'],
 		],$pipes);
 
-		$stdout = stream_get_contents($pipes[1]);
+		$stdout = trim(stream_get_contents($pipes[1]));
 		fclose($pipes[1]);
 
-		$stderr = stream_get_contents($pipes[2]);
+		$stderr = trim(stream_get_contents($pipes[2]));
 		fclose($pipes[2]);
 
 		$code = proc_close($proc);
@@ -51,7 +51,7 @@ class Shell
 			throw new Exception("$stdout $stderr",$code);
 		}
 
-		$stdout = explode("\n", $stdout);
+		$stdout = empty($stdout) ? [] : explode("\n", $stdout);
 
 		return $firstLine ? current($stdout) : $stdout;
 	}
