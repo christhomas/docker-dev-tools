@@ -16,4 +16,8 @@ spl_autoload_register(function ($class_name) {
 
 if(!isset($showErrors)) $showErrors = false;
 
-return new CLI($argv, $showErrors);
+$cli = new CLI($argv, $showErrors);
+
+Shell::setDebug($cli->hasArg('debug'));
+
+return $cli;
