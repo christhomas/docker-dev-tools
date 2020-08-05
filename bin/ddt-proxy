@@ -58,7 +58,10 @@ if($cli->hasArg('help') || $cli->countArgs() === 0){
 }
 
 if($cli->hasArg('restart')){
-    $cli->setArg('stop');
+    if($proxy->isRunning()){
+        $proxy->stop();
+	}
+
     $cli->setArg('start');
 }
 
@@ -83,7 +86,7 @@ if($network = $cli->getArg('start')){
 
 		$proxy->start($network);
 
-		Text::print("{blu}Running Containers{end}\n");
+		Text::print("{blu}Running Containers:{end}\n");
 		Shell::passthru('docker ps');
 
 		$cli->setArg('domains');

@@ -93,7 +93,7 @@ class Docker
 
 			return true;
 		}catch(Exception $e){
-			Text::print("{red}".$this->parseCommonErrors($e->getMessage())."{end}");
+			Text::print("{red}".$this->parseCommonErrors($e->getMessage())."{end}\n");
 			return false;
 		}
 	}
@@ -189,7 +189,7 @@ class Docker
 
 	public function createNetwork(string $network)
 	{
-		$networkId = $this->docker->getNetworkId($network);
+		$networkId = $this->getNetworkId($network);
 
 		if(empty($networkId)){
 			$networkId = Shell::exec("$this->command network create $network", true);
@@ -221,7 +221,7 @@ class Docker
 	public function connectNetwork($network, $containerId): ?bool
 	{
 		try{
-			$networkData = $this->docker->inspect('network', $network);
+			$networkData = $this->inspect('network', $network);
 
 			foreach(array_keys($networkData['Containers']) as $id){
 				if($id === $containerId) return false;

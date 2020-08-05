@@ -83,7 +83,7 @@ class Proxy
 		$containerId = $this->getContainerId();
 
 		try{
-			return implode("\n", Shell::exec("docker exec -it $containerId cat /etc/nginx/conf.d/default.conf"));
+			return implode("\n", $this->docker->exec($containerId, 'cat /etc/nginx/conf.d/default.conf'));
 		}catch(Exception $e){
 			return "";
 		}
@@ -91,7 +91,7 @@ class Proxy
 
 	public function getNetworks(): array
 	{
-		return $this->config->getKey($this->keys['network'], []);
+		return $this->config->getKey($this->keys['network']);
 	}
 
 	public function getListeningNetworks(): array
@@ -160,8 +160,7 @@ class Proxy
 	{
 		$containerId = $this->getContainerId();
 
-		Shell::exec("docker kill $containerId &>/dev/null");
-		Shell::exec("docker rm -f $containerId &>/dev/null");
+		$this->docker->deleteContainer($containerId);
 
 		// we don't delete the network since there is no real reason to want to do this
 		// just leave it and reuse it when necessary
@@ -193,7 +192,7 @@ class Proxy
 
 		if($this->docker->connectNetwork($network, $containerId))
 		{
-			$networkList = $this->config->getKey($this->keys['network'], []);
+			$networkList = $this->config->getKey($this->keys['network']);
 			$networkList[] = $network;
 			$this->config->setKey($this->keys['network'], array_unique($networkList));
 			$this->config->write();
@@ -205,7 +204,7 @@ class Proxy
 		$containerId = $this->getContainerId();
 		if($this->docker->disconnectNetwork($network, $containerId))
 		{
-			$networkList = $this->config->getKey($this->keys['network'], []);
+			$networkList = $this->config->getKey($this->keys['network']);
 			foreach($networkList as $index => $name){
 				if($name === $network) unset($networkList[$index]);
 			}
