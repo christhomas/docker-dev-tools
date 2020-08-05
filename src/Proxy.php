@@ -220,7 +220,7 @@ class Proxy
 
 		$containers = [];
 		foreach($config as $line){
-			if(preg_match("/^upstream\s(?P<upstream>[^\s]+)\s\{$/", $line, $matches)){
+			if(preg_match("/^upstream\s(?P<upstream>[^\s]+)\s\{$/", trim($line), $matches)) {
 				$containers[] = $matches['upstream'];
 			}
 		}
