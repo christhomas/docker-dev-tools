@@ -25,6 +25,7 @@ function help(CLI $cli, $alias) {
         --add: Add {yel}$alias{end} as an ip alias for {yel}127.0.0.1{end}
         --remove: Remove {yel}$alias{end} from your computer
         --reset: Remove and Add the configuration again, just in case it broke somehow
+        --ping: Ping the configured ip address
         
     {blu}Notes:{end}
         Please don't use {yel}localhost{end} or {yel}127.0.0.1{end}
