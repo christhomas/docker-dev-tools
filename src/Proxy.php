@@ -70,7 +70,7 @@ class Proxy
 
 	public function getContainerId(): ?string
 	{
-		return Docker::findRunning($this->getDockerImage());
+		return $this->docker->findRunning($this->getDockerImage());
 	}
 
 	public function isRunning(): bool
@@ -83,7 +83,7 @@ class Proxy
 		$containerId = $this->getContainerId();
 
 		try{
-			return implode("\n", Execute::run("docker exec -it $containerId cat /etc/nginx/conf.d/default.conf"));
+			return implode("\n", $this->docker->exec($containerId, 'cat /etc/nginx/conf.d/default.conf'));
 		}catch(Exception $e){
 			return "";
 		}
@@ -91,7 +91,7 @@ class Proxy
 
 	public function getNetworks(): array
 	{
-		return $this->config->getKey($this->keys['network'], []);
+		return $this->config->getKey($this->keys['network']);
 	}
 
 	public function getListeningNetworks(): array
@@ -99,7 +99,7 @@ class Proxy
 		$containerId = $this->getContainerId();
 
 		try{
-			$json = Docker::inspect('container', $containerId);
+			$json = $this->docker->inspect('container', $containerId);
 			$networkList = array_keys($json["NetworkSettings"]["Networks"]);
 			$networkList = array_filter($networkList, function($v){
 				return strpos($v, 'bridge') === false;
@@ -117,16 +117,16 @@ class Proxy
 		$proxy = $this->getContainerName();
 		$path = $this->config->getToolsPath();
 
-		Docker::pruneContainer();
+		$this->docker->pruneContainer();
 
 		// Remove the container that was previously built
 		// cause otherwise it'll crash with "The container name /xxx" is already in use by container "xxxx"
-		if(Docker::findContainer($proxy) !== null){
+		if($this->docker->findContainer($proxy) !== null){
 			Text::print("Deleting Containers\n");
-			Docker::deleteContainer($proxy);
+			$this->docker->deleteContainer($proxy);
 		}
 
-		$containerId = Docker::run(
+		$containerId = $this->docker->run(
 			$dockerImage,
 			$proxy,
 			['80:80', '443:443'],
@@ -152,7 +152,7 @@ class Proxy
 		if(!empty($containerId)){
 			Text::print("Running '$proxy', container id: '$containerId'\n");
 		}else{
-			Script::die("The container '$proxy' did not start correctly\n");
+			Script::failure("The container '$proxy' did not start correctly\n");
 		}
 	}
 
@@ -160,8 +160,7 @@ class Proxy
 	{
 		$containerId = $this->getContainerId();
 
-		Execute::run("docker kill $containerId &>/dev/null");
-		Execute::run("docker rm -f $containerId &>/dev/null");
+		$this->docker->deleteContainer($containerId);
 
 		// we don't delete the network since there is no real reason to want to do this
 		// just leave it and reuse it when necessary
@@ -193,7 +192,7 @@ class Proxy
 
 		if($this->docker->connectNetwork($network, $containerId))
 		{
-			$networkList = $this->config->getKey($this->keys['network'], []);
+			$networkList = $this->config->getKey($this->keys['network']);
 			$networkList[] = $network;
 			$this->config->setKey($this->keys['network'], array_unique($networkList));
 			$this->config->write();
@@ -205,7 +204,7 @@ class Proxy
 		$containerId = $this->getContainerId();
 		if($this->docker->disconnectNetwork($network, $containerId))
 		{
-			$networkList = $this->config->getKey($this->keys['network'], []);
+			$networkList = $this->config->getKey($this->keys['network']);
 			foreach($networkList as $index => $name){
 				if($name === $network) unset($networkList[$index]);
 			}
@@ -221,7 +220,7 @@ class Proxy
 
 		$containers = [];
 		foreach($config as $line){
-			if(preg_match("/^upstream\s(?P<upstream>[^\s]+)\s\{$/", $line, $matches)){
+			if(preg_match("/^upstream\s(?P<upstream>[^\s]+)\s\{$/", trim($line), $matches)) {
 				$containers[] = $matches['upstream'];
 			}
 		}
@@ -230,7 +229,7 @@ class Proxy
 		foreach($containers as $c){
 			$upstream[$c] = ['host' => '<empty>', 'port' => 80, 'path' => '/', 'networks' => '<empty>'];
 
-			$json = Docker::inspect('container', $c);
+			$json = $this->docker->inspect('container', $c);
 			foreach($json['Config']['Env'] as $e){
 				list($key, $value) = explode("=", $e);
 				if($key === 'VIRTUAL_HOST') $upstream[$c]['host'] = $value;

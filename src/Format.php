@@ -52,7 +52,7 @@ class Format
 			switch($format){
 				case 'true':
 				case 'pretty-print':
-					$output[] = "{blu}Network{end}: $network";
+					$output[] = " - $network";
 					break;
 
 				case 'no-pretty':
@@ -74,7 +74,7 @@ class Format
 			$output[] = "\n";
 		}
 
-		$output = implode($sep, $output)."\n";
+		$output = "\n".implode($sep, $output);
 
 		if($buffer === false) Text::print($output);
 
@@ -99,7 +99,7 @@ class Format
 
 			$output[] = $table->render(true);
 		}else{
-			$output[] = "There are no domains yet";
+			$output[] = " -- There are no domains yet -- \n";
 		}
 
 		$output = implode("\n", $output)."\n";

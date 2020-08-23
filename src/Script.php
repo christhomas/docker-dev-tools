@@ -3,7 +3,7 @@ class Script
 {
 	static function title($title, $subtitle)
 	{
-		Text::print("{quiet}{blu}$title{end}: {yel}$subtitle{end}\n\n{/quiet}");
+		Text::print("{quiet}{blu}$title{end}: {yel}$subtitle{end}\n{/quiet}");
 	}
 
 	static function die(?string $text=null, int $exitcode=0)

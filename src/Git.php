@@ -13,7 +13,7 @@ class Git{
 			throw new DirectoryExistsException("The directory '$dir' already exists");
 		}
 
-		Execute::passthru("git clone $this->url $dir");
+		Shell::passthru("git clone $this->url $dir");
 	}
 
 	public function pull(string $dir)

@@ -1,5 +1,5 @@
 #!/usr/bin/env php
-<?php
+<?php declare(strict_types=1);
 $showErrors = true;
 $cli = require_once(__DIR__.'/../src/init.php');
 
@@ -113,7 +113,7 @@ if(!$cli->hasArg('validate')){
 		if($cli->hasArg('break-me')) file_put_contents($config_file, file_get_contents($config_file)."!@#@#^#$!@#");
 	}else{
 		print(Text::box("Writing the configuration file: $config_file", 'black', 'yellow'));
-		$config = new Config($cli->getToolRoot()."/defaults.json");
+		$config = new Config(CLI::getToolPath("/defaults.json"));
 		$config->write($config_file);
 	}
 }

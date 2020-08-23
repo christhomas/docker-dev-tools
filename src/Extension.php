@@ -39,7 +39,7 @@ class Extension{
 		$answer = CLI::ask("Should we remove the extension directory with the command '$cmd'?",["yes"]);
 
 		if($answer === "yes") {
-			Execute::passthru($cmd);
+			Shell::passthru($cmd);
 		}
 
 		return $this->config->removeExtension($name);

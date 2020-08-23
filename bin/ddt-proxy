@@ -1,5 +1,5 @@
 #!/usr/bin/env php
-<?php
+<?php declare(strict_types=1);
 $showErrors = true;
 $cli = require_once(__DIR__.'/../src/init.php');
 
@@ -7,12 +7,10 @@ $config = new Config();
 $docker = new Docker($config);
 $proxy = new Proxy($config, $docker);
 
-Execute::setDebug($cli->hasArg('debug'));
-
 Script::title("NGINX Frontend Proxy", "(club bouncer says) if your names not down, you're not coming in");
 
-if(Execute::isCommand('docker') === false){
-	Script::die("Docker is required to run this tool, please install it");
+if(Shell::isCommand('docker') === false){
+	Script::failure("Docker is required to run this tool, please install it");
 }
 
 function help(CLI $cli)
@@ -60,7 +58,10 @@ if($cli->hasArg('help') || $cli->countArgs() === 0){
 }
 
 if($cli->hasArg('restart')){
-    $cli->setArg('stop');
+    if($proxy->isRunning()){
+        $proxy->stop();
+	}
+
     $cli->setArg('start');
 }
 
@@ -71,7 +72,7 @@ if($cli->hasArg('stop')){
         $proxy->stop();
 
 		Text::print("{blu}Running Containers{end}\n");
-		Execute::passthru('docker ps');
+		Shell::passthru('docker ps');
     }else{
         Text::print(Text::box("Status: Already Stopped", 'blk', 'yel'));
     }
@@ -85,8 +86,8 @@ if($network = $cli->getArg('start')){
 
 		$proxy->start($network);
 
-		Text::print("{blu}Running Containers{end}\n");
-		Execute::passthru('docker ps');
+		Text::print("{blu}Running Containers:{end}\n");
+		Shell::passthru('docker ps');
 
 		$cli->setArg('domains');
     }else{
@@ -98,7 +99,7 @@ if($cli->hasArg('config')){
     if($proxy->isRunning()){
         print($proxy->getConfig());
     }else{
-		Script::die("There is no proxy container running");
+		Script::failure("There is no proxy container running");
     }
 }
 
@@ -109,7 +110,7 @@ if($network = $cli->getArgWithVal('add-network')){
         $proxy->addNetwork($network);
 		Format::networkList($proxy->getNetworks());
     }else{
-		Script::die("There is no proxy container running");
+		Script::failure("There is no proxy container running");
     }
 }
 
@@ -120,7 +121,7 @@ if($network = $cli->getArgWithVal('remove-network')){
 		$proxy->removeNetwork($network);
 		Format::networkList($proxy->getNetworks());
 	}else{
-		Script::die("There is no proxy container running");
+		Script::failure("There is no proxy container running");
 	}
 }
 
@@ -128,7 +129,7 @@ if($cli->hasArg('logs')){
 	if($proxy->isRunning()){
 		$proxy->logs();
 	}else{
-		Script::die("There is no proxy container running");
+		Script::failure("There is no proxy container running");
 	}
 }
 
@@ -136,7 +137,7 @@ if($cli->hasArg('logs-f')){
     if($proxy->isRunning()){
 		$proxy->logsFollow();
     }else{
-		Script::die("There is no proxy container running");
+		Script::failure("There is no proxy container running");
     }
 }
 
@@ -145,7 +146,7 @@ if($cli->hasArg('domains')){
 		Format::networkList($proxy->getListeningNetworks());
 		Format::upstreamList($proxy->getUpstreams());
     }else{
-		Script::die("There is no proxy container running");
+		Script::failure("There is no proxy container running");
     }
 }
 

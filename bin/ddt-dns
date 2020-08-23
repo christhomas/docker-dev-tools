@@ -1,13 +1,11 @@
 #!/usr/bin/env php
-<?php
+<?php declare(strict_types=1);
 $cli = require_once(__DIR__.'/../src/init.php');
 
 $config = new Config();
 $docker = new Docker($config);
 $dns = new DNSMasq($config, $docker);
 $alias = new IPAddress($config);
-
-Execute::setDebug($cli->hasArg('debug'));
 
 Script::title("DNS Server", "Turn your network on....or...off....");
 
@@ -105,7 +103,11 @@ if($cli->hasArg('stop')){
 if($cli->hasArg('start')){
 	Text::print("{blu}Starting DNS Container...{end}\n");
 
-    $dns->start();
+	try{
+		$dns->start();
+    }catch(UnsupportedDistroException $e){
+        Script::failure("This version of linux was not supported, version installed: ".$e->getMessage());
+    }
 
 	Format::ping($alias->ping('127.0.0.1'));
 	Format::ping($alias->ping('google.com'));
@@ -119,18 +121,14 @@ if($cli->hasArg('start')){
 }
 
 if($cli->hasArg('logs')){
-    if($dns->isRunning()){
-		$dns->logs();
-    }else{
-		Script::die("DNS Container could not be found");
+    if(!$dns->logs()){
+		Script::failure("DNS Container could not be found");
     }
 }
 
 if($cli->hasArg('logs-f')){
-	if($dns->isRunning()){
-		$dns->logsFollow();
-	}else{
-		Script::die("DNS Container could not be found");
+	if(!$dns->logsFollow()){
+		Script::failure("DNS Container could not be found");
 	}
 }
 

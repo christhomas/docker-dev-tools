@@ -10,7 +10,7 @@ class Network
 	{
 		try{
 			if(!empty($ipAddress)){
-				Execute::run("sudo ifconfig lo0 alias $ipAddress");
+				Shell::exec("sudo ifconfig lo0 alias $ipAddress");
 				return true;
 			}
 		}catch(Exception $e){ }
@@ -26,7 +26,7 @@ class Network
 			}
 
 			if(!empty($ipAddress)){
-				Execute::run("sudo ifconfig lo0 $ipAddress delete &>/dev/null");
+				Shell::exec("sudo ifconfig lo0 $ipAddress delete &>/dev/null");
 				return true;
 			}
 		}catch(Exception $e){ }
@@ -38,12 +38,12 @@ class Network
 	{
 		$interfaces = [];
 
-		$hardwarePorts = Execute::run("networksetup -listnetworkserviceorder | grep 'Hardware Port'");
+		$hardwarePorts = Shell::exec("networksetup -listnetworkserviceorder | grep 'Hardware Port'");
 
 		foreach($hardwarePorts as $hwport){
 			if(preg_match("/Hardware Port:\s+(?P<name>[^,]+),\s+Device:\s+(?P<device>[^)]+)/", $hwport, $matches)){
 				try{
-					$dev = implode("\n",Execute::run("ifconfig {$matches['device']} 2>/dev/null"));
+					$dev = implode("\n",Shell::exec("ifconfig {$matches['device']} 2>/dev/null"));
 					if(strpos($dev, "status: active") !== false){
 						$interfaces[] = ['name' => $matches['name'], 'device' => $matches['device']];
 					}
@@ -56,13 +56,15 @@ class Network
 		return $interfaces;
 	}
 
-	public function enableDNS(string $ipAddress)
+	private function changeDNS(string $mode): bool
 	{
-		$name = $ipAddress === 'empty' ? 'Reset back to router' : $ipAddress;
-		$name = $ipAddress === 'docker' ? 'Docker Container' : $name;
+		$name = $mode === 'empty' ? 'Reset back to router' : $mode;
+		$name = $mode === 'docker' ? 'Docker Container' : $name;
 
-		if($ipAddress === 'docker'){
+		if($mode === 'docker'){
 			$ipAddress = '0.0.0.0';
+		}else{
+			$ipAddress = $mode;
 		}
 
 		Text::print("DNS Servers: '{yel}$name{end}'\n");
@@ -70,26 +72,33 @@ class Network
 		$interfaces = $this->enumerateInterfaces();
 		foreach($interfaces as $i){
 			Text::print("Configuring interface '{yel}{$i['name']}{end}'\n");
-			Execute::run("sudo networksetup -setdnsservers '{$i['name']}' $ipAddress");
+			Shell::exec("sudo networksetup -setdnsservers '{$i['name']}' $ipAddress");
 		}
 
 		$this->flushDNS();
+
+		return true;
 	}
 
-	public function disableDNS()
+	public function enableDNS(): bool
 	{
-		$this->enableDNS('empty');
+		return $this->changeDNS('docker');
+	}
+
+	public function disableDNS(): bool
+	{
+		return $this->changeDNS('empty');
 	}
 
 	public function flushDNS()
 	{
 		Text::print("Flushing DNS Cache: ");
 
-		if(Execute::isCommand('dscacheutil')){
-			Execute::run('sudo dscacheutil -flushcache');
+		if(Shell::isCommand('dscacheutil')){
+			Shell::exec('sudo dscacheutil -flushcache');
 		}
 
-		Execute::run('sudo killall -HUP mDNSResponder');
+		Shell::exec('sudo killall -HUP mDNSResponder');
 
 		Text::print("{grn}FLUSHED{end}\n");
 	}

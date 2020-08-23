@@ -22,7 +22,7 @@ class Config
 
 //		if($this->isTopLevel()){
 //			if($this->getHost() === null){
-//				Script::die("The toplevel config has no host data, it must contain this element to be valid");
+//				Script::failure("The toplevel config has no host data, it must contain this element to be valid");
 //			}
 //		}
 //
@@ -45,11 +45,12 @@ class Config
 		return $this->getType() === "toplevel";
 	}
 
-	public function getToolsPath(): string
+	public function getToolsPath(string $subpath = null): string
 	{
 		$path = ArrayWrapper::get($this->data[$this->filename], 'path');
+		$path = $path ?: dirname(__DIR__);
 
-		return $path ?: dirname(__DIR__);
+		return $path . $subpath;
 	}
 
 	public function setToolsPath(string $path): void
@@ -144,16 +145,14 @@ class Config
 			? $this->scanConfigTree($key)
 			: $this->data[$this->filename];
 
-		if(is_countable($data) && count($data) === 1) $data = current($data);
+		if(is_array($data) && count($data) === 1) $data = current($data);
 
 		return $data;
 	}
 
-	public function getKeyAsJson(string $key, $default=null): string
+	public function getKeyAsJson(string $key): string
 	{
 		$data = $this->getKey($key);
-
-		// FIXME: What to do with the default parameter?
 
 		return json_encode($data, JSON_PRETTY_PRINT);
 	}

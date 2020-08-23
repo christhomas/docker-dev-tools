@@ -15,7 +15,7 @@ class Watcher
 		$this->config = $config;
 		$this->docker = $docker;
 
-		if(!Execute::isCommand('fswatch')){
+		if(!Shell::isCommand('fswatch')){
 			throw new Exception("fswatch is not installed, please install it when requested or do it yourself");
 		}
 	}
@@ -31,12 +31,12 @@ class Watcher
 		return $profileList;
 	}
 
-	public function getProfile(DockerProfile $dockerProject, string $syncProfile): ?SyncProfile
+	public function getProfile(DockerProfile $dockerProject, string $syncProfile): ?DockerSyncProfile
 	{
 		$profile = $this->config->getKey(implode('.',[$this->profileKey, $dockerProject->getName(), $syncProfile]));
 
 		if(ArrayWrapper::hasAll($profile, ['container', 'local_dir', 'remote_dir'])){
-			return new SyncProfile(
+			return new DockerSyncProfile(
 				$syncProfile,
 				$profile['container'],
 				$profile['local_dir'],
@@ -49,7 +49,7 @@ class Watcher
 
 	public function addProfile(DockerProfile $dockerProfile, string $syncProfile, string $container, string $localDir, string $remoteDir): bool
 	{
-		$syncProfile = new SyncProfile($syncProfile, $container, $localDir, $remoteDir);
+		$syncProfile = new DockerSyncProfile($syncProfile, $container, $localDir, $remoteDir);
 
 		$this->config->setKey(implode('.',[$this->profileKey,$dockerProfile->getName(),$syncProfile->getName()]),$syncProfile);
 		$this->config->write();
@@ -101,7 +101,7 @@ class Watcher
 		$this->setIgnoreRules($list);
 	}
 
-	public function shouldIgnore(SyncProfile $syncProfile, string $filename): bool
+	public function shouldIgnore(DockerSyncProfile $syncProfile, string $filename): bool
 	{
 		$list = $this->listIgnoreRules();
 
@@ -125,15 +125,15 @@ class Watcher
 		return false;
 	}
 
-	public function watch(DockerProfile $dockerProfile, SyncProfile $syncProfile): bool
+	public function watch(DockerProfile $dockerProfile, DockerSyncProfile $syncProfile): bool
 	{
-		$script = "$this->script --docker={$dockerProfile->getName()} --profile={$syncProfile->getName()}";
+		$script = "$this->script --docker={$dockerProfile->getName()} --profile={$syncProfile->getName()} --quiet";
 		$command = "fswatch {$syncProfile->getLocalDir()} | while read file; do file=$(echo \"\$file\" | sed '/\~$/d'); $script --write=\"\$file\"; done";
 
-		return Execute::passthru($command) === 0;
+		return Shell::passthru($command) === 0;
 	}
 
-	public function write(SyncProfile $syncProfile, string $localFilename): bool
+	public function write(DockerSyncProfile $syncProfile, string $localFilename): bool
 	{
 		try{
 			$container = $syncProfile->getContainer();
@@ -141,8 +141,8 @@ class Watcher
 
 			$temp = "/tmp/".implode('_', [bin2hex(random_bytes(8)), basename($remoteFilename)]);
 
-			$this->docker->exec("cp -a $localFilename $container:$temp");
-			$this->docker->exec("exec -i --user=0 $container mv -f $temp $remoteFilename");
+			$this->docker->command("cp -a $localFilename $container:$temp");
+			$this->docker->command("exec -i --user=0 $container mv -f $temp $remoteFilename");
 
 			return true;
 		}catch(Exception $e){

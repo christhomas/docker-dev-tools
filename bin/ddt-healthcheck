@@ -1,15 +1,12 @@
 #!/usr/bin/env php
-<?php
+<?php declare(strict_types=1);
 $cli = require_once(__DIR__.'/../src/init.php');
-
-Execute::setDebug($cli->hasArg('debug'));
 
 $config = new Config();
 
 Script::title("Healthchecks", "Hopefully nobody died.....");
 
-// TODO: Make this a command line option
-$debug = false;
+$debug = $cli->hasArg("debug");
 
 foreach($argv as $arg){
     if($arg === "--list"){

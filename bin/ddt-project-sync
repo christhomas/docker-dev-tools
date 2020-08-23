@@ -1,0 +1,171 @@
+#!/usr/bin/env php
+<?php declare(strict_types=1);
+$cli = require_once(__DIR__.'/../src/init.php');
+
+Script::title("DDT PROJECT SYNC", "Quickly pull all projects into your local setup");
+
+$config = new Config();
+$projectSync = new ProjectSync($config);
+
+function help(CLI $cli)
+{
+    $script = $cli->getScript(false);
+
+    Text::print(<<<EOF
+    {yel}Usage Examples: {end}
+        $script --prune-local
+        $script --filter=api-server --prune-local
+        $script --add-hook=onsuccess --script="{project_dir}/setup.sh"
+
+    {blu}Description:{end}
+        This tool will quickly cycle through all the projects installed into the configured project root and pull them. 
+
+    {blu}Options:{end}
+        {cyn}Synchronising projects{end}
+        --push (optional): This will push all projects to their repositories instead of by default, pulling
+        --prune-local (optional): This will prune any local branch from your system which was already merged
+        --filter=XXX (optional): This will sync only the projects which have the mentioned text given to this parameter
+        --show-branch=XXX (optional): This will only show the branches for each project, the optional XXX part will show only the filtered project
+        --help: This help information
+        
+        {cyn}Managing Hooks{end}
+        --list-hooks: This will list all the configured hooks with their respective scripts
+        --add-hook=xxx: This will add a script to the named hook in this parameter
+        --remove-hook=xxx: This will remove a script from the named hook in this parameter
+        --script=xxx: This script will be added or removed to the hook given in the --add-hook parameter
+        --all: WARNING! This is a useful feature for --remove-hook when you want to just remove everything
+     
+    {blu}Notes:{end}
+        Projects that have local changes will be skipped. No changes will be made because it's unsafe to 
+        assume any operation can work in all scenarios.
+        
+        Hooks are unique, therefore a script can only appear once and duplicate hooks will not be added.
+        There is no way to reorder hooks, they must be added one by one in the sequence desired.
+        Supported Hooks:
+            - {yel}after_pull{end}: Will be executed after the project git pull was completed
+            - {yel}after_push{end}: Will be executed after the project git push was completed
+        Supported Template parameters:
+            - {yel}file{end}: Will use the enclosed string as a filename and test it's existence. It will remove the entire command if it failed the test
+                - {cyn}Example{end}: "sh {file}{project_dir}/setup.sh{file}" will test if file "{project_dir}/setup.sh" exists 
+            - {yel}project_dir{end}: Will be replaced by the directory for the project
+                - {cyn}Example{end}: "sh {project_dir}/setup.sh" will become "sh /path/to/project/folder/setup.sh"
+
+
+EOF
+    );
+
+    exit(0);
+}
+
+if($cli->hasArg('help')){
+    help($cli);
+}
+
+if($cli->getArg("list-hook") || $cli->getArg("list-hooks")){
+    $list = $projectSync->listHookNames();
+    foreach($list as $name){
+        Text::print("{blu}Hook{end}: {yel}$name{end}\n");
+        $scripts = $projectSync->listHook($name);
+        if(!empty($scripts)) {
+            Text::print(" - " . implode("\n - ", $scripts) . "\n\n");
+        }else{
+            Text::print(" --- NO SCRIPTS --- \n\n");
+        }
+    }
+
+    exit(0);
+}
+
+if(($name = $cli->getArgWithVal("add-hook")) !== null){
+    $script = $cli->getArgWithVal("script");
+
+    if(empty($script)){
+        Script::failure("You can't add a hook without a script, it makes no sense\n");
+    }
+
+    if($projectSync->addHook($name, $script)){
+        Script::success("Project Sync Hook '$name' using script '$script' was added successfully");
+    }else{
+        Script::failure("Project Sync Hook '$name' has failed to add script '$script'");
+    }
+}
+
+if(($name = $cli->getArgWithVal("remove-hook")) !== null){
+    $list = $projectSync->listHook($name);
+
+    $removed = false;
+    $script = $cli->getArgWithVal("script");
+    if($script){
+        foreach($list as $key => $value){
+            if($script === $value){
+                if($projectSync->removeHook($name, $key)) $removed = true;
+            }
+        }
+    }
+
+    $all = $cli->getArg("all");
+    if($all){
+        foreach($list as $key => $value){
+            if($projectSync->removeHook($name, $key)) $removed = true;
+        }
+    }
+
+    if($removed){
+        Script::success("Project Sync Hook '$name' has successfully removed the script(s)");
+    }else{
+        Script::failure("Project Sync Hook '$name' has failed to remove the script(s)");
+    }
+}
+
+$action     = $cli->getArg("push") ? "push" : "pull";
+$showBranch = $cli->getArgWithVal("show-branch");
+$filter     = $cli->getArgWithVal("filter") ?: $showBranch;
+$prune      = $cli->getArg("prune");
+$showBranch = $showBranch !== null;
+
+foreach(glob(CLI::getToolPath("/../**/.git"), GLOB_ONLYDIR) as $dir){
+    $dir = dirname(realpath($dir));
+    $project = basename($dir);
+
+    if(!empty($filter) && strpos($project, $filter) === false){
+        continue;
+    }
+
+    try{
+        $git = "git -C ${dir}";
+        $status = Shell::exec("$git status -s");
+        $changes = empty($status) ? "no" : "yes";
+        $branch = Shell::exec("$git rev-parse --abbrev-ref HEAD", true);
+
+        if($showBranch){
+            Text::print("{blu}Project:{end} {yel}$project ($branch){end}. Has Changes: {yel}$changes{end}\n");
+        }else if($changes === "no"){
+            Text::print("{blu}".ucwords($action)."ing the project:{end} {yel}$project ($branch){end} ");
+
+            Shell::exec("$git $action");
+            Shell::exec("$git fetch -p");
+
+            Text::print("{grn}Done{end}\n");
+
+            if($action === "pull"){
+                $afterPull = $projectSync->parseHook("after_pull", ["project_dir" => $dir]);
+                foreach($afterPull as $script){
+                    Shell::passthru($script);
+                }
+            }
+        }else{
+            Text::print("{red}Skipping the project:{end} {yel}$project ($branch){end} because it has changes\n");
+            Text::print("Changes:\n".implode("\n", $status)."\n");
+        }
+    }catch(Exception $e){
+        if(strpos($e->getMessage(), "no tracking information") !== false){
+            Text::print("{red}No tracking branch configured{end}\n");
+        }else if(strpos($e->getMessage(), "Could not read from remote repository") !== false){
+            Text::print("{red}Failed{end}. There was a connectivity issue\n");
+        }else{
+            Text::print("{red}Failed{end}. The command failed and threw an exception\n");
+        }
+
+        Text::print("Error Output: " . $e->getMessage());
+    }
+}

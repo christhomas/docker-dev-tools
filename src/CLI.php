@@ -36,11 +36,6 @@ class CLI
 		return dirname(__DIR__) . $subpath;
 	}
 
-	public function getToolRoot(): string
-	{
-		return self::getToolPath();
-	}
-
 	public function parseArgs(array $argv): array
 	{
 		$args = implode('&', array_slice($argv, 1));

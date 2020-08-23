@@ -1,28 +1,28 @@
 #!/usr/bin/env php
-<?php
+<?php declare(strict_types=1);
 $cli = require_once(__DIR__.'/../src/init.php');
+
+Script::title("DDT DOCKER SYNC", "Transport files into running containers");
 
 try{
     $config = new Config();
     $docker = new Docker($config);
     $watcher = new Watcher($cli->getScript(false), $config, $docker);
 }catch(Exception $e){
-    if(!Execute::isCommand('fswatch')){
+    if(!Shell::isCommand('fswatch')){
         $answer = CLI::ask("fswatch is not installed, install it?", ['yes', 'no']);
         if($answer === 'yes'){
             $os = strtolower(PHP_OS);
-            if($os === 'darwin') Execute::passthru('brew install fswatch');
-            if($os === 'linux') Execute::passthru('api-get install fswatch');
+            if($os === 'darwin') Shell::passthru('brew install fswatch');
+            if($os === 'linux') Shell::passthru('api-get install fswatch');
         }
     }
 
-    if(!Execute::isCommand('fswatch')){
+    if(!Shell::isCommand('fswatch')){
         Text::print(Text::box($e->getMessage(), 'white', 'red'));
         exit(1);
     }
 }
-
-Execute::setDebug($cli->hasArg('debug'));
 
 function help(CLI $cli)
 {
@@ -121,7 +121,7 @@ if($cli->hasArg(['list-profile', 'list-profiles'])){
     try{
 		$profileList = $watcher->listProfiles($dockerProfile);
     }catch(Exception $e){
-        Script::die($e->getMessage(), 1);
+        Script::failure($e->getMessage());
     }
 
     Text::print("{blu}Profile List{end}:\n");
@@ -145,17 +145,17 @@ if(($syncProfile = $cli->getArgWithVal('add-profile')) !== null){
     if($remoteDir === null) Script::failure("--remote-dir parameter was not valid");
 
     if($watcher->addProfile($dockerProfile, $syncProfile, $container, $localDir, $remoteDir)){
-		Script::success("Sync Profile '$syncProfile' using docker '{$dockerProfile->getName()}' and target container '$container' between '$localDir' to '$remoteDir' was written successfully");
+		Script::success("Docker Sync Profile '$syncProfile' using docker '{$dockerProfile->getName()}' and target container '$container' between '$localDir' to '$remoteDir' was written successfully");
 	}else{
-		Script::failure("Sync Profile '$syncProfile' using docker '{$dockerProfile->getName()}' did not write successfully");
+		Script::failure("Docker Sync Profile '$syncProfile' using docker '{$dockerProfile->getName()}' did not write successfully");
     }
 }
 
 if(($syncProfile = $cli->getArgWithVal('remove-profile')) !== null){
     if($watcher->removeProfile($dockerProfile, $syncProfile)){
-		Script::success("Sync Profile '$syncProfile' using docker '{$dockerProfile->getName()}' was removed successfully");
+		Script::success("Docker Sync Profile '$syncProfile' using docker '{$dockerProfile->getName()}' was removed successfully");
 	}else{
-		Script::failure("Sync Profile '$syncProfile' using docker '{$dockerProfile->getName()}' did not remove successfully");
+		Script::failure("Docker Sync Profile '$syncProfile' using docker '{$dockerProfile->getName()}' did not remove successfully");
     }
 }
 
