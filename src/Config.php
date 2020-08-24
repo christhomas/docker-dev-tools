@@ -21,22 +21,12 @@ class Config
 		if($result !== self::CONFIG_OK){
 			die(Text::box(sprintf($result, $filename), "white", "red"));
 		}
-
-//		if($this->isTopLevel()){
-//			if($this->getHost() === null){
-//				Script::failure("The toplevel config has no host data, it must contain this element to be valid");
-//			}
-//		}
-//
-//		if(!array_key_exists('projects', $this->data[$this->filename])){
-//			$this->data[$this->filename] = [];
-//		}
 	}
 
 	public function getType(): string
 	{
 		if(!array_key_exists('type', $this->data[$this->filename])){
-			throw new Exception("Every config must have a type. If this is a toplevel style, add type=>toplevel to the top of json file");
+			throw new Exception("Every config must have a type. If this is a main configuration file, add type=main to the top of json file");
 		}
 
 		return $this->data[$this->filename]['type'];
@@ -44,7 +34,7 @@ class Config
 
 	public function isTopLevel(): bool
 	{
-		return $this->getType() === "toplevel";
+		return $this->getType() === "main";
 	}
 
 	public function getToolsPath(string $subpath = null): string
