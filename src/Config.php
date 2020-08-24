@@ -11,13 +11,15 @@ class Config
 	public function __construct(?string $filename=null)
 	{
 		$result = $this->setFilename($filename);
+		$filename = $this->getFilename();
+
 		if($result !== self::CONFIG_OK){
-			throw new Exception(sprintf($result, $filename));
+			die(Text::box(sprintf($result, $filename), "white", "red"));
 		}
 
 		$result = $this->read($this->getFilename());
 		if($result !== self::CONFIG_OK){
-			throw new Exception(sprintf($result, $filename));
+			die(Text::box(sprintf($result, $filename), "white", "red"));
 		}
 
 //		if($this->isTopLevel()){
