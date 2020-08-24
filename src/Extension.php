@@ -9,8 +9,8 @@ class Extension{
 	{
 		$path = CLI::getToolPath("/extensions/$name");
 
-		$git = new Git($url);
-		$git->clone($path);
+		$git = new Git();
+		$git->clone($url, $path);
 
 		$pathConfig = new PathConfig($this->config);
 		$pathConfig->add($path);

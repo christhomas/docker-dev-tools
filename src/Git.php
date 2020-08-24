@@ -1,25 +1,36 @@
 <?php
 class Git{
-	private $url;
-
-	public function __construct(string $url)
+	public function __construct()
 	{
-		$this->url = $url;
+
 	}
 
-	public function clone(string $dir)
+	/**
+	 * @param string $url
+	 * @param string $dir
+	 * @return bool
+	 * @throws DirectoryExistsException
+	 */
+	public function clone(string $url, string $dir): bool
 	{
 		if(is_dir($dir)){
 			throw new DirectoryExistsException("The directory '$dir' already exists");
 		}
 
-		Shell::passthru("git clone $this->url $dir");
+		return Shell::passthru("git clone $url $dir") === 0;
 	}
 
-	public function pull(string $dir)
+	/**
+	 * @param string $dir
+	 * @return bool
+	 * @throws DirectoryMissingException
+	 */
+	public function pull(string $dir): bool
 	{
 		if(!is_dir($dir)){
 			throw new DirectoryMissingException("The directory '$dir' does not exist");
 		}
+
+		return Shell::passthru("git -C $dir pull") === 0;
 	}
 }
