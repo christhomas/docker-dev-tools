@@ -2,7 +2,7 @@
 <?php declare(strict_types=1);
 $cli = require_once(__DIR__.'/../src/init.php');
 
-Script::title("DDT PROJECT SYNC", "Quickly pull all projects into your local setup");
+Script::title("DDT PROJECT", "Quickly manage your projects, push or pull them with various filters, etc");
 
 $config = new Config();
 $projectSync = new ProjectSync($config);
@@ -13,27 +13,35 @@ function help(CLI $cli)
 
     Text::print(<<<EOF
     {yel}Usage Examples: {end}
-        $script --prune-local
-        $script --filter=api-server --prune-local
+        $script --pull
+        $script --push=api-server
+        $script --add=api-server --git=https://gitlab.example.com/projects/the-api-server.git
         $script --add-hook=onsuccess --script="{project_dir}/setup.sh"
+        $script --remove-hook=after_pull --all
 
     {blu}Description:{end}
+        This tool will allow you to clone projects into your work 
         This tool will quickly cycle through all the projects installed into the configured project root and pull them. 
 
     {blu}Options:{end}
+        {cyn}Managing projects{end}
+        --add=XXX: This will add a project cloned into a folder with this name
+        --git=XXX: In combination with --add, will clone the git repository to a directory with the name in the --add parameter
+        --remove=XXX: This will remove the following project from your configuration (but will not delete any files)
+        --delete: In combination with --remove, will delete the project from your system too (but will not delete any dependencies it installed when you cloned it)
+         
         {cyn}Synchronising projects{end}
-        --push (optional): This will push all projects to their repositories instead of by default, pulling
-        --prune-local (optional): This will prune any local branch from your system which was already merged
-        --filter=XXX (optional): This will sync only the projects which have the mentioned text given to this parameter
+        --pull=XXX (optional): This will pull all projects (optionally with a filter if provided) from their repositories to your local system, ignoring those which have had changes
+        --push=XXX (optional): This will push all projects (optionally with a filter if provided) to their repositories from your local system
         --show-branch=XXX (optional): This will only show the branches for each project, the optional XXX part will show only the filtered project
         --help: This help information
         
         {cyn}Managing Hooks{end}
         --list-hooks: This will list all the configured hooks with their respective scripts
-        --add-hook=xxx: This will add a script to the named hook in this parameter
-        --remove-hook=xxx: This will remove a script from the named hook in this parameter
-        --script=xxx: This script will be added or removed to the hook given in the --add-hook parameter
-        --all: WARNING! This is a useful feature for --remove-hook when you want to just remove everything
+        --add-hook=XXX: This will add a script to the named hook in this parameter
+        --remove-hook=XXX: This will remove a script from the named hook in this parameter
+        --script=XXX: In combination with --add-hook this will add the following script to the given hook
+        --all: WARNING! In combination with --remove-hook this will remove all the hooks of the given type
      
     {blu}Notes:{end}
         Projects that have local changes will be skipped. No changes will be made because it's unsafe to 
@@ -117,10 +125,31 @@ if(($name = $cli->getArgWithVal("remove-hook")) !== null){
     }
 }
 
+$showBranch = $cli->getArg("show-branch");
+if($showBranch !== null){
+    $projects = $projectSync->listBranches($showBranch);
+    Format::projectBranchList($projects, false);
+
+    Script::success("Finished");
+}
+
+// Always do pull before push
+$pullFilter = $cli->getArg("pull");
+if($pullFilter !== null){
+	$projectSync->pull($pullFilter);
+}
+
+// Doing a push before a pull will most likely result in an error
+$pushFilter = $cli->getArg("push");
+if($pushFilter !== null){
+    $projectSync->push($pushFilter);
+}
+
+die("DEAD");
+
 $action     = $cli->getArg("push") ? "push" : "pull";
 $showBranch = $cli->getArgWithVal("show-branch");
 $filter     = $cli->getArgWithVal("filter") ?: $showBranch;
-$prune      = $cli->getArg("prune");
 $showBranch = $showBranch !== null;
 
 foreach(glob(CLI::getToolPath("/../**/.git"), GLOB_ONLYDIR) as $dir){

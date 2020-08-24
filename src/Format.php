@@ -108,4 +108,23 @@ class Format
 
 		return $output;
 	}
+
+	static public function projectBranchList(array $projects, bool $buffer=false): string
+	{
+		$output = [];
+
+		foreach($projects as $name => $info){
+			if(array_key_exists("exception", $info)){
+				$output[] = "{blu}Project:{end} {yel}$name{end}. {red}Couldn't process because it threw exceptions{end}";
+			}else{
+				$output[] = "{blu}Project:{end} {yel}$name ({$info["branch"]}){end}. Has Changes: {yel}{$info["changes"]}{end}";
+			}
+		}
+
+		$output = implode("\n", $output)."\n";
+
+		if($buffer === false) Text::print($output);
+
+		return $output;
+	}
 }

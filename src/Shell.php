@@ -2,7 +2,9 @@
 class Shell
 {
 	protected static $debug = false;
-	protected static $last_error = 0;
+	protected static $error = 0;
+	protected static $stdout = "";
+	protected static $stderr = "";
 
 	static public function setDebug($state)
 	{
@@ -11,7 +13,7 @@ class Shell
 
 	static public function getError()
 	{
-		return self::$last_error;
+		return self::$error;
 	}
 
 	static public function isCommand($command): bool
@@ -37,23 +39,23 @@ class Shell
 			2 => ['pipe','w'],
 		],$pipes);
 
-		$stdout = trim(stream_get_contents($pipes[1]));
+		self::$stdout = trim(stream_get_contents($pipes[1]));
 		fclose($pipes[1]);
 
-		$stderr = trim(stream_get_contents($pipes[2]));
+		self::$stderr = trim(stream_get_contents($pipes[2]));
 		fclose($pipes[2]);
 
 		$code = proc_close($proc);
 
-		self::$last_error = $code;
+		self::$error = $code;
 
 		if($code !== 0 && $throw === true){
-			throw new Exception("$stdout $stderr",$code);
+			throw new Exception(self::$stdout." ".self::$stderr, $code);
 		}
 
-		$stdout = empty($stdout) ? [] : explode("\n", $stdout);
+		$output = empty(self::$stdout) ? [""] : explode("\n", self::$stdout);
 
-		return $firstLine ? current($stdout) : $stdout;
+		return $firstLine ? current($output) : $output;
 	}
 
 	static public function passthru(string $command, bool $throw=true): int
@@ -64,8 +66,13 @@ class Shell
 
 		$redirect = self::$debug ? "" : "2>&1";
 
+		ob_start();
 		passthru("$command $redirect", $code);
-		self::$last_error = $code;
+		self::$stdout = ob_get_clean();
+
+		print(self::$stdout);
+
+		self::$error = $code;
 
 		if ($code !== 0 && $throw === true){
 			throw new Exception(__METHOD__.": error with command '$command'\n");
