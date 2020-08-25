@@ -9,7 +9,31 @@ class ProjectManager
         $this->name		= $name;
     }
 
-    public function add(string $url, ?string $branch, ?string $dir): bool
+    static public function list(?string $filter = null): array
+	{
+		$list = glob(CLI::getToolPath("/../**/.git"), GLOB_ONLYDIR);
+
+		foreach($list as $key => $value)
+		{
+			$dir = dirname(realpath($value));
+			$list[basename($dir)] = $dir;
+			unset($list[$key]);
+		}
+
+		$results = array_map(function($dir) use ($filter){
+			if($filter === "true") return $dir;
+
+			if(!empty($filter) && strpos(basename($dir), $filter) === false){
+				return false;
+			}
+
+			return $dir;
+		}, $list);
+
+		return array_filter($results);
+	}
+
+    public function add(string $url, ?string $branch, ?string $dir): ?Project
 	{
 		$basePath	= $this->config->getProjectPath();
 		$dir		= $dir ?? $this->name;
@@ -29,10 +53,12 @@ class ProjectManager
 				if(!$project){
 					$project = new Project($this->name, $url, $branch, $dir);
 					$this->config->addProject($project);
-					$this->config->write();
+					if($this->config->write()){
+						return $project;
+					}
+				}else{
+					return $project;
 				}
-
-				return true;
 			}
 
 			throw new DirectoryExistsException("An incompatible project with a different configuration exists");
@@ -42,18 +68,38 @@ class ProjectManager
 		if($git->clone($url)){
 			$project = new Project($this->name, $url, $branch, $dir);
 			$this->config->addProject($project);
+			if($this->config->write()){
+				return $project;
+			}
+		}
+
+		return null;
+	}
+
+	public function remove(?bool $delete): bool
+	{
+		$project = $this->config->getProject($this->name);
+
+		if($project){
+			$this->config->removeProject($this->name);
 			return $this->config->write();
 		}
 
 		return false;
 	}
 
-	public function remove(?bool $delete)
+	public function import(): bool
 	{
-		$project = $this->config->getProject($this->name);
+		$basePath	= $this->config->getProjectPath();
+		$path		= "$basePath/$this->name";
 
-		if($project){
-			$this->config->removeProject($this->name);
+		$git = new Git($path);
+		$url = $git->remote();
+		$branch = $git->branch();
+
+		$project = new Project($this->name, $url, $branch, $this->name);
+
+		if($this->config->addProject($project)){
 			return $this->config->write();
 		}
 

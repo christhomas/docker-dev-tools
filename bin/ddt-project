@@ -31,6 +31,8 @@ function help(CLI $cli)
         --dir=XXX: In combination with --add, will override the directory to clone the git repository into
         --remove=XXX: This will remove the following project from your configuration (but will not delete any files)
         --delete: In combination with --remove, will delete the project from your system too (but will not delete any dependencies it installed when you cloned it)
+        --import=XXX: This will add the existing git cloned project to the configuration using it's current configuration
+        --import-scan: This will loop through all the projects in the projects directory and add anything that's missing
 
         {cyn}Synchronising projects{end}
         --pull=XXX (optional): This will pull all projects (optionally with a filter if provided) from their repositories to your local system, ignoring those which have had changes
@@ -135,16 +137,16 @@ $git = $cli->getArgWithVal('git');
 $branch = $cli->getArgWithVal('branch');
 $dir = $cli->getArgWithVal('dir');
 if($add !== null){
-    $project = new ProjectManager($config, $add);
+    $projectManager = new ProjectManager($config, $add);
 
     try{
-		$project->add($git, $branch, $dir);
-        Script::success("Project was successfully cloned");
+		$projectManager->add($git, $branch, $dir);
+        Script::success("Project '$add' from repository '$git' using branch '$branch' into directory '$dir' was successfully cloned");
     }catch(DirectoryExistsException $e){
         Script::failure($e->getMessage());
     }catch(Exception $e){
         var_dump($e);
-        Script::failure("Project has failed to clone for unspecified reasons");
+        Script::failure("Project '$add' has failed to clone for unspecified reasons");
     }
 }
 
@@ -155,10 +157,38 @@ if($remove !== null){
 
     try{
 		$project->remove($delete);
-        Script::success("Project has successfully deleted");
+        Script::success("Project '$remove' has successfully deleted");
     }catch(Exception $e){
-		Script::failure("Project has failed to delete for unspecified reasons");
+		Script::failure("Project '$remove' has failed to delete for unspecified reasons");
     }
+}
+
+$import = $cli->getArgWithVal('import');
+if($import !== null){
+    $projectManager = new ProjectManager($config, $import);
+
+    try{
+        $projectManager->import();
+        Script::success("Project '$import' has been imported successfully");
+    }catch(Exception $e){
+        Script::failure("Project could not be imported for unspecified reasons");
+    }
+}
+
+if($cli->hasArg('import-scan')){
+    $list = ProjectManager::list();
+
+    foreach($list as $name => $project){
+        $projectManager = new ProjectManager($config, $name);
+		try{
+			$projectManager->import();
+			print(Text::write("{blu}Project{end} '{yel}$name{end}' has been imported successfully\n"));
+		}catch(Exception $e){
+			print(Text::red("Project '$name' has failed to import successfully\n"));
+		}
+    }
+
+    Script::success("Finished");
 }
 
 $showBranch = $cli->getArg("show-branch");

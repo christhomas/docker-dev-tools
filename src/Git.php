@@ -54,4 +54,9 @@ class Git{
 	{
 		return Shell::exec("git -C $this->dir remote get-url $name", true);
 	}
+
+	public function branch(): string
+	{
+		return Shell::exec("git -C $this->dir rev-parse --abbrev-ref HEAD", true);
+	}
 }
