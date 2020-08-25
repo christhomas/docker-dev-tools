@@ -14,12 +14,12 @@ class Config
 		$filename = $this->getFilename();
 
 		if($result !== self::CONFIG_OK){
-			die(Text::box(sprintf($result, $filename), "white", "red"));
+			Script::die(Text::box(sprintf($result, $filename), "white", "red"), 1);
 		}
 
 		$result = $this->read($this->getFilename());
 		if($result !== self::CONFIG_OK){
-			die(Text::box(sprintf($result, $filename), "white", "red"));
+			Script::die(Text::box(sprintf($result, $filename), "white", "red"), 1);
 		}
 	}
 
