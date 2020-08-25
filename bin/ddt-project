@@ -14,6 +14,7 @@ function help(CLI $cli)
     {yel}Usage Examples: {end}
         $script --pull
         $script --push=api-server
+        $script --push=api-server --pull=tools
         $script --add=api-server --git=https://gitlab.example.com/projects/the-api-server.git
         $script --remove=api-server --delete
         $script --add-hook=onsuccess --script="{project_dir}/setup.sh"
@@ -24,6 +25,9 @@ function help(CLI $cli)
         This tool will quickly cycle through all the projects installed into the configured project root and pull them. 
 
     {blu}Options:{end}
+        {cyn}General{end}
+        --help: This help information
+
         {cyn}Managing projects{end}
         --add=XXX: This will add a project cloned into a folder with this name
         --git=XXX: In combination with --add, will clone the git repository to a directory with the name in the --add parameter
@@ -38,7 +42,6 @@ function help(CLI $cli)
         --pull=XXX (optional): This will pull all projects (optionally with a filter if provided) from their repositories to your local system, ignoring those which have had changes
         --push=XXX (optional): This will push all projects (optionally with a filter if provided) to their repositories from your local system
         --show-branch=XXX (optional): This will only show the branches for each project, the optional XXX part will show only the filtered project
-        --help: This help information
         
         {cyn}Managing Hooks{end}
         --list-hooks: This will list all the configured hooks with their respective scripts
@@ -48,7 +51,7 @@ function help(CLI $cli)
         --all: WARNING! In combination with --remove-hook this will remove all the hooks of the given type
      
     {blu}Notes:{end}
-        Projects that have local changes will be skipped. No changes will be made because it's unsafe to 
+        During --push or --pull, projects that have local changes will not be synchronised and display as skipped. No changes will be made because it's unsafe to 
         assume any operation can work in all scenarios.
         
         Hooks are unique, therefore a script can only appear once and duplicate hooks will not be added.
@@ -73,6 +76,9 @@ if($cli->hasArg('help')){
     help($cli);
 }
 
+//*************************************************************
+// LIST HOOKS
+//*************************************************************
 if($cli->getArg("list-hook") || $cli->getArg("list-hooks")){
 	$repoSync = new RepositorySync($config);
     $list = $repoSync->listHookNames();
@@ -89,6 +95,9 @@ if($cli->getArg("list-hook") || $cli->getArg("list-hooks")){
     exit(0);
 }
 
+//*************************************************************
+// ADD A NEW HOOK
+//*************************************************************
 if(($name = $cli->getArgWithVal("add-hook")) !== null){
     $script = $cli->getArgWithVal("script");
 
@@ -104,6 +113,9 @@ if(($name = $cli->getArgWithVal("add-hook")) !== null){
     }
 }
 
+//*************************************************************
+// REMOVE A HOOK
+//*************************************************************
 if(($name = $cli->getArgWithVal("remove-hook")) !== null){
 	$repoSync = new RepositorySync($config);
     $list = $repoSync->listHook($name);
@@ -132,6 +144,9 @@ if(($name = $cli->getArgWithVal("remove-hook")) !== null){
     }
 }
 
+//*************************************************************
+// ADD A NEW PROJECT
+//*************************************************************
 $add = $cli->getArgWithVal('add');
 $git = $cli->getArgWithVal('git');
 $branch = $cli->getArgWithVal('branch');
@@ -150,6 +165,9 @@ if($add !== null){
     }
 }
 
+//*************************************************************
+// REMOVE AN EXISTING PROJECT
+//*************************************************************
 $remove = $cli->getArgWithVal('remove');
 $delete = $cli->getArg('delete');
 if($remove !== null){
@@ -163,6 +181,9 @@ if($remove !== null){
     }
 }
 
+//*************************************************************
+// IMPORT AN EXISTING PROJECT
+//*************************************************************
 $import = $cli->getArgWithVal('import');
 if($import !== null){
     $projectManager = new ProjectManager($config, $import);
@@ -175,6 +196,9 @@ if($import !== null){
     }
 }
 
+//*************************************************************
+// SCAN PROJECTS FOLDER AND IMPORT ALL PROJECTS
+//*************************************************************
 if($cli->hasArg('import-scan')){
     $list = ProjectManager::list();
 
@@ -191,6 +215,9 @@ if($cli->hasArg('import-scan')){
     Script::success("Finished");
 }
 
+//*************************************************************
+// LIST ALL PROJECTS WITH THEIR BRANCH NAMES
+//*************************************************************
 $showBranch = $cli->getArg("show-branch");
 if($showBranch !== null){
 	$repoSync = new RepositorySync($config);
@@ -200,6 +227,9 @@ if($showBranch !== null){
     Script::success("Finished");
 }
 
+//*************************************************************
+// PULL CHANGES WITH OPTIONAL FILTER PARAM
+//*************************************************************
 // Always do pull before push
 $pullFilter = $cli->getArg("pull");
 if($pullFilter !== null){
@@ -207,6 +237,9 @@ if($pullFilter !== null){
 	$repoSync->pull($pullFilter);
 }
 
+//*************************************************************
+// PUSH CHANGES WITH OPTIONAL FILTER PARAM
+//*************************************************************
 // Doing a push before a pull will most likely result in an error
 $pushFilter = $cli->getArg("push");
 if($pushFilter !== null){
