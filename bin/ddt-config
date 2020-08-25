@@ -15,7 +15,7 @@ function help(CLI $cli) {
         --filename: Returns a single string containing the filename
         --exists: Script will exit with {yel}code 0{end} if configuration file exists or {yel}code 1{end} if it's missing
         --reset: Will reset your configuration file to the default 'empty' configuration, {red}it will destroy any setup you already have{end}
-        --key=xxx: Will return a json encoded segment of the configuration, see below for more details
+        --key=XXX: Will return a json encoded segment of the configuration, see below for more details
         --show: Shortcut for '--key=.' option
         --validate: Only validate the file, nothing else
         --version: Return the version of the tools
