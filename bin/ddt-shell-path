@@ -4,7 +4,7 @@ $showErrors = true;
 $cli = require_once(__DIR__.'/../src/init.php');
 
 $config     = new Config();
-$pathConfig = new PathConfig($config);
+$systemPath = new SystemPath($config);
 
 if($cli->getArg('get')){
 	Text::print("Installed Tools: ".$config->getToolsPath()."\n");
@@ -12,7 +12,7 @@ if($cli->getArg('get')){
 
 if($newPath = $cli->getArg('install')){
     $toolPath = $config->getToolsPath();
-    $pathConfig->uninstall($toolPath);
+    $systemPath->uninstall($toolPath);
 
     // Detect bad paths and ignore them
     $newPath = is_dir($newPath) ? realpath($newPath) : dirname(__DIR__);
@@ -28,7 +28,7 @@ EOF
         ));
     }
 
-    $pathConfig->install($newPath);
+    $systemPath->install($newPath);
 
     // We override this value because now we've updated the path, we should test
     $cli->setArg('test', true);
@@ -36,13 +36,13 @@ EOF
 
 if($cli->hasArg('uninstall')){
 	$toolPath = $config->getToolsPath();
-	$pathConfig->uninstall($toolPath);
+	$systemPath->uninstall($toolPath);
 }
 
 if($cli->hasArg('test')){
     $toolPath = $config->getToolsPath();
 
-    if($pathConfig->test($toolPath, $cli->getScript(false))){
+    if($systemPath->test($toolPath, $cli->getScript(false))){
         print(Text::box("The path was successfully installed, you might need to open a new terminal to see the effects", "black", "green"));
     }else{
         print(Text::box("The tool '" . basename($cli->getScript()) . "' could not set the shell path successfully installed. Please report this error", "white", "red"));

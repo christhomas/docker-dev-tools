@@ -12,8 +12,8 @@ class Extension{
 		$git = new Git();
 		$git->clone($url, $path);
 
-		$pathConfig = new PathConfig($this->config);
-		$pathConfig->add($path);
+		$systemPath = new SystemPath($this->config);
+		$systemPath->add($path);
 
 		return $this->config->addExtension($name, $url, $path);
 	}
@@ -22,8 +22,8 @@ class Extension{
 	{
 		$path = CLI::getToolPath("/extensions/$name");
 
-		$pathConfig = new PathConfig($this->config);
-		$pathConfig->remove($path);
+		$systemPath = new SystemPath($this->config);
+		$systemPath->remove($path);
 
 		// NOTE: BE VERY CAREFUL HERE!
 		if($path == "/" || strpos($path, ".") === 0 || strpos($path, "extensions") === false){

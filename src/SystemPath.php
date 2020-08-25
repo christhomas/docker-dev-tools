@@ -1,5 +1,5 @@
 <?php
-class PathConfig
+class SystemPath
 {
 	/** @var string The home directory of this computer */
 	private $home;
@@ -44,6 +44,7 @@ class PathConfig
 		}
 
 		$this->config->setToolsPath($path);
+		$this->config->setProjectPath(dirname($path));
 		$this->config->write();
 	}
 
