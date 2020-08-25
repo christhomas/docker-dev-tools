@@ -1,8 +1,10 @@
 <?php
 class Git{
-	public function __construct()
-	{
+	protected $dir;
 
+	public function __construct(string $dir)
+	{
+		$this->dir = $dir;
 	}
 
 	/**
@@ -11,13 +13,13 @@ class Git{
 	 * @return bool
 	 * @throws DirectoryExistsException
 	 */
-	public function clone(string $url, string $dir): bool
+	public function clone(string $url): bool
 	{
-		if(is_dir($dir)){
-			throw new DirectoryExistsException("The directory '$dir' already exists");
+		if(is_dir($this->dir)){
+			throw new DirectoryExistsException("The directory '$this->dir' already exists");
 		}
 
-		return Shell::passthru("git clone $url $dir") === 0;
+		return Shell::passthru("git clone $url $this->dir") === 0;
 	}
 
 	/**
@@ -25,12 +27,12 @@ class Git{
 	 * @return bool
 	 * @throws DirectoryMissingException
 	 */
-	public function pull(string $dir): bool
+	public function pull(): bool
 	{
-		if(!is_dir($dir)){
-			throw new DirectoryMissingException("The directory '$dir' does not exist");
+		if(!is_dir($this->dir)){
+			throw new DirectoryMissingException("The directory '$this->dir' does not exist");
 		}
 
-		return Shell::passthru("git -C $dir pull") === 0;
+		return Shell::passthru("git -C $this->dir pull") === 0;
 	}
 }
