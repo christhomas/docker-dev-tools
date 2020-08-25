@@ -5,7 +5,6 @@ $cli = require_once(__DIR__.'/../src/init.php');
 Script::title("DDT PROJECT", "Quickly manage your projects, push or pull them with various filters, etc");
 
 $config = new Config();
-$projectSync = new ProjectSync($config);
 
 function help(CLI $cli)
 {
@@ -70,10 +69,11 @@ if($cli->hasArg('help')){
 }
 
 if($cli->getArg("list-hook") || $cli->getArg("list-hooks")){
-    $list = $projectSync->listHookNames();
+	$repoSync = new RepositorySync($config);
+    $list = $repoSync->listHookNames();
     foreach($list as $name){
         Text::print("{blu}Hook{end}: {yel}$name{end}\n");
-        $scripts = $projectSync->listHook($name);
+        $scripts = $repoSync->listHook($name);
         if(!empty($scripts)) {
             Text::print(" - " . implode("\n - ", $scripts) . "\n\n");
         }else{
@@ -91,7 +91,8 @@ if(($name = $cli->getArgWithVal("add-hook")) !== null){
         Script::failure("You can't add a hook without a script, it makes no sense\n");
     }
 
-    if($projectSync->addHook($name, $script)){
+	$repoSync = new RepositorySync($config);
+    if($repoSync->addHook($name, $script)){
         Script::success("Project Sync Hook '$name' using script '$script' was added successfully");
     }else{
         Script::failure("Project Sync Hook '$name' has failed to add script '$script'");
@@ -99,14 +100,15 @@ if(($name = $cli->getArgWithVal("add-hook")) !== null){
 }
 
 if(($name = $cli->getArgWithVal("remove-hook")) !== null){
-    $list = $projectSync->listHook($name);
+	$repoSync = new RepositorySync($config);
+    $list = $repoSync->listHook($name);
 
     $removed = false;
     $script = $cli->getArgWithVal("script");
     if($script){
         foreach($list as $key => $value){
             if($script === $value){
-                if($projectSync->removeHook($name, $key)) $removed = true;
+                if($repoSync->removeHook($name, $key)) $removed = true;
             }
         }
     }
@@ -114,7 +116,7 @@ if(($name = $cli->getArgWithVal("remove-hook")) !== null){
     $all = $cli->getArg("all");
     if($all){
         foreach($list as $key => $value){
-            if($projectSync->removeHook($name, $key)) $removed = true;
+            if($repoSync->removeHook($name, $key)) $removed = true;
         }
     }
 
@@ -127,7 +129,8 @@ if(($name = $cli->getArgWithVal("remove-hook")) !== null){
 
 $showBranch = $cli->getArg("show-branch");
 if($showBranch !== null){
-    $projects = $projectSync->listBranches($showBranch);
+	$repoSync = new RepositorySync($config);
+    $projects = $repoSync->listBranches($showBranch);
     Format::projectBranchList($projects, false);
 
     Script::success("Finished");
@@ -136,13 +139,15 @@ if($showBranch !== null){
 // Always do pull before push
 $pullFilter = $cli->getArg("pull");
 if($pullFilter !== null){
-	$projectSync->pull($pullFilter);
+	$repoSync = new RepositorySync($config);
+	$repoSync->pull($pullFilter);
 }
 
 // Doing a push before a pull will most likely result in an error
 $pushFilter = $cli->getArg("push");
 if($pushFilter !== null){
-    $projectSync->push($pushFilter);
+	$repoSync = new RepositorySync($config);
+    $repoSync->push($pushFilter);
 }
 
 die("DEAD");
@@ -177,7 +182,7 @@ foreach(glob(CLI::getToolPath("/../**/.git"), GLOB_ONLYDIR) as $dir){
             Text::print("{grn}Done{end}\n");
 
             if($action === "pull"){
-                $afterPull = $projectSync->parseHook("after_pull", ["project_dir" => $dir]);
+                $afterPull = $repoSync->parseHook("after_pull", ["project_dir" => $dir]);
                 foreach($afterPull as $script){
                     Shell::passthru($script);
                 }

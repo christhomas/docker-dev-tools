@@ -1,5 +1,5 @@
 <?php
-class ProjectSync
+class RepositorySync
 {
     private $config;
 
