@@ -32,22 +32,50 @@ class Config
 		return $this->data[$this->filename]['type'];
 	}
 
-	public function isTopLevel(): bool
+	public function isSystemConfig(): bool
 	{
 		return $this->getType() === "main";
 	}
 
+	public function isProjectConfig(): bool
+	{
+		return $this->getType() === "project";
+	}
+
 	public function getToolsPath(string $subpath = null): string
 	{
-		$path = ArrayWrapper::get($this->data[$this->filename], 'path');
-		$path = $path ?: dirname(__DIR__);
+		$path = ArrayWrapper::get($this->data[$this->filename], 'path.tools');
 
-		return $path . $subpath;
+		if(!empty($path)) return $path . $subpath;
+
+		throw new Exception("The tools path was not found");
 	}
 
 	public function setToolsPath(string $path): void
 	{
-		$this->data[$this->filename]['path'] = $path;
+		if(!array_key_exists('path', $this->data[$this->filename])){
+			$this->data[$this->filename]['path'] = [];
+		}
+
+		$this->data[$this->filename]['path']['tools'] = $path;
+	}
+
+	public function getProjectPath(string $subpath = null): string
+	{
+		$path = ArrayWrapper::get($this->data[$this->filename], 'path.projects');
+
+		if(!empty($path)) return $path . $subpath;
+
+		throw new Exception("The project path was not found");
+	}
+
+	public function setProjectPath(string $path): void
+	{
+		if(!array_key_exists('path', $this->data[$this->filename])){
+			$this->data[$this->filename]['path'] = [];
+		}
+
+		$this->data[$this->filename]['path']['projects'] = $path;
 	}
 
 	public function setFilename(?string $filename)
