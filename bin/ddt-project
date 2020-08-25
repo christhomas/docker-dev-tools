@@ -15,6 +15,7 @@ function help(CLI $cli)
         $script --pull
         $script --push=api-server
         $script --add=api-server --git=https://gitlab.example.com/projects/the-api-server.git
+        $script --remove=api-server --delete
         $script --add-hook=onsuccess --script="{project_dir}/setup.sh"
         $script --remove-hook=after_pull --all
 
@@ -26,9 +27,11 @@ function help(CLI $cli)
         {cyn}Managing projects{end}
         --add=XXX: This will add a project cloned into a folder with this name
         --git=XXX: In combination with --add, will clone the git repository to a directory with the name in the --add parameter
+        --branch=XXX: In combination with --add, will clone a specific branch from the repository
+        --dir=XXX: In combination with --add, will override the directory to clone the git repository into
         --remove=XXX: This will remove the following project from your configuration (but will not delete any files)
         --delete: In combination with --remove, will delete the project from your system too (but will not delete any dependencies it installed when you cloned it)
-         
+
         {cyn}Synchronising projects{end}
         --pull=XXX (optional): This will pull all projects (optionally with a filter if provided) from their repositories to your local system, ignoring those which have had changes
         --push=XXX (optional): This will push all projects (optionally with a filter if provided) to their repositories from your local system
@@ -124,6 +127,37 @@ if(($name = $cli->getArgWithVal("remove-hook")) !== null){
         Script::success("Project Sync Hook '$name' has successfully removed the script(s)");
     }else{
         Script::failure("Project Sync Hook '$name' has failed to remove the script(s)");
+    }
+}
+
+$add = $cli->getArgWithVal('add');
+$git = $cli->getArgWithVal('git');
+$branch = $cli->getArgWithVal('branch');
+$dir = $cli->getArgWithVal('dir');
+if($add !== null){
+    $project = new ProjectManager($config, $add);
+
+    try{
+		$project->add($git, $branch, $dir);
+        Script::success("Project was successfully cloned");
+    }catch(DirectoryExistsException $e){
+        Script::failure($e->getMessage());
+    }catch(Exception $e){
+        var_dump($e);
+        Script::failure("Project has failed to clone for unspecified reasons");
+    }
+}
+
+$remove = $cli->getArgWithVal('remove');
+$delete = $cli->getArg('delete');
+if($remove !== null){
+    $project = new ProjectManager($config, $remove);
+
+    try{
+		$project->remove($delete);
+        Script::success("Project has successfully deleted");
+    }catch(Exception $e){
+		Script::failure("Project has failed to delete for unspecified reasons");
     }
 }
 

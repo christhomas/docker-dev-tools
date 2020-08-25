@@ -266,17 +266,30 @@ class Config
 		return new Healthcheck(current($data));
 	}
 
-	public function addProject(string $name, string $git, string $branch): bool
+	public function getProject(string $name): ?Project
 	{
-		$this->data[$this->filename]["projects"][$name] = [
-			"git" => $git,
-			"branch" => $branch
-		];
+		if($this->hasProject($name)){
+			$data = $this->data[$this->filename]["projects"][$name];
 
-		return $this->hasProject($name);
+			return new Project($data["name"], $data["git"], $data["branch"], $data["directory"]);
+		}
+
+		return null;
 	}
 
-	public function removeProject(string $name)
+	public function addProject(Project $project): bool
+	{
+		$this->data[$this->filename]["projects"][$project->getName()] = [
+			"name"		=> $project->getName(),
+			"git"		=> $project->getURL(),
+			"branch"	=> $project->getBranch(),
+			"directory"	=> $project->getDirectory(),
+		];
+
+		return $this->hasProject($project->getName());
+	}
+
+	public function removeProject(string $name): bool
 	{
 		unset($this->data[$this->filename]["projects"][$name]);
 

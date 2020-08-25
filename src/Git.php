@@ -7,6 +7,16 @@ class Git{
 		$this->dir = $dir;
 	}
 
+	static public function exists(string $url)
+	{
+		try{
+			Shell::exec("git ls-remote -h $url");
+			return true;
+		}catch(Exception $e){
+			return false;
+		}
+	}
+
 	/**
 	 * @param string $url
 	 * @param string $dir
@@ -17,6 +27,10 @@ class Git{
 	{
 		if(is_dir($this->dir)){
 			throw new DirectoryExistsException("The directory '$this->dir' already exists");
+		}
+
+		if(Git::exists($url) === false){
+			throw new InvalidArgumentException("The url '$url' is not a valid git repository");
 		}
 
 		return Shell::passthru("git clone $url $this->dir") === 0;
@@ -34,5 +48,10 @@ class Git{
 		}
 
 		return Shell::passthru("git -C $this->dir pull") === 0;
+	}
+
+	public function remote(?string $name = 'origin'): string
+	{
+		return Shell::exec("git -C $this->dir remote get-url $name", true);
 	}
 }
