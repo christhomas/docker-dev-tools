@@ -2,3 +2,5 @@
 .vscode
 /extensions
 !/extensions/.gitkeep
+.ddt-config.json
+.ddt-project.json
