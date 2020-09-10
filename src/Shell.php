@@ -66,11 +66,7 @@ class Shell
 
 		$redirect = self::$debug ? "" : "2>&1";
 
-		ob_start();
 		passthru("$command $redirect", $code);
-		self::$stdout = ob_get_clean();
-
-		print(self::$stdout);
 
 		self::$error = $code;
 
