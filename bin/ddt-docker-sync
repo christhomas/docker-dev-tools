@@ -44,9 +44,10 @@ function help(CLI $cli)
         This tool only syncs in one direction from your local system to the docker container. 
 
     {blu}Options:{end}
-        --docker: Which docker profile to run
+        --docker: Which docker configuration to use
         --add-profile: The name of the profile to create
         --remove-profile: The name of the profile to remove
+        --list-profile: List all the sync profiles for this specified docker configuration
         --container: (Optional: defaults to profile name) The name of the container to connect to
         --local-dir: The local directory to watch for modifications
         --remote-dir: The directory inside the container to sync the changed files into
@@ -126,7 +127,7 @@ if($cli->hasArg(['list-profile', 'list-profiles'])){
 
     Text::print("{blu}Profile List{end}:\n");
     foreach($profileList as $name => $profile){
-        Text::print("{cyn}$name{end}: with local dir '{yel}{$profile->getLocalDir()}{end}' and remote dir '{yel}{$profile->getRemoteDir()}{end}'\n");
+        Text::print("{cyn}$name{end}: to container '{yel}{$profile->getContainer()}{end}' with local dir '{yel}{$profile->getLocalDir()}{end}' and remote dir '{yel}{$profile->getRemoteDir()}{end}'\n");
     }
     if(empty($profileList)){
         Text::print("There were no profiles with this docker configuration\n");
