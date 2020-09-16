@@ -118,7 +118,7 @@ class PathConfig
 			$contents = file_get_contents($file);
 
 			// make backup with timestamp and rand chars
-			$backup = implode("_",[$file, time(), bin2hex(random_bytes(10))]);
+			$backup = implode("_",[$file, date("\DYmd_\THis"), bin2hex(random_bytes(4))]);
 			file_put_contents($backup, $contents);
 
 			// explode into lines and process each ones
