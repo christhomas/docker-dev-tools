@@ -24,15 +24,21 @@ class Shell
 		}
 	}
 
+	static public function printDebug($prefix, $content)
+    {
+        print(Text::blue("[DEBUG] $prefix: ").$content."\n");
+    }
+
 	static public function exec(string $command, bool $firstLine=false, bool $throw=true)
 	{
 		if(self::$debug){
-			print(Text::blue("[DEBUG] Run command: ").$command."\n");
+		    self::printDebug("Run command",$command);
 		}
 
-		$redirect = self::$debug ? "" : "2>&1";
+		unset($pipes);
+		$pipes = [];
 
-		$proc = proc_open("$command $redirect",[
+		$proc = proc_open($command,[
 			1 => ['pipe','w'],
 			2 => ['pipe','w'],
 		],$pipes);
@@ -47,11 +53,16 @@ class Shell
 
 		self::$last_error = $code;
 
+        if(self::$debug){
+            self::printDebug("Code", $code);
+            self::printDebug("StdErr", "'$stderr'");
+        }
+
 		if($code !== 0 && $throw === true){
 			throw new Exception("$stdout $stderr",$code);
 		}
 
-		$stdout = empty($stdout) ? [] : explode("\n", $stdout);
+		$stdout = empty($stdout) ? [""] : explode("\n", $stdout);
 
 		return $firstLine ? current($stdout) : $stdout;
 	}
