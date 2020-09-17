@@ -33,7 +33,8 @@ class PathConfig
 
 	public function install(string $path): void
 	{
-		$this->add($path);
+		foreach($this->files as $file) $this->backupFile($file);
+
 		$this->add("$path/bin");
 
 		$extensions = new Extension($this->config);
@@ -49,6 +50,8 @@ class PathConfig
 
 	public function uninstall($path): void
 	{
+		foreach($this->files as $file) $this->backupFile($file);
+		
 		$this->remove("$path/bin");
 
 		$extensions = new Extension($this->config);
@@ -113,13 +116,10 @@ class PathConfig
 
 	private function processFiles(callable $callback, callable $after=null): void
 	{
+		print("Processing Files\n");
 		foreach($this->files as $file){
 			// read file contents
 			$contents = file_get_contents($file);
-
-			// make backup with timestamp and rand chars
-			$backup = implode("_",[$file, date("\DYmd_\THis"), bin2hex(random_bytes(4))]);
-			file_put_contents($backup, $contents);
 
 			// explode into lines and process each ones
 			$contents = explode("\n", $contents);
@@ -135,6 +135,29 @@ class PathConfig
 			$contents = preg_replace('/\n{2,}/m',"\n\n",$contents);
 			file_put_contents($file, trim($contents,"\n")."\n");
 		}
+	}
+
+	public function backupFile(string $filename): bool
+	{
+		$backupList = glob("{$filename}_*");
+
+		$contents = file_get_contents($filename);
+
+		foreach($backupList as $backup){
+			$compare = file_get_contents($backup);
+
+			print("Comparing contents of '$filename' with '$backup'\n");
+			if(strcmp($contents, $compare) === 0){
+				print("Found backup in file '$backup'\n");
+				return true;
+			}
+		}
+
+		// make backup with timestamp and rand chars
+		$backup = implode("_",[$filename, date("\DYmd_\THis"), bin2hex(random_bytes(4))]);
+		print("Backing up file: '$filename' to '$backup'\n");
+		
+		return file_put_contents($backup, $contents) !== false;
 	}
 
 	public function stripString(string $string): void

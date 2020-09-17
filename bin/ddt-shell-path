@@ -6,14 +6,38 @@ $cli = require_once(__DIR__.'/../src/init.php');
 $config     = new Config();
 $pathConfig = new PathConfig($config);
 
+function help(CLI $cli)
+{
+	$script = $cli->getScript(false);
+
+	Text::print(<<<EOF
+    {yel}Usage Example:{end} $script {yel}--install{end}
+
+    {blu}Description:{end}
+        Install or Uninstall the ddt tools into the shells path
+
+    {blu}Options:{end}
+        --get: Output the path the tools are installed to
+        --install[=XXX]: Install the tools into the path using the either the optional path given with the parameter or defaults to the current directory
+        --uninstall: Uninstall the tools, given the path from the configuration
+        --test: Tests whether the tools are installed and can be executed as expected.
+
+
+EOF
+    );
+
+	exit(0);
+}
+
+if($cli->hasArg('help') || $cli->countArgs() === 0){
+    help($cli);
+}
+
 if($cli->getArg('get')){
-	Text::print("Installed Tools: ".$config->getToolsPath()."\n");
+	Text::print("{quiet}Installed Tools: {/quiet}".$config->getToolsPath()."{quiet}\n{/quiet}");
 }
 
 if($newPath = $cli->getArg('install')){
-    $toolPath = $config->getToolsPath();
-    $pathConfig->uninstall($toolPath);
-
     // Detect bad paths and ignore them
     $newPath = is_dir($newPath) ? realpath($newPath) : dirname(__DIR__);
 
