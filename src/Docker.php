@@ -149,7 +149,7 @@ class Docker
 		}
 	}
 
-	public function exec(string $container, string $command, bool $firstLine=false): array
+	public function exec(string $container, string $command, bool $firstLine=false)
 	{
 		return Shell::exec("$this->command exec -it $container $command", $firstLine);
 	}
