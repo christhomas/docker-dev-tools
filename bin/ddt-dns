@@ -154,18 +154,22 @@ if($domain = $cli->getArgWithVal('add-domain'))
 		Text::print("{blu}Overriding IP Alias:{end} '{yel}" . $alias->get() . "{end}' with custom IP Address '{yel}$ipAddress{end}'\n\n");
     }
 
-	$dns->addDomain($ipAddress, $domain);
-
-	Format::ping($alias->ping('google.com'));
-	Format::ping($alias->ping($domain, $ipAddress));
+	if($dns->addDomain($ipAddress, $domain)){
+        Format::ping($alias->ping('google.com'));
+        Format::ping($alias->ping($domain, $ipAddress));
+    }else{
+        Script::failure("DNS Container could not be found");
+    }
 }
 
 if($domain = $cli->getArgWithVal('remove-domain'))
 {
-    $dns->removeDomain($domain);
-
-    Format::ping($alias->ping('google.com'));
-	Format::ping($alias->ping($domain));
+    if($dns->removeDomain($domain)){
+        Format::ping($alias->ping('google.com'));
+        Format::ping($alias->ping($domain));
+    }else{
+        Script::failure("DNS Container could not be found");
+    }
 }
 
 if($containerName = $cli->getArgWithVal('set-container-name')){
