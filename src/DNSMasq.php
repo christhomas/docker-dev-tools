@@ -15,7 +15,7 @@ class DNSMasq {
 		'container_name'	=> 'ddt-dnsmasq',
 	];
 
-	public function __construct(Config $config, Docker $docker)
+	public function __construct(SystemConfig $config, Docker $docker)
 	{
 		$this->config = $config;
 		$this->docker = $docker;

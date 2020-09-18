@@ -6,7 +6,7 @@ class IPAddress
 	private $config = null;
 	private $network = null;
 
-	public function __construct(Config $config)
+	public function __construct(SystemConfig $config)
 	{
 		$this->config = $config;
 		$this->network = new Network();

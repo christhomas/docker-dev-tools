@@ -16,7 +16,7 @@ class PathConfig
 	 * @param string $home The home directory of this computer
 	 * @param string $path The path to the tools to setup
 	 */
-	public function __construct(Config $config, ?string $home=null)
+	public function __construct(SystemConfig $config, ?string $home=null)
 	{
 		$this->config = $config;
 

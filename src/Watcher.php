@@ -9,7 +9,7 @@ class Watcher
 	private $profileKey = 'watch_sync.profiles';
 	private $ignoreRuleKey = 'watch_sync.ignore_rule';
 
-	public function __construct(string $script, Config $config, Docker $docker)
+	public function __construct(string $script, SystemConfig $config, Docker $docker)
 	{
 		$this->script = $script;
 		$this->config = $config;
