@@ -60,7 +60,7 @@ if($cli->hasArg('help') || $cli->countArgs() === 0){
     help($cli);
 }
 
-$config = new Config();
+$config = new SystemConfig();
 $docker = new Docker($config);
 
 if(($profile = $cli->getArgWithVal('add-profile')) !== null){

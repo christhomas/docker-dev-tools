@@ -3,10 +3,6 @@
 $showErrors = true;
 $cli = require_once(__DIR__.'/../src/init.php');
 
-$config_file = "{$_SERVER["HOME"]}/.ddt-config.json";
-
-$exists = file_exists($config_file);
-
 function help(CLI $cli) {
     $script = basename($cli->getScript());
 
@@ -66,13 +62,16 @@ EOF
 if($cli->hasArg('help')) help($cli);
 
 if($cli->hasArg('version')){
-    $config = new Config($config_file);
+    $config = new SystemConfig();
     print($config->getVersion());
     exit(0);
 }
 
+$filename = SystemConfig::getDefaultFilename();
+$exists = file_exists($filename);
+
 if($cli->hasArg('filename')){
-    print($config_file);
+    print($filename);
     exit(0);
 }
 
@@ -86,8 +85,15 @@ if($cli->hasArg('show')){
 
 $key = $key = $cli->getArg('key');
 if($key && $key != 'true'){
-    $config = new Config($config_file);
+    $config = new SystemConfig();
     print($config->getKeyAsJson($key)."\n");
+    exit(0);
+}
+
+if($exists && $removeKey = $cli->getArgWithVal('remove-key')){
+    $config = new SystemConfig();
+    $config->deleteKey($removeKey);
+    $config->write();
     exit(0);
 }
 
@@ -109,21 +115,21 @@ if($exists === false) $write = true;
 
 if(!$cli->hasArg('validate')){
 	if($exists === true && $write === false){
-		print(Text::write("The configuration file '{yel}$config_file{end}' already exists\n"));
-		if($cli->hasArg('break-me')) file_put_contents($config_file, file_get_contents($config_file)."!@#@#^#$!@#");
+		print(Text::write("The configuration file '{yel}$filename{end}' already exists\n"));
+		if($cli->hasArg('break-me')) file_put_contents($filename, file_get_contents($filename)."!@#@#^#$!@#");
 	}else{
-		print(Text::box("Writing the configuration file: $config_file", 'black', 'yellow'));
-		$config = new Config(CLI::getToolPath("/defaults.json"));
-		$config->write($config_file);
+		print(Text::box("Writing the configuration file: $filename", 'black', 'yellow'));
+		$config = new SystemConfig(CLI::getToolPath("/defaults.json"));
+		$config->write($filename);
 	}
 }
 
 print(Text::blue("Testing if the file is valid by trying to decode it\n"));
 try{
-	$config = new Config($config_file);
-	print(Text::box("The file '$config_file' is valid", 'black', 'green'));
+	$config = new SystemConfig($filename);
+	print(Text::box("The file '$filename' is valid", 'black', 'green'));
 	exit(0);
 }catch(Exception $e){
-	print(Text::box("The file '$config_file' could not be decoded, it's not valid", 'white', 'red'));
+	print(Text::box("The file '$filename' could not be decoded, it's not valid", 'white', 'red'));
 	exit(1);
 }

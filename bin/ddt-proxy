@@ -3,7 +3,7 @@
 $showErrors = true;
 $cli = require_once(__DIR__.'/../src/init.php');
 
-$config = new Config();
+$config = new SystemConfig();
 $docker = new Docker($config);
 $proxy = new Proxy($config, $docker);
 

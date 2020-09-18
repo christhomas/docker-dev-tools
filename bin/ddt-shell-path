@@ -3,7 +3,7 @@
 $showErrors = true;
 $cli = require_once(__DIR__.'/../src/init.php');
 
-$config     = new Config();
+$config     = new SystemConfig();
 $pathConfig = new PathConfig($config);
 
 function help(CLI $cli)

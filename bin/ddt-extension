@@ -3,35 +3,26 @@
 $showErrors = true;
 $cli = require_once(__DIR__.'/../src/init.php');
 
-$config = new Config();
+$config = new SystemConfig();
 
 Script::title("DDT EXTENSION CONFIGURATOR", "Install new Batteries");
 
-function help(CLI $cli, $alias) {
+function help(CLI $cli) {
     $script = $cli->getScript(false);
 
     Text::print(<<<EOF
-    {yel}Usage Example:{end} $script {yel}--set=$alias --get --add --remove --reset{end}
+    {yel}Usage Example:{end} $script {yel}--install=name --url=https://github.com/something/extension_repo.git{end}
 
     {blu}Description:{end}
-        This tool creates an alias for {yel}localhost{end}/{yel}127.0.0.1{end} on your machine which is 
-        addressable from your local machine and from inside docker containers. This is useful when wanting 
-        to connect xdebug from your software running inside a container, to your local machine where your 
-        IDE Is listening for incoming connections
+        This tool will manage extensions installed within the tools. It can install or uninstall them. At this time
+        the tool only supports extensions from GIT repositories
         
     {blu}Options:{end}
-        --set=xxx: Add an IP Address to your configuration stack, this value will be remembered and used in the future
-        --get: Get the Currently configured IP Address.
-        --add: Add {yel}$alias{end} as an ip alias for {yel}127.0.0.1{end}
-        --remove: Remove {yel}$alias{end} from your computer
-        --reset: Remove and Add the configuration again, just in case it broke somehow
-        
-    {blu}Notes:{end}
-        Please don't use {yel}localhost{end} or {yel}127.0.0.1{end}
-        
-        The problem is that inside a docker container, {yel}localhost{end} resolves to itself 
-        and {yel}127.0.0.1{end} also. This means you have no ip address which is addressable 
-        from your local machine, or inside docker containers.
+        --install=XXX: Will install a new extension using the parameters value as the given name
+        --url=XXX: Will use this location to install the extension, only git repositories are supported
+        --uninstall=XXX: Will uninstall an extension with the given name
+        --list: Will list the installed extensions
+        --update: Will update all extensions from their repository urls given during installation
         
 
 EOF
@@ -40,10 +31,15 @@ EOF
     exit(0);
 }
 
+
+if($cli->hasArg('help') || $cli->countArgs() === 0){
+    help($cli);
+}
+
 $name   = $cli->getArgWithVal('install');
 $url    = $cli->getArgWithVal('url');
 
-$config = new Config();
+$config = new SystemConfig();
 
 if($name && $url){
     Text::print("Installing new Extension '{yel}$name{end}' from url '{yel}$url{end}'\n");
@@ -72,6 +68,11 @@ if($name = $cli->getArgWithVal("uninstall")){
     }catch(DirectoryMissingException $e){
         Script::failure("Can't uninstall extension '$name' as the directory that it was expected to be in was missing");
     }
+}
+
+if($cli->hasArg(["list-extension", "list-extensions"])){
+    $extension = new Extension($config);
+    $extension->list();
 }
 
 exit(0);

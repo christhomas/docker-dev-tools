@@ -15,7 +15,11 @@ class Extension{
 		$pathConfig = new PathConfig($this->config);
 		$pathConfig->add($path);
 
-		return $this->config->addExtension($name, $url, $path);
+		if($this->config->addExtension($name, $url, $path)){
+			return $this->config->write();
+		}
+
+		return false;
 	}
 
 	public function uninstall(string $name): bool
@@ -42,7 +46,11 @@ class Extension{
 			Shell::passthru($cmd);
 		}
 
-		return $this->config->removeExtension($name);
+		if($this->config->removeExtension($name)){
+			return $this->config->write();
+		}
+
+		return false;
 	}
 
 	public function list(): array

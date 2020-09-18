@@ -34,7 +34,7 @@ class IPAddress
 		$this->config->setKey($this->key, $ipAddress);
 		$this->config->write();
 
-		return $this->config->testKey($this->key, $ipAddress);
+		return $this->config->getKey($this->key) === $ipAddress;
 	}
 
 	public function ping(string $ipAddress=null, ?string $compare=null): array

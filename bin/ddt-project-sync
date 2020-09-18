@@ -4,7 +4,7 @@ $cli = require_once(__DIR__.'/../src/init.php');
 
 Script::title("DDT PROJECT SYNC", "Quickly pull all projects into your local setup");
 
-$config = new Config();
+$config = new SystemConfig();
 $projectSync = new ProjectSync($config);
 
 function help(CLI $cli)

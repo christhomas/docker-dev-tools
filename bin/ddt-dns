@@ -2,7 +2,7 @@
 <?php declare(strict_types=1);
 $cli = require_once(__DIR__.'/../src/init.php');
 
-$config = new Config();
+$config = new SystemConfig();
 $docker = new Docker($config);
 $dns = new DNSMasq($config, $docker);
 $alias = new IPAddress($config);

@@ -1,4 +1,5 @@
 <?php
+
 class Shell
 {
 	protected static $debug = false;
