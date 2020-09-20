@@ -116,7 +116,6 @@ class PathConfig
 
 	private function processFiles(callable $callback, callable $after=null): void
 	{
-		print("Processing Files\n");
 		foreach($this->files as $file){
 			// read file contents
 			$contents = file_get_contents($file);
@@ -146,9 +145,7 @@ class PathConfig
 		foreach($backupList as $backup){
 			$compare = file_get_contents($backup);
 
-			print("Comparing contents of '$filename' with '$backup'\n");
 			if(strcmp($contents, $compare) === 0){
-				print("Found backup in file '$backup'\n");
 				return true;
 			}
 		}
