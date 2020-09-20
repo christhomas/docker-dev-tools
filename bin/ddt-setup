@@ -11,15 +11,18 @@ function help(CLI $cli)
 	$script = $cli->getScript(false);
 
 	Text::print(<<<EOF
-    {yel}Usage Example:{end} $script {yel}--install{end}
+    {yel}Usage Example:{end} 
+        $script --install
+        $script --projects=\$HOME/projects
 
     {blu}Description:{end}
-        Install or Uninstall the ddt tools into the shells path
+        Install or Uninstall the ddt tools into the system path and setup the projects directory
 
     {blu}Options:{end}
         --get: Output the path the tools are installed to
         --install[=XXX]: Install the tools into the path using the either the optional path given with the parameter or defaults to the current directory
         --uninstall: Uninstall the tools, given the path from the configuration
+        --projects=XXX: Setup the projects directory where ddt-tools will 
         --test: Tests whether the tools are installed and can be executed as expected.
 
 
