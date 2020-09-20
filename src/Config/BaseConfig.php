@@ -1,5 +1,5 @@
 <?php
-class BaseConfig
+class BaseConfig implements ConfigInterface
 {
     private $data = [];
 	private $filename = null;
@@ -36,7 +36,7 @@ class BaseConfig
 
 		return $this->data['type'];
     }
-    
+
     public function setVersion(string $version): void
     {
         $this->setKey('version', $version);
