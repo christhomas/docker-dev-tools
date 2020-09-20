@@ -28,7 +28,7 @@ class BaseConfig
 
     public function getType(): string
 	{
-        $type = ArrayWrapper::get($this->data, "type");
+        $type = $this->getKey('type');
 
         if($type === null){
 			throw new ConfigInvalidException("Every config must have a type field. If this is a main configuration file, add type=system to the top of json file");
@@ -37,9 +37,14 @@ class BaseConfig
 		return $this->data['type'];
     }
     
+    public function setVersion(string $version): void
+    {
+        $this->setKey('version', $version);
+    }
+    
     public function getVersion(): string
 	{
-        $version = ArrayWrapper::get($this->data, "version");
+        $version = $this->getKey('version');
 
         if($version === null){
             throw new ConfigInvalidException("Every config must have a version field");
