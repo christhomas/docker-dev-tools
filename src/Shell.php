@@ -3,16 +3,16 @@
 class Shell
 {
 	protected static $debug = false;
-	protected static $last_error = 0;
+	protected static $exitCode = 0;
 
 	static public function setDebug($state)
 	{
 		self::$debug = !!$state;
 	}
 
-	static public function getError()
+	static public function getExitCode()
 	{
-		return self::$last_error;
+		return self::$exitCode;
 	}
 
 	static public function isCommand($command): bool
@@ -52,7 +52,7 @@ class Shell
 
 		$code = proc_close($proc);
 
-		self::$last_error = $code;
+		self::$exitCode = $code;
 
         if(self::$debug){
             self::printDebug("Code", $code);
@@ -77,7 +77,7 @@ class Shell
 		$redirect = self::$debug ? "" : "2>&1";
 
 		passthru("$command $redirect", $code);
-		self::$last_error = $code;
+		self::$exitCode = $code;
 
 		if ($code !== 0 && $throw === true){
 			throw new Exception(__METHOD__.": error with command '$command'\n");
