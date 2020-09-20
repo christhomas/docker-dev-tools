@@ -25,13 +25,26 @@ class SystemConfig extends BaseConfig
 
     public function setToolsPath(string $path): void
 	{
-        $this->setKey('path', $path);
+        $this->setKey('path.tools', $path);
     }
     
     public function getToolsPath(string $subpath = null): string
 	{
-		$path = $this->getKey("path");
+		$path = $this->getKey("path.tools");
 		$path = $path ?: dirname(__DIR__);
+
+		return $path . $subpath;
+	}
+
+	public function setProjectPath(string $path): void
+	{
+		$this->setKey('path.projects', $path);
+	}
+
+	public function getProjectPath(string $subpath = null): string
+	{
+		$path = $this->getKey('path.projects');
+		$path = $path ?: dirname($this->getToolsPath());
 
 		return $path . $subpath;
 	}
