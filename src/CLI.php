@@ -31,6 +31,8 @@ class CLI
 		return $withPath ? $this->name : basename($this->name);
 	}
 
+	// FIXME: I don't like that this function is here, it's a copy of another function in the base config object
+	// NOTE: it's also nothing to do with the CLI really, so it's awkward to have it here
 	static public function getToolPath(string $subpath=null): string
 	{
 		return dirname(__DIR__) . $subpath;
