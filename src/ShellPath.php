@@ -1,5 +1,5 @@
 <?php
-class PathConfig
+class ShellPath
 {
 	/** @var string The home directory of this computer */
 	private $home;
@@ -33,6 +33,19 @@ class PathConfig
 
 	public function install(string $path): void
 	{
+		// Detect bad paths and ignore them
+		$path = is_dir($path) ? realpath($path) : dirname(__DIR__);
+		
+		$script = "ddt-setup";
+
+		if(!is_dir("$path/bin") || !file_exists("$path/bin/$script")){
+			Script::failure(implode("\n",[
+				"{red}Sanity checks for this path failed. The following items are required to be valid:",
+				"Folder: $path/bin",
+				"File: $path/bin/$script{end}",
+			]));
+		}
+	
 		foreach($this->files as $file) $this->backupFile($file);
 
 		$this->add("$path/bin");
