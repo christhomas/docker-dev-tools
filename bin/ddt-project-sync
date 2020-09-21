@@ -132,18 +132,27 @@ foreach(glob(CLI::getToolPath("/../**/.git"), GLOB_ONLYDIR) as $dir){
     }
 
     try{
-        $git = "git -C ${dir}";
-        $status = Shell::exec("$git status -s");
+        $repo = new Git();
+        $status = $repo->status($dir);
+        $branch = $repo->branch($dir);
         $changes = empty($status) ? "no" : "yes";
-        $branch = Shell::exec("$git rev-parse --abbrev-ref HEAD", true);
 
         if($showBranch){
             Text::print("{blu}Project:{end} {yel}$project ($branch){end}. Has Changes: {yel}$changes{end}\n");
         }else if($changes === "no"){
             Text::print("{blu}".ucwords($action)."ing the project:{end} {yel}$project ($branch){end} ");
 
-            Shell::exec("$git $action");
-            Shell::exec("$git fetch -p");
+            switch($action){
+                case "pull":
+                    $repo->pull($dir, true);
+                break;
+
+                case "push":
+                    $repo->push($dir, true);
+                break;
+            }
+
+            $repo->fetch($dir, true);
 
             Text::print("{grn}Done{end}\n");
 
@@ -155,7 +164,7 @@ foreach(glob(CLI::getToolPath("/../**/.git"), GLOB_ONLYDIR) as $dir){
             }
         }else{
             Text::print("{red}Skipping the project:{end} {yel}$project ($branch){end} because it has changes\n");
-            Text::print("Changes:\n".implode("\n", $status)."\n");
+            Text::print("Changes:\n$status\n");
         }
     }catch(Exception $e){
         if(strpos($e->getMessage(), "no tracking information") !== false){
