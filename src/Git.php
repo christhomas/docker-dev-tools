@@ -25,7 +25,7 @@ class Git{
 	public function clone(string $url, string $dir): bool
 	{
 		if(is_dir($dir)){
-			throw new DirectoryExistsException("The directory '$dir' already exists");
+			throw new DirectoryExistsException($dir);
 		}
 
 		return Shell::passthru("git clone $url $dir") === 0;
@@ -34,12 +34,12 @@ class Git{
 	/**
 	 * @param string $dir
 	 * @return bool
-	 * @throws DirectoryMissingException
+	 * @throws DirectoryNotExistException
 	 */
 	public function pull(string $dir, bool $quiet=false): bool
 	{
 		if(!is_dir($dir)){
-			throw new DirectoryMissingException("The directory '$dir' does not exist");
+			throw new DirectoryNotExistException($dir);
 		}
 
 		$quiet = $quiet ? "&>/dev/null": "";
@@ -50,7 +50,7 @@ class Git{
 	public function push(string $dir, bool $quiet=false): bool
 	{
 		if(!is_dir($dir)){
-			throw new DirectoryMissingException("The directory '$dir' does not exist");
+			throw new DirectoryNotExistException($dir);
 		}
 
 		$quiet = $quiet ? "&>/dev/null": "";
