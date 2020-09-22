@@ -42,9 +42,9 @@ $url    = $cli->getArgWithVal('url');
 $config = new SystemConfig();
 
 if($name && $url){
-    Text::print("Installing new Extension '{yel}$name{end}' from url '{yel}$url{end}'\n");
+    Text::print("Installing new ExtensionManager '{yel}$name{end}' from url '{yel}$url{end}'\n");
     try{
-		$extension = new Extension($config);
+		$extension = new ExtensionManager($config);
 		if($extension->install($name, $url)){
 		    Script::success("Extension '$name' was installed");
         }else{
@@ -59,20 +59,51 @@ if($name = $cli->getArgWithVal("uninstall")){
     Text::print("Uninstalling extension '$name'\n");
 
     try{
-        $extension = new Extension($config);
+        $extension = new ExtensionManager($config);
         if($extension->uninstall($name)){
             Script::success("Extension '$name' was uninstalled");
         }else{
             Script::failure("Extension '$name' has failed to uninstall");
         }
-    }catch(DirectoryMissingException $e){
+    }catch(DirectoryNotExistException $e){
         Script::failure("Can't uninstall extension '$name' as the directory that it was expected to be in was missing");
     }
 }
 
-if($cli->hasArg(["list-extension", "list-extensions"])){
-    $extension = new Extension($config);
-    $extension->list();
+if($name = $cli->getArg("update")){
+    try{
+        $extension = new ExtensionManager($config);
+
+        $list = [];
+
+        if($name === 'true'){
+            $list = array_map(function($e){ 
+                return basename($e['path']);
+            }, $extension->list());
+        }else{
+            $list = [$name];
+        }
+
+        foreach($list as $name){
+            Text::print("Updating extension '$name'\n");
+            if($extension->update($name)){
+                Script::success("Extension '$name' was updated");
+            }else{
+                Script::failure("Extension '$name' has failed to update");
+            }
+        }
+    }catch(DirectoryNotExistException $e){
+        Script::failure("Can't update extension '$name' as the directory that it was expected to be in was missing");
+    }
+}
+
+if($cli->hasArg("list")){
+    try{
+        $extension = new ExtensionManager($config);
+        var_dump($extension->list());
+    }catch(ConfigWrongTypeException $e){
+        Script::failure($e->getMessage());
+    }
 }
 
 exit(0);
