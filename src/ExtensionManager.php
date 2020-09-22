@@ -74,7 +74,13 @@ class ExtensionManager{
 
 		$repo = new Git();
 		if($repo->exists($path)){
+			Text::print("Pulling branch '{yel}".$repo->branch($path)."{end}' from repository '{yel}".$repo->remote($path)."{end}'\n");
+			$repo->pull($path);
 			
+			Text::print("Pushing branch '{yel}".$repo->branch($path)."{end}' to repository '{yel}".$repo->remote($path)."{end}'\n");
+			$repo->push($path);
+
+			return true;
 		}
 
 		return false;
