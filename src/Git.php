@@ -71,6 +71,11 @@ class Git{
 		return Shell::exec("git -C $dir rev-parse --abbrev-ref HEAD", true);
 	}
 
+	public function remote(string $dir, string $name='origin'): string
+	{
+		return Shell::exec("git -C $dir remote get-url $name", true);
+	}
+
 	public function fetch(string $dir, bool $prune=false): bool
 	{
 		$prune = $prune ? "-p" : "";
