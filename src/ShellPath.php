@@ -50,7 +50,7 @@ class ShellPath
 
 		$this->add("$path/bin");
 
-		$extensions = new Extension($this->config);
+		$extensions = new ExtensionManager($this->config);
 		$list = $extensions->list();
 
 		foreach($list as $e){
@@ -67,7 +67,7 @@ class ShellPath
 		
 		$this->remove("$path/bin");
 
-		$extensions = new Extension($this->config);
+		$extensions = new ExtensionManager($this->config);
 		$list = $extensions->list();
 
 		foreach($list as $e){
