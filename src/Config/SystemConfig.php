@@ -3,11 +3,13 @@
 class SystemConfig extends BaseConfig
 {
     private $extensions;
-    private $projects;
+	private $projects;
+	
+	const FILENAME = ".ddt-system.json";
 
     static public function getDefaultFilename(): string
     {
-        return $_SERVER['HOME'] . '/.ddt-config.json';
+        return $_SERVER['HOME'] . '/' . self::FILENAME;
     }
 
     public function __construct(?string $filename=null)

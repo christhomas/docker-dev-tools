@@ -1,6 +1,8 @@
 <?php
 class ProjectConfig extends BaseConfig
 {
+	const FILENAME = "ddt-project.json";
+
     public function listHealthcheck(): array
 	{
 		// FIXME: broken because scanConfigTree was replaced and not upgraded with the ability to callback on the found information
