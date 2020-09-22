@@ -6,11 +6,11 @@ class ExtensionConfig extends BaseConfig
     public function __construct(string $path)
     {
         switch(true){
-            case file_exists($path):
+            case is_file($path):
                 $filename = $path;
             break;
 
-            case file_exists($path . '/' . self::FILENAME):
+            case is_file($path . '/' . self::FILENAME):
                 $filename = $path . '/' . self::FILENAME;
             break;
 
