@@ -26,6 +26,11 @@ class BaseConfig implements ConfigInterface
 		return $this->filename;
     }
 
+    public function getName(): string
+    {
+        return $this->getKey('name');
+    }
+
     public function getType(): string
 	{
         $type = $this->getKey('type');
