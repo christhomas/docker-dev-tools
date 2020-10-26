@@ -95,7 +95,7 @@ class RepositorySync
 
 		return [
 			"changes"	=> empty($status) ? "no" : "yes",
-			"branch"	=> Shell::exec("$git rev-parse --abbrev-ref HEAD", true),
+			"branch"	=> Shell::exec("$git rev-parse --abbrev-ref -- HEAD", true),
 		];
 	}
 
