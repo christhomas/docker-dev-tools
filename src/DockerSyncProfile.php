@@ -22,19 +22,19 @@ class DockerSyncProfile implements JsonSerializable
         if(preg_match("/$containerPattern/", $container)){
             $this->container = $container;
         }else{
-            throw new Exception("The container name '$container' must follow the pattern '$containerPattern'");
+            throw new Exception("The profile named '$name' with the container name '$container' must follow the pattern '$containerPattern'");
         }
 
 		if(is_dir($localDir)){
             $this->localDir = rtrim($localDir, '/');
         }else{
-		    throw new Exception("The local directory '$localDir' did not exist");
+		    throw new Exception("The profile named '$name' with local directory '$localDir' did not exist");
         }
 
         if(preg_match("/$remoteDirPattern/", $remoteDir)) {
             $this->remoteDir = rtrim($remoteDir, '/');
         }else{
-            throw new Exception("The remote directory '$remoteDir' must follow the pattern '$remoteDirPattern'");
+            throw new Exception("The profile named '$name' with remote directory '$remoteDir' must follow the pattern '$remoteDirPattern'");
         }
 	}
 
