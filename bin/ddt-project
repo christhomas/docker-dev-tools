@@ -1,0 +1,77 @@
+#!/usr/bin/env php
+<?php declare(strict_types=1);
+$cli = require_once(__DIR__.'/../src/init.php');
+
+Script::title("DDT PROJECT", "Manage local Projects");
+
+$config = new SystemConfig();
+
+function help(CLI $cli)
+{
+    $script = $cli->getScript(false);
+
+    Text::print(<<<EOF
+    {yel}Usage Examples: {end}
+        $script --pull
+        $script --push --filter=api-server
+        $script --add=some-project --url=https://github.com/something/someproject.git
+        $script --remove=some-project
+        $script --list
+
+    {blu}Description:{end}
+        This project will add new projects to your setup as well as allow you to quickly sync with their upstream git repositories
+
+    {blu}Options:{end}
+        {cyn}General Options{end}
+        --help: This help information
+
+        {cyn}Synchronising projects{end}
+        --pull: This will pull all projects from their upstream repository to the local setup
+        --push: This will push all projects to their upstream repositories from the local setup
+        --filter=XXX (optional): This will modify how --pull and --push operate to only process projects whose installed directory matches the given filter
+        --show-branch=XXX (optional): This will only show the branches for each project, the optional XXX part will show only the filtered project
+
+        {cyn}Managing Projects{end}
+        --install=XXX: Install a new project with this as the local directory to clone into
+        --url=XXX: Required with the --install parameter, used to clone the project into the given directory
+        --uninstall=XXX: Uninstall a project from the system with the given name
+        --list: See all the installed projects with their respective branch names and upstream repository urls
+        --import: Scan the configured project directory and import any missing configurations automatically
+     
+    {blu}Notes:{end}
+        When push or pulling projects, those that have local changes will be skipped. 
+        No changes will be made because it's unsafe to assume any operation can work in all scenarios.
+
+
+EOF
+    );
+
+    exit(0);
+}
+
+if($cli->hasArg('help') || $cli->countArgs() === 0){
+    help($cli);
+}
+
+$project = $cli->getArgWithVal('install');
+$url = $cli->getArgWithVal('url');
+
+if($project && $url){
+    Text::print("Installing a new project '{yel}$project{end}' from url '{yel}$url{end}'\n");
+    $manager = new ProjectManager($config);
+    $manager->install($project, $url);
+}
+
+$project = $cli->getArgWithVal('uninstall');
+
+if($project){
+    Text::print("Uninstalling project '{yel}$project{end}'\n");
+    $manager = new ProjectManager($config);
+    $manager->uninstall($project);
+}
+
+if($cli->hasArg('list')){
+    $manager = new ProjectManager($config);
+    $list = $manager->list();
+    var_dump($list);
+}
