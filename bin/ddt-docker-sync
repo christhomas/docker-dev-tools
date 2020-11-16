@@ -8,6 +8,8 @@ try{
     $config = new SystemConfig();
     $docker = new Docker($config);
     $watcher = new Watcher($cli->getScript(false), $config, $docker);
+}catch(DockerMissingException $e){
+    Script::failure($e->getMessage());
 }catch(Exception $e){
     if(!Shell::isCommand('fswatch')){
         $answer = CLI::ask("fswatch is not installed, install it?", ['yes', 'no']);

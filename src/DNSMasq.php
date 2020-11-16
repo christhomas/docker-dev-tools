@@ -8,6 +8,7 @@ class DNSMasq {
 	private $keys = [
 		'docker_image'		=> 'dns.docker_image',
 		'container_name'	=> 'dns.container_name',
+        'domains'           => 'dns.domains',
 	];
 
 	private $defaults = [
@@ -52,9 +53,16 @@ class DNSMasq {
 		return $this->config->getKey($this->keys['container_name']);
 	}
 
+	public function getContainerId(): ?string
+    {
+        $data = $this->docker->inspect("container", $this->getContainerName());
+
+        return is_array($data) && array_key_exists("Id", $data) ? $data["Id"] : null;
+    }
+
 	public function isRunning()
 	{
-		return $this->docker->findRunning($this->getDockerImage()) !== null;
+	    return $this->getContainerId() !== null;
 	}
 
 	public function listDomains(bool $fromContainer=false)
@@ -76,67 +84,65 @@ class DNSMasq {
 			return $domains;
 		}
 
-		return $this->config->getKey('dns.domains');
+		return $this->config->getKey($this->key['domains']);
 	}
 
-	public function addDomain(string $ipAddress, string $domain): bool
+	public function addDomain(string $ipAddress, string $domain)
 	{
-		$containerId = $this->docker->findRunning($this->getDockerImage());
+	    $containerId = $this->getContainerId();
 
-		if(!empty($containerId)){
-            Text::print("{blu}Installing domain:{end} '{yel}$domain{end}' with ip address '{yel}$ipAddress{end}' into dnsmasq configuration running in container '{yel}$containerId{end}'\n");
+        Text::print("{blu}Installing domain:{end} '{yel}$domain{end}' with ip address '{yel}$ipAddress{end}' into dnsmasq configuration running in container '{yel}$containerId{end}'\n");
 
-            $this->docker->exec($containerId, "/bin/sh -c 'echo 'address=/$domain/$ipAddress' > /etc/dnsmasq.d/$domain.conf'");
-            $this->docker->exec($containerId, "kill -s SIGHUP 1");
+        $this->docker->exec($containerId, "/bin/sh -c 'echo 'address=/$domain/$ipAddress' > /etc/dnsmasq.d/$domain.conf'");
+        $this->docker->exec($containerId, "kill -s SIGHUP 1");
 
-            sleep(2);
+        sleep(2);
 
-            $domainList = $this->config->getKey('dns.domains');
-            foreach($domainList as $key => $value) {
-                if($value['domain'] === $domain) unset($domainList[$key]);
-            }
-            $domainList[] = ['domain' => $domain, 'ip_address' => $ipAddress];
-            $this->config->setKey('dns.domains', array_values($domainList));
-            $this->config->write();
+        $domainList = $this->config->getKey($this->key['domains']);
 
-            return true;
+        foreach($domainList as $key => $value) {
+            if($value['domain'] === $domain) unset($domainList[$key]);
         }
 
-        return false;
+        $domainList[] = ['domain' => $domain, 'ip_address' => $ipAddress];
+        $this->config->setKey($this->key['domains'], array_values($domainList));
+
+        if(!$this->config->write()){
+            throw new ConfigWriteException("Could not write new '{$this->key['domains']}' configuration");
+        }
 	}
 
 	public function removeDomain(string $domain)
 	{
-		$containerId = $this->docker->findRunning($this->getDockerImage());
+	    $containerId = $this->getContainerId();
 
-		if(!empty($containerid)){
-            Text::print("{blu}Remove domain:{end} '{yel}$domain{end}' from dnsmasq configuration running in container '{yel}$containerId{end}'\n");
+        Text::print("{blu}Remove domain:{end} '{yel}$domain{end}' from dnsmasq configuration running in container '{yel}$containerId{end}'\n");
 
-            $this->docker->exec($containerId, "/bin/sh -c 'f=/etc/dnsmasq.d/$domain.conf && [ -f \$f ] && rm \$f'");
-            $this->docker->exec($containerId, "kill -s SIGHUP 1");
+        $this->docker->exec($containerId, "/bin/sh -c 'f=/etc/dnsmasq.d/$domain.conf && [ -f \$f ] && rm \$f'");
+        $this->docker->exec($containerId, "kill -s SIGHUP 1");
 
-            sleep(2);
+        sleep(2);
 
-            $domainList = $this->config->getKey('dns.domains');
-            foreach($domainList as $key => $value) {
-                if($value['domain'] === $domain) unset($domainList[$key]);
-            }
-            $domainList = array_values($domainList);
-            $this->config->setKey('dns.domains', $domainList);
-            $this->config->write();
+        $domainList = $this->config->getKey($this->key['domains']);
 
-            return true;
+        foreach($domainList as $key => $value) {
+            if($value['domain'] === $domain) unset($domainList[$key]);
         }
 
-        return false;
+        $domainList = array_values($domainList);
+        $this->config->setKey($this->key['domains'], $domainList);
+
+        if(!$this->config->write()){
+            throw new ConfigWriteException("Could not write new '{$this->key['domains']}' configuration");
+        }
 	}
 
 	public function logs(): bool
 	{
-		$container = $this->docker->findRunning($this->getDockerImage());
+        $containerId = $this->getContainerId();
 
-        if(!empty($containerid)){
-			$this->docker->logs($container);
+        if(!empty($containerId)){
+			$this->docker->logs($containerId);
 			return true;
 		}
 
@@ -145,10 +151,10 @@ class DNSMasq {
 
 	public function logsFollow(): bool
 	{
-		$container = $this->docker->findRunning($this->getDockerImage());
+	    $containerId = $this->getContainerId();
 
-        if(!empty($containerid)){
-			$this->docker->logsFollow($container);
+        if(!empty($containerId)){
+			$this->docker->logsFollow($containerId);
 			return true;
 		}
 

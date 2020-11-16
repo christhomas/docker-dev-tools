@@ -5,6 +5,7 @@ class Docker
 	private $config;
 	private $command;
 	private $profile;
+	private $version;
 	private $key = "docker";
 
 	const DOCKER_NOT_RUNNING = "The docker daemon is not running";
@@ -32,28 +33,29 @@ class Docker
 
 	public function __construct(SystemConfig $config)
 	{
+        if(Shell::isCommand('docker') === false){
+            throw new DockerMissingException();
+        }
+
 		$this->config = $config;
 		$this->profile = 'default';
 		$this->command = 'docker';
-
-		if(Shell::isCommand('docker') === false){
-			Script::failure("Docker is required to run this tool, please install it\n");
-		}
+		$this->version = $this->getVersion();
 	}
+
+	public function getVersion(): array
+    {
+        return json_decode(Shell::exec("$this->command version --format \"{{json .}}\"", true), true);
+    }
 
 	public function isRunning(): bool
 	{
-		try{
-			Shell::exec("$this->command version &>/dev/null");
-			return true;
-		}catch(Exception $e){
-			Text::print("{red}".$this->parseCommonErrors($e->getMessage())."{end}");
-			return false;
-		}
+	    return is_array($this->version) && array_key_exists('Server', $this->version) && !empty($this->version['Server']);
 	}
 
 	public function pull(string $image): int
 	{
+
 		try{
 			return Shell::passthru("$this->command pull $image");
 		}catch(Exception $e){
@@ -82,6 +84,7 @@ class Docker
 
 	public function getContainerId(string $name): string
 	{
+        //return Shell::exec("$this->command container ls --filter name=$name --format \"{{.ID}}\"", true);
 		return Shell::exec("$this->command container ls --all | grep '$name' | awk '{ print $1 }'", true);
 	}
 
@@ -104,9 +107,14 @@ class Docker
 	}
 
 	public function findRunning(string $image): ?string
+    {
+        return $this->findRunningByImage($image);
+    }
+
+	public function findRunningByImage(string $image): ?string
 	{
 		try{
-			$output = Shell::exec("$this->command ps --no-trunc");
+			/*$output = Shell::exec("$this->command ps --no-trunc");
 
 			array_shift($output);
 
@@ -116,7 +124,8 @@ class Docker
 						return $matches[1];
 					}
 				}
-			}
+			}*/
+            //$container = $this->inspect()
 		}catch(Exception $e){
 			Script::failure("{red}".$this->parseCommonErrors($e->getMessage())."{end}\n");
 			// catch exception, return null
@@ -180,11 +189,10 @@ class Docker
 
 		try{
 			$networkId = Shell::exec("$this->command network inspect $network -f '{{ .Id }}' 2>/dev/null", true);
+            return !empty($networkId) ? $networkId : null;
 		}catch(Exception $e){
-			$networkId = null;
+			return null;
 		}
-
-		return !empty($networkId) ? $networkId : null;
 	}
 
 	public function createNetwork(string $network)
@@ -206,7 +214,13 @@ class Docker
 		// TODO
 	}
 
-	public function inspect($type, $name): array
+    /**
+     * @param $type
+     * @param $name
+     * @return array|null
+     * @throws ContainerNotRunningException
+     */
+	public function inspect($type, $name): ?array
 	{
 		try{
 			$result = Shell::exec("$this->command $type inspect $name -f '{{json .}}'");
@@ -214,7 +228,7 @@ class Docker
 
 			return json_decode($result, true);
 		}catch(Exception $e){
-			return [];
+		    throw new ContainerNotRunningException($name, 0, $e);
 		}
 	}
 
