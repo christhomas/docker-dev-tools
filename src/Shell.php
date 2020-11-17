@@ -1,9 +1,10 @@
 <?php
-
 class Shell
 {
 	protected static $debug = false;
 	protected static $exitCode = 0;
+	protected static $stdout = "";
+	protected static $stderr = "";
 
 	static public function setDebug($state)
 	{
@@ -33,7 +34,7 @@ class Shell
 	static public function exec(string $command, bool $firstLine=false, bool $throw=true)
 	{
 		if(self::$debug){
-		    self::printDebug("Run command",$command);
+		    self::printDebug("Run command", $command);
 		}
 
 		unset($pipes);
@@ -44,10 +45,10 @@ class Shell
 			2 => ['pipe','w'],
 		],$pipes);
 
-		$stdout = trim(stream_get_contents($pipes[1]));
+		self::$stdout = trim(stream_get_contents($pipes[1]));
 		fclose($pipes[1]);
 
-		$stderr = trim(stream_get_contents($pipes[2]));
+		self::$stderr = trim(stream_get_contents($pipes[2]));
 		fclose($pipes[2]);
 
 		$code = proc_close($proc);
@@ -56,16 +57,16 @@ class Shell
 
         if(self::$debug){
             self::printDebug("Code", $code);
-            self::printDebug("StdErr", "'$stderr'");
+            self::printDebug("StdErr", "'".self::$stderr."'");
         }
 
 		if($code !== 0 && $throw === true){
-			throw new Exception("$stdout $stderr",$code);
+			throw new Exception(self::$stdout." ".self::$stderr, $code);
 		}
 
-		$stdout = empty($stdout) ? [""] : explode("\n", $stdout);
+		$output = empty(self::$stdout) ? [""] : explode("\n", self::$stdout);
 
-		return $firstLine ? current($stdout) : $stdout;
+		return $firstLine ? current($output) : $output;
 	}
 
 	static public function passthru(string $command, bool $throw=true): int
@@ -77,6 +78,7 @@ class Shell
 		$redirect = self::$debug ? "" : "2>&1";
 
 		passthru("$command $redirect", $code);
+
 		self::$exitCode = $code;
 
 		if ($code !== 0 && $throw === true){
