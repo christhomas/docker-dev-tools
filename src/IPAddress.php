@@ -26,7 +26,9 @@ class IPAddress
 	{
 		$default = $default ?: $this->default;
 
-		return $this->config->getKey($this->key, $default);
+		// FIXME: how to return the default if the key is not found?
+		// NOTE: is the default even wanted anymore?
+		return $this->config->getKey($this->key);
 	}
 
 	public function set(string $ipAddress): bool

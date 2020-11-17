@@ -7,7 +7,7 @@ $cli = require_once(__DIR__.'/../src/init.php');
 ###################################################################
 try{
     if($cli->hasArg("skip-tool-upgrade") === false){
-		$output = Shell::passthru('ddt-project-sync --filter=/tool');
+		$output = Shell::passthru('ddt-project --pull=/tool');
     }
 }catch(Exception $e){
     // Couldn't sync, we should fail here
@@ -31,13 +31,13 @@ EOF
 ## This always runs, it should always result in the same result
 ###################################################################
 try{
-    $version = 1.0;
+    $newVersion = '1.0';
 	Shell::exec(__DIR__ . "/ddt-config");
-    Shell::exec(__DIR__ . "/ddt-setup --install --projects=");
+    Shell::exec(__DIR__ . "/ddt-setup --install");
     $config = new SystemConfig();
-    $config->setVersion($version);
+    $config->setVersion($newVersion);
 }catch(Exception $e){
-    print(Text::red("The upgrade to $version has failed, please report this error\n"));
+    print(Text::red("The upgrade to $newVersion has failed, please report this error\n"));
 
 	$message = trim(Text::stripColours($e->getMessage()));
     print(Text::box("Error: $message", "white", "red"));

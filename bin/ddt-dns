@@ -153,6 +153,7 @@ try{
         }
 
         $dns->addDomain($ipAddress, $domain);
+
         Format::ping($alias->ping('google.com'));
         Format::ping($alias->ping($domain, $ipAddress));
     }
@@ -160,6 +161,7 @@ try{
     if($domain = $cli->getArgWithVal('remove-domain'))
     {
         $dns->removeDomain($domain);
+
         Format::ping($alias->ping('google.com'));
         Format::ping($alias->ping($domain));
     }
