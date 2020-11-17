@@ -137,28 +137,18 @@ class DNSMasq {
         }
 	}
 
-	public function logs(): bool
+	public function logs(): void
 	{
         $containerId = $this->getContainerId();
 
-        if(!empty($containerId)){
-			$this->docker->logs($containerId);
-			return true;
-		}
-
-        return false;
+		$this->docker->logs($containerId);
 	}
 
-	public function logsFollow(): bool
+	public function logsFollow(): void
 	{
 	    $containerId = $this->getContainerId();
 
-        if(!empty($containerId)){
-			$this->docker->logsFollow($containerId);
-			return true;
-		}
-
-        return false;
+		$this->docker->logsFollow($containerId);
 	}
 
     /**
