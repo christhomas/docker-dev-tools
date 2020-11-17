@@ -27,6 +27,22 @@ class RepositorySync
 		foreach($list as $dir){
 			$data = $this->getProjectStatus($dir);
 
+			switch(true){
+				case array_key_exists('uninitialised', $data):
+					Text::print("{red}Skipping the project:{end} {yel}{$data['name']} ({$data['branch']}){end} Is anything commited yet? It doesn't appear to be initialised\n");
+					Text::print("Changes:\n".implode("\n", $data['status'])."\n");
+					break;
+
+				case $data['changes'] === 'yes':
+					Text::print("{red}Skipping the project:{end} {yel}{$data['name']} ({$data['branch']}){end} because it has changes\n");
+					Text::print("Changes:\n".implode("\n", $data['status'])."\n");
+					break;
+
+				case $data['changes'] === 'no':
+					break;
+			}
+
+			var_dump($data);
 			if(!array_key_exists("exception", $data)){
 				if($data["changes"] === "no"){
 
@@ -36,7 +52,6 @@ class RepositorySync
 			}
 		}
 
-		var_dump($list);
 		die("DEAD");
 	}
 
@@ -90,13 +105,25 @@ class RepositorySync
 
 	public function getProjectStatus(string $dir): array
 	{
-		$git = "git -C ${dir}";
-		$status = Shell::exec("$git status -s");
+		try{
+			$git = "git -C $dir";
+			$data = [];
 
-		return [
-			"changes"	=> empty($status) ? "no" : "yes",
-			"branch"	=> Shell::exec("$git rev-parse --abbrev-ref -- HEAD", true),
-		];
+			$status = Shell::exec("$git status -s");
+			$data['name']		= basename($dir);
+			$data['status']		= $status;
+			$data['changes']	= empty($status) ? "no" : "yes";
+			$data['branch']		= Shell::exec("$git rev-parse --abbrev-ref HEAD", true);
+		}catch(Exception $e){
+			switch(true){
+				case strpos($e->getMessage(), "ambiguous argument 'HEAD'") !== false:
+					$data['branch'] = null;
+					$data['uninitialised'] = true;
+					break;
+			}
+		}
+
+		return $data;
 	}
 
     public function listHookNames(): array
