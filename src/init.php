@@ -22,7 +22,6 @@ if(!isset($showErrors)) $showErrors = false;
 $cli = new CLI($argv, $showErrors);
 
 Shell::setDebug($cli->hasArg('debug'));
-Text::initColours();
 Text::setQuiet($cli->hasArg('quiet'));
 
 return $cli;
