@@ -5,15 +5,14 @@ class Git{
 
 	}
 
-	public function exists(string $dir): bool
+	static public function exists(string $url): bool
 	{
-		if(is_dir($dir)){
-			$this->status($dir);
-
-			return Shell::getExitCode() === 0;
+		try{
+			Shell::exec("git ls-remote -h $url");
+			return true;
+		}catch(Exception $e) {
+			return false;
 		}
-
-		return false;
 	}
 
 	/**
@@ -26,6 +25,10 @@ class Git{
 	{
 		if(is_dir($dir)){
 			throw new DirectoryExistsException($dir);
+		}
+
+		if(Git::exists($url) === false){
+			throw new InvalidArgumentException("The url '$url' is not a valid git repository");
 		}
 
 		return Shell::passthru("git clone $url $dir") === 0;
