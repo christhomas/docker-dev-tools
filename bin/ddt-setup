@@ -11,19 +11,18 @@ function help(CLI $cli)
 	$script = $cli->getScript(false);
 
 	Text::print(<<<EOF
-    {yel}Usage Example:{end} 
-        $script --install
-        $script --projects=\$HOME/projects
+    {yel}Usage Example:{end} $script {yel}--start --restart --stop{end}
 
     {blu}Description:{end}
-        Install or Uninstall the ddt tools into the system path and setup the projects directory
+        This tool will setup the basic setup for the docker dev tools
 
     {blu}Options:{end}
         --get: Output the path the tools are installed to
         --install[=XXX]: Install the tools into the path using the either the optional path given with the parameter or defaults to the current directory
-        --uninstall: Uninstall the tools, given the path from the configuration
-        --projects=XXX: Setup the projects directory where ddt-tools will 
-        --test: Tests whether the tools are installed and can be executed as expected.
+        --uninstall: Uninstall the tools, given the path from the configuration 
+        --test: Test whether the tools are installed and can be executed as expected.
+        --set-tools-path=XXX: Update where the tools are installed
+        --set-projects-path=XXX: Update where the projects will be installed into
 
 
 EOF
@@ -61,6 +60,16 @@ if($cli->hasArg('test')){
         print(Text::box("The tool '" . basename($cli->getScript()) . "' could not set the shell path successfully installed. Please report this error", "white", "red"));
         exit(1);
     }
+}
+
+if($path = $cli->getArgWithVal("set-tools-path")){
+    $config->setToolsPath($path);
+	$config->write();
+}
+
+if($path = $cli->getArgWithVal("set-projects-path")){
+    $config->setProjectPath($path);
+	$config->write();
 }
 
 exit(0);
