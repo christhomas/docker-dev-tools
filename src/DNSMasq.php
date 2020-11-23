@@ -84,7 +84,7 @@ class DNSMasq {
 			return $domains;
 		}
 
-		return $this->config->getKey($this->key['domains']);
+		return $this->config->getKey($this->keys['domains']);
 	}
 
 	public function addDomain(string $ipAddress, string $domain)
@@ -98,17 +98,17 @@ class DNSMasq {
 
         sleep(2);
 
-        $domainList = $this->config->getKey($this->key['domains']);
+        $domainList = $this->config->getKey($this->keys['domains']);
 
         foreach($domainList as $key => $value) {
             if($value['domain'] === $domain) unset($domainList[$key]);
         }
 
         $domainList[] = ['domain' => $domain, 'ip_address' => $ipAddress];
-        $this->config->setKey($this->key['domains'], array_values($domainList));
+        $this->config->setKey($this->keys['domains'], array_values($domainList));
 
         if(!$this->config->write()){
-            throw new ConfigWriteException("Could not write new '{$this->key['domains']}' configuration");
+            throw new ConfigWriteException("Could not write new '{$this->keys['domains']}' configuration");
         }
 	}
 
@@ -123,17 +123,17 @@ class DNSMasq {
 
         sleep(2);
 
-        $domainList = $this->config->getKey($this->key['domains']);
+        $domainList = $this->config->getKey($this->keys['domains']);
 
         foreach($domainList as $key => $value) {
             if($value['domain'] === $domain) unset($domainList[$key]);
         }
 
         $domainList = array_values($domainList);
-        $this->config->setKey($this->key['domains'], $domainList);
+        $this->config->setKey($this->keys['domains'], $domainList);
 
         if(!$this->config->write()){
-            throw new ConfigWriteException("Could not write new '{$this->key['domains']}' configuration");
+            throw new ConfigWriteException("Could not write new '{$this->keys['domains']}' configuration");
         }
 	}
 

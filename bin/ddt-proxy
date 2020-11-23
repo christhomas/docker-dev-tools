@@ -58,10 +58,7 @@ if($cli->hasArg('help') || $cli->countArgs() === 0){
 }
 
 if($cli->hasArg('restart')){
-    if($proxy->isRunning()){
-        $proxy->stop();
-	}
-
+    $cli->setArg('stop');
     $cli->setArg('start');
 }
 
@@ -71,31 +68,24 @@ if($cli->hasArg('stop')){
 
         $proxy->stop();
 
-        Text::print("{blu}Running Containers{end}\n");
-        Shell::passthru('docker ps');
+        $cli->setArg('show-containers');
     }catch(ContainerNotRunningException $e){
         Text::print(Text::box("Status: Already Stopped", 'blk', 'yel'));
     }
 }
 
-if($network = $cli->getArg('start')){
-    if($network == true) $network = null;
-
-    if(!$proxy->isRunning()){
-		Text::print("{blu}Starting the Frontend Proxy:{end} ".$proxy->getDockerImage()."\n");
-
-		$proxy->start($network);
-
-		Text::print("{blu}Running Containers:{end}\n");
-		Shell::passthru('docker ps');
-
-		$cli->setArg('domains');
-    }else{
-		Text::print(Text::box("Status: Already Started", 'blk', 'yel'));
-    }
-}
-
 try{
+	if($network = $cli->getArg('start')){
+		if($network == true) $network = null;
+
+        Text::print("{blu}Starting the Frontend Proxy:{end} ".$proxy->getDockerImage()."\n");
+
+        $proxy->start($network);
+
+        $cli->setArg('show-containers');
+        $cli->setArg('domains');
+	}
+
     if($cli->hasArg('config')){
         print($proxy->getConfig());
     }
@@ -118,6 +108,11 @@ try{
 
     if($cli->hasArg('logs-f')){
         $proxy->logsFollow();
+    }
+
+    if($cli->hasArg('show-containers')){
+		Text::print("{blu}Running Containers:{end}\n");
+		Shell::passthru('docker ps');
     }
 
     if($cli->hasArg('domains')){
