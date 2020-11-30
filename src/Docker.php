@@ -33,15 +33,20 @@ class Docker
 
 	public function __construct(SystemConfig $config)
 	{
-        if(Shell::isCommand('docker') === false){
+        $this->config = $config;
+        $this->profile = 'default';
+        $this->command = 'docker';
+
+        if(Shell::isCommand($this->command) === false){
             throw new DockerMissingException();
         }
 
-		$this->config = $config;
-		$this->profile = 'default';
-		$this->command = 'docker';
 		$this->version = $this->getVersion();
-	}
+
+        if(!$this->isRunning()){
+            throw new DockerNotRunningException();
+        }
+    }
 
 	public function getVersion(): array
     {

@@ -8,6 +8,8 @@ try{
     $config = new SystemConfig();
     $docker = new Docker($config);
     $watcher = new Watcher($cli->getScript(false), $config, $docker);
+}catch(DockerNotRunningException $e){
+    Script::failure($e->getMessage());
 }catch(DockerMissingException $e){
     Script::failure($e->getMessage());
 }catch(Exception $e){

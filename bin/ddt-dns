@@ -4,14 +4,9 @@ $cli = require_once(__DIR__.'/../src/init.php');
 
 Script::title("DNS Server", "Turn your network on....or...off....");
 
-try{
-    $config = new SystemConfig();
-    $docker = new Docker($config);
-    $dns    = new DNSMasq($config, $docker);
-    $alias  = new IPAddress($config);
-}catch(DockerMissingException $e){
-    Script::failure($e->getMessage());
-}
+$config     = new SystemConfig();
+$network    = new Network($config);
+$alias      = new IPAddress($config);
 
 function help(CLI $cli)
 {
@@ -77,12 +72,21 @@ if($cli->hasArg('help') || $cli->countArgs() === 0){
 }
 
 try{
-    if($cli->hasArg('enable')){
-        $dns->enable();
+    // This is the only command which can be run without docker
+    // as all it does is reset your network dns settings
+    if($cli->hasArg('disable')){
+        if($network->disableDNS()){
+            Script::success('DNS was disabled');
+        }else{
+            Script::failure('DNS could not be disabled');
+        }
     }
 
-    if($cli->hasArg('disable')){
-        $dns->disable();
+    $docker = new Docker($config);
+    $dns    = new DNSMasq($config, $docker);
+
+    if($cli->hasArg('enable')){
+        $network->enableDNS();
     }
 
     if($cli->hasArg('restart')){
@@ -92,7 +96,7 @@ try{
 
     if($cli->hasArg('stop')){
         Text::print("{blu}Stopping DNS Container...{end}\n");
-        $dns->disable();
+        $network->disableDNS();
 
         Format::ping($alias->ping('127.0.0.1'));
         Format::ping($alias->ping('google.com'));
@@ -109,6 +113,7 @@ try{
         Text::print("{blu}Starting DNS Container...{end}\n");
 
         $dns->start();
+        $network->enableDNS();
 
         Format::ping($alias->ping('127.0.0.1'));
         Format::ping($alias->ping('google.com'));
@@ -183,6 +188,10 @@ try{
     }
 
     exit(0);
+}catch(DockerNotRunningException $e){
+    Script::failure($e->getMessage());
+}catch(DockerMissingException $e){
+    Script::failure($e->getMessage());
 }catch(ConfigWriteException $e){
     Script::failure($e->getMessage());
 }catch(UnsupportedDistroException $e){

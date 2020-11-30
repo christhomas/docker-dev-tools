@@ -9,6 +9,8 @@ try{
     $config = new SystemConfig();
     $docker = new Docker($config);
     $proxy = new Proxy($config, $docker);
+}catch(DockerNotRunningException $e){
+    Script::failure($e->getMessage());
 }catch(DockerMissingException $e){
     Script::failure($e->getMessage());
 }

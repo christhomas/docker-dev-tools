@@ -7,6 +7,8 @@ Script::title("DDT DOCKER", "Configure docker profiles and easily interface with
 try{
     $config = new SystemConfig();
     $docker = new Docker($config);
+}catch(DockerNotRunningException $e){
+    Script::failure($e->getMessage());
 }catch(DockerMissingException $e){
     Script::failure($e->getMessage());
 }
