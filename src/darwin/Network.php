@@ -63,7 +63,7 @@ class Network
 		$name = $mode === 'docker' ? 'Docker Container' : $name;
 
 		if($mode === 'docker'){
-			$ipAddress = '0.0.0.0';
+			$ipAddress = '0.0.0.0 127.0.0.1';
 		}else{
 			$ipAddress = $mode;
 		}
