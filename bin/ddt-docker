@@ -2,7 +2,14 @@
 <?php declare(strict_types=1);
 $cli = require_once(__DIR__.'/../src/init.php');
 
-Script::title("DDT DOCKER FRONTEND", "Configure docker profiles and easily interface with remote docker daemons");
+Script::title("DDT DOCKER", "Configure docker profiles and easily interface with remote docker daemons");
+
+try{
+    $config = new SystemConfig();
+    $docker = new Docker($config);
+}catch(DockerMissingException $e){
+    Script::failure($e->getMessage());
+}
 
 function help(CLI $cli)
 {
@@ -59,9 +66,6 @@ EOF
 if($cli->hasArg('help') || $cli->countArgs() === 0){
     help($cli);
 }
-
-$config = new Config();
-$docker = new Docker($config);
 
 if(($profile = $cli->getArgWithVal('add-profile')) !== null){
     $host       = $cli->getArgWithVal('host');

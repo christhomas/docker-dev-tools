@@ -16,7 +16,7 @@ class Proxy
 		'network'			=> 'ddt-proxy'
 	];
 
-	public function __construct(Config $config, Docker $docker)
+	public function __construct(SystemConfig $config, Docker $docker)
 	{
 		$this->config = $config;
 		$this->docker = $docker;
@@ -70,7 +70,9 @@ class Proxy
 
 	public function getContainerId(): ?string
 	{
-		return $this->docker->findRunning($this->getDockerImage());
+        $data = $this->docker->inspect("container", $this->getContainerName());
+
+        return is_array($data) && array_key_exists("Id", $data) ? $data["Id"] : null;
 	}
 
 	public function isRunning(): bool
@@ -78,6 +80,10 @@ class Proxy
 		return $this->getContainerId() !== null;
 	}
 
+    /**
+     * @return string
+     * @throws ContainerNotRunningException
+     */
 	public function getConfig(): string
 	{
 		$containerId = $this->getContainerId();
@@ -156,6 +162,9 @@ class Proxy
 		}
 	}
 
+    /**
+     * @throws ContainerNotRunningException
+     */
 	public function stop()
 	{
 		$containerId = $this->getContainerId();

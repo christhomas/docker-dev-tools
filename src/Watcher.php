@@ -9,7 +9,7 @@ class Watcher
 	private $profileKey = 'watch_sync.profiles';
 	private $ignoreRuleKey = 'watch_sync.ignore_rule';
 
-	public function __construct(string $script, Config $config, Docker $docker)
+	public function __construct(string $script, SystemConfig $config, Docker $docker)
 	{
 		$this->script = $script;
 		$this->config = $config;
@@ -59,16 +59,13 @@ class Watcher
 
 	public function removeProfile(DockerProfile $dockerProfile, string $syncProfile): bool
 	{
-		$profileList = $this->listProfiles($dockerProfile);
+		$path = implode('.',[$this->profileKey, $dockerProfile->getName(), $syncProfile]);
 
-		foreach(array_keys($profileList) as $profile){
-			if($profile === $syncProfile){
-				unset($profileList[$syncProfile]);
-				$this->config->setKey(implode('.',[$this->profileKey,$dockerProfile->getName()]), $profileList);
-				$this->config->write();
+		if($this->config->getKey($path) !== null){
+			$this->config->deleteKey($path);
+			$this->config->write();
 
-				return true;
-			}
+			return true;
 		}
 
 		return false;

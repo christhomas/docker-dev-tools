@@ -3,7 +3,7 @@
 $showErrors = true;
 $cli = require_once(__DIR__.'/../src/init.php');
 
-$config = new Config();
+$config = new SystemConfig();
 
 Script::title("DDT LOCAL IP CONFIGURATOR", "A Stable IP Address makes a happy network");
 
@@ -108,7 +108,7 @@ try{
         Format::ping($ipAddress->ping());
     }
 }catch(UnsupportedDistroException $e){
-    Script::failure("Sorry but this distribution '".$e->getMessage()."' is not supported, probably the IP Address cannot be correctly configured. Please ask for support");
+    Script::failure("Sorry but this distribution '".$e->getOperatingSystem()."' is not supported, probably the IP Address cannot be correctly configured. Please ask for support");
 }
 
 exit(0);

@@ -92,17 +92,17 @@ class Text
 
 	static public function checkIcon(): string
 	{
-		return constant('CHK_I');
+		return constant('chk_i');
 	}
 
 	static public function crossIcon(): string
 	{
-		return constant('MSS_I');
+		return constant('mss_i');
 	}
 
 	static public function warnIcon(): string
 	{
-		return constant('WRN_I');
+		return constant('wrn_i');
 	}
 
 	static public function write(string $string, bool $ignoreQuiet = false): string

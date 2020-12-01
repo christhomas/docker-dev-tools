@@ -1,18 +1,16 @@
 <?php
 class Git{
-	protected $dir;
-
-	public function __construct(string $dir)
+	public function __construct()
 	{
-		$this->dir = $dir;
+
 	}
 
-	static public function exists(string $url)
+	static public function exists(string $url): bool
 	{
 		try{
 			Shell::exec("git ls-remote -h $url");
 			return true;
-		}catch(Exception $e){
+		}catch(Exception $e) {
 			return false;
 		}
 	}
@@ -23,40 +21,70 @@ class Git{
 	 * @return bool
 	 * @throws DirectoryExistsException
 	 */
-	public function clone(string $url): bool
+	public function clone(string $url, string $dir): bool
 	{
-		if(is_dir($this->dir)){
-			throw new DirectoryExistsException("The directory '$this->dir' already exists");
+		if(is_dir($dir)){
+			throw new DirectoryExistsException($dir);
 		}
 
 		if(Git::exists($url) === false){
 			throw new InvalidArgumentException("The url '$url' is not a valid git repository");
 		}
 
-		return Shell::passthru("git clone $url $this->dir") === 0;
+		return Shell::passthru("git clone $url $dir") === 0;
 	}
 
 	/**
 	 * @param string $dir
 	 * @return bool
-	 * @throws DirectoryMissingException
+	 * @throws DirectoryNotExistException
 	 */
-	public function pull(): bool
+	public function pull(string $dir, bool $quiet=false): bool
 	{
-		if(!is_dir($this->dir)){
-			throw new DirectoryMissingException("The directory '$this->dir' does not exist");
+		if(!is_dir($dir)){
+			throw new DirectoryNotExistException($dir);
 		}
 
-		return Shell::passthru("git -C $this->dir pull") === 0;
+		$quiet = $quiet ? "&>/dev/null": "";
+
+		return Shell::passthru("git -C $dir pull $quiet") === 0;
 	}
 
-	public function remote(?string $name = 'origin'): string
+	public function push(string $dir, bool $quiet=false): bool
 	{
-		return Shell::exec("git -C $this->dir remote get-url $name", true);
+		if(!is_dir($dir)){
+			throw new DirectoryNotExistException($dir);
+		}
+
+		$quiet = $quiet ? "&>/dev/null": "";
+
+		return Shell::passthru("git -C $dir push $quiet") === 0;
 	}
 
-	public function branch(): string
+	public function status(string $dir): string
 	{
-		return Shell::exec("git -C $this->dir rev-parse --abbrev-ref HEAD", true);
+		$output = implode("\n",Shell::exec("git -C $dir status -s"));
+		$output = trim($output);
+
+		return $output;
+	}
+
+	public function branch(string $dir): string
+	{
+		return Shell::exec("git -C $dir rev-parse --abbrev-ref HEAD", true);
+	}
+
+	public function remote(string $dir, string $name='origin'): string
+	{
+		return Shell::exec("git -C $dir remote get-url $name", true);
+	}
+
+	public function fetch(string $dir, bool $prune=false): bool
+	{
+		$prune = $prune ? "-p" : "";
+
+		Shell::exec("git -C $dir fetch $prune");
+
+		return Shell::getExitCode() === 0;
 	}
 }

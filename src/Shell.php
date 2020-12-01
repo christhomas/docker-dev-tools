@@ -2,7 +2,7 @@
 class Shell
 {
 	protected static $debug = false;
-	protected static $error = 0;
+	protected static $exitCode = 0;
 	protected static $stdout = "";
 	protected static $stderr = "";
 
@@ -11,9 +11,9 @@ class Shell
 		self::$debug = !!$state;
 	}
 
-	static public function getError()
+	static public function getExitCode()
 	{
-		return self::$error;
+		return self::$exitCode;
 	}
 
 	static public function isCommand($command): bool
@@ -26,15 +26,21 @@ class Shell
 		}
 	}
 
+	static public function printDebug($prefix, $content)
+    {
+        print(Text::blue("[DEBUG] $prefix: ").$content."\n");
+    }
+
 	static public function exec(string $command, bool $firstLine=false, bool $throw=true)
 	{
 		if(self::$debug){
-			print(Text::blue("[DEBUG] Run command: ").$command."\n");
+		    self::printDebug("Run command", $command);
 		}
 
-		$redirect = self::$debug ? "" : "2>&1";
+		unset($pipes);
+		$pipes = [];
 
-		$proc = proc_open("$command $redirect",[
+		$proc = proc_open($command,[
 			1 => ['pipe','w'],
 			2 => ['pipe','w'],
 		],$pipes);
@@ -47,7 +53,12 @@ class Shell
 
 		$code = proc_close($proc);
 
-		self::$error = $code;
+		self::$exitCode = $code;
+
+        if(self::$debug){
+            self::printDebug("Code", $code);
+            self::printDebug("StdErr", "'".self::$stderr."'");
+        }
 
 		if($code !== 0 && $throw === true){
 			throw new Exception(self::$stdout." ".self::$stderr, $code);
@@ -68,7 +79,7 @@ class Shell
 
 		passthru("$command $redirect", $code);
 
-		self::$error = $code;
+		self::$exitCode = $code;
 
 		if ($code !== 0 && $throw === true){
 			throw new Exception(__METHOD__.": error with command '$command'\n");

@@ -3,15 +3,18 @@ if (version_compare(phpversion(), '7.2', '<')) {
     die("Sorry but the tools require at least PHP 7.2, you have ".phpversion()." installed\n");
 }
 
-spl_autoload_register(function ($class_name) {
-	$file = __DIR__ . "/" . $class_name . '.php';
-	if(file_exists($file)) require_once($file);
+spl_autoload_register(function ($name) {
+	$search = [
+		__DIR__ . '/',
+		__DIR__ . '/' . ucwords(strtolower(PHP_OS)) . '/',
+		__DIR__ . '/Exceptions/',
+		__DIR__ . '/Config/',
+	];
 
-	$file = __DIR__ . '/' . strtolower(PHP_OS) . '/' . $class_name . '.php';
-	if(file_exists($file)) require_once($file);
-
-	$file = __DIR__ . '/exceptions/' . $class_name . '.php';
-	if(file_exists($file)) require_once($file);
+	foreach($search as $base){
+		$file = $base . $name . '.php';
+		if(file_exists($file)) require_once($file);	
+	}
 });
 
 if(!isset($showErrors)) $showErrors = false;

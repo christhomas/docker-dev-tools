@@ -6,7 +6,7 @@ class IPAddress
 	private $config = null;
 	private $network = null;
 
-	public function __construct(Config $config)
+	public function __construct(SystemConfig $config)
 	{
 		$this->config = $config;
 		$this->network = new Network();
@@ -26,7 +26,9 @@ class IPAddress
 	{
 		$default = $default ?: $this->default;
 
-		return $this->config->getKey($this->key, $default);
+		// FIXME: how to return the default if the key is not found?
+		// NOTE: is the default even wanted anymore?
+		return $this->config->getKey($this->key);
 	}
 
 	public function set(string $ipAddress): bool
@@ -34,7 +36,7 @@ class IPAddress
 		$this->config->setKey($this->key, $ipAddress);
 		$this->config->write();
 
-		return $this->config->testKey($this->key, $ipAddress);
+		return $this->config->getKey($this->key) === $ipAddress;
 	}
 
 	public function ping(string $ipAddress=null, ?string $compare=null): array

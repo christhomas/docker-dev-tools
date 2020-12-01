@@ -1,5 +1,5 @@
 <?php
-class SystemPath
+class ShellPath
 {
 	/** @var string The home directory of this computer */
 	private $home;
@@ -16,7 +16,7 @@ class SystemPath
 	 * @param string $home The home directory of this computer
 	 * @param string $path The path to the tools to setup
 	 */
-	public function __construct(Config $config, ?string $home=null)
+	public function __construct(SystemConfig $config, ?string $home=null)
 	{
 		$this->config = $config;
 
@@ -33,10 +33,24 @@ class SystemPath
 
 	public function install(string $path): void
 	{
-		$this->add($path);
+		// Detect bad paths and ignore them
+		$path = is_dir($path) ? realpath($path) : dirname(__DIR__);
+		
+		$script = "ddt-setup";
+
+		if(!is_dir("$path/bin") || !file_exists("$path/bin/$script")){
+			Script::failure(implode("\n",[
+				"{red}Sanity checks for this path failed. The following items are required to be valid:",
+				"Folder: $path/bin",
+				"File: $path/bin/$script{end}",
+			]));
+		}
+	
+		foreach($this->files as $file) $this->backupFile($file);
+
 		$this->add("$path/bin");
 
-		$extensions = new Extension($this->config);
+		$extensions = new ExtensionManager($this->config);
 		$list = $extensions->list();
 
 		foreach($list as $e){
@@ -44,15 +58,16 @@ class SystemPath
 		}
 
 		$this->config->setToolsPath($path);
-		$this->config->setProjectPath(dirname($path));
 		$this->config->write();
 	}
 
 	public function uninstall($path): void
 	{
+		foreach($this->files as $file) $this->backupFile($file);
+		
 		$this->remove("$path/bin");
 
-		$extensions = new Extension($this->config);
+		$extensions = new ExtensionManager($this->config);
 		$list = $extensions->list();
 
 		foreach($list as $e){
@@ -118,10 +133,6 @@ class SystemPath
 			// read file contents
 			$contents = file_get_contents($file);
 
-			// make backup with timestamp and rand chars
-			$backup = implode("_",[$file, time(), bin2hex(random_bytes(10))]);
-			file_put_contents($backup, $contents);
-
 			// explode into lines and process each ones
 			$contents = explode("\n", $contents);
 			foreach($contents as $num => $line){
@@ -136,6 +147,27 @@ class SystemPath
 			$contents = preg_replace('/\n{2,}/m',"\n\n",$contents);
 			file_put_contents($file, trim($contents,"\n")."\n");
 		}
+	}
+
+	public function backupFile(string $filename): bool
+	{
+		$backupList = glob("{$filename}_*");
+
+		$contents = file_get_contents($filename);
+
+		foreach($backupList as $backup){
+			$compare = file_get_contents($backup);
+
+			if(strcmp($contents, $compare) === 0){
+				return true;
+			}
+		}
+
+		// make backup with timestamp and rand chars
+		$backup = implode("_",[$filename, date("\DYmd_\THis"), bin2hex(random_bytes(4))]);
+		print("Backing up file: '$filename' to '$backup'\n");
+		
+		return file_put_contents($backup, $contents) !== false;
 	}
 
 	public function stripString(string $string): void

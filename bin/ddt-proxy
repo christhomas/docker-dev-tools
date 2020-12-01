@@ -3,14 +3,14 @@
 $showErrors = true;
 $cli = require_once(__DIR__.'/../src/init.php');
 
-$config = new Config();
-$docker = new Docker($config);
-$proxy = new Proxy($config, $docker);
-
 Script::title("NGINX Frontend Proxy", "(club bouncer says) if your names not down, you're not coming in");
 
-if(Shell::isCommand('docker') === false){
-	Script::failure("Docker is required to run this tool, please install it");
+try{
+    $config = new SystemConfig();
+    $docker = new Docker($config);
+    $proxy = new Proxy($config, $docker);
+}catch(DockerMissingException $e){
+    Script::failure($e->getMessage());
 }
 
 function help(CLI $cli)
@@ -58,114 +58,88 @@ if($cli->hasArg('help') || $cli->countArgs() === 0){
 }
 
 if($cli->hasArg('restart')){
-    if($proxy->isRunning()){
-        $proxy->stop();
-	}
-
+    $cli->setArg('stop');
     $cli->setArg('start');
 }
 
 if($cli->hasArg('stop')){
-    if($proxy->isRunning()){
-		Text::print("{blu}Stopping the Frontend Proxy:{end} ".$proxy->getDockerImage()."\n");
+    try{
+        Text::print("{blu}Stopping the Frontend Proxy:{end} ".$proxy->getDockerImage()."\n");
 
         $proxy->stop();
 
-		Text::print("{blu}Running Containers{end}\n");
-		Shell::passthru('docker ps');
-    }else{
+        $cli->setArg('show-containers');
+    }catch(ContainerNotRunningException $e){
         Text::print(Text::box("Status: Already Stopped", 'blk', 'yel'));
     }
 }
 
-if($network = $cli->getArg('start')){
-    if($network == true) $network = null;
+try{
+	if($network = $cli->getArg('start')){
+		if($network == true) $network = null;
 
-    if(!$proxy->isRunning()){
-		Text::print("{blu}Starting the Frontend Proxy:{end} ".$proxy->getDockerImage()."\n");
+        Text::print("{blu}Starting the Frontend Proxy:{end} ".$proxy->getDockerImage()."\n");
 
-		$proxy->start($network);
+        $proxy->start($network);
 
+        $cli->setArg('show-containers');
+        $cli->setArg('domains');
+	}
+
+    if($cli->hasArg('config')){
+        print($proxy->getConfig());
+    }
+
+    if($network = $cli->getArgWithVal('add-network')){
+        Text::print("{blu}Connecting to a new network '$network' to the proxy{end}\n");
+        $proxy->addNetwork($network);
+        Format::networkList($proxy->getNetworks());
+    }
+
+    if($network = $cli->getArgWithVal('remove-network')){
+        Text::print("{blu}Disconnecting the network '$network' from the proxy{end}\n");
+        $proxy->removeNetwork($network);
+        Format::networkList($proxy->getNetworks());
+    }
+
+    if($cli->hasArg('logs')){
+        $proxy->logs();
+    }
+
+    if($cli->hasArg('logs-f')){
+        $proxy->logsFollow();
+    }
+
+    if($cli->hasArg('show-containers')){
 		Text::print("{blu}Running Containers:{end}\n");
 		Shell::passthru('docker ps');
-
-		$cli->setArg('domains');
-    }else{
-		Text::print(Text::box("Status: Already Started", 'blk', 'yel'));
     }
-}
 
-if($cli->hasArg('config')){
-    if($proxy->isRunning()){
-        print($proxy->getConfig());
-    }else{
-		Script::failure("There is no proxy container running");
+    if($cli->hasArg('domains')){
+        Format::networkList($proxy->getListeningNetworks());
+        Format::upstreamList($proxy->getUpstreams());
     }
-}
 
-if($network = $cli->getArgWithVal('add-network')){
-    Text::print("{blu}Connecting to a new network '$network' to the proxy{end}\n");
-
-    if($proxy->isRunning()){
-        $proxy->addNetwork($network);
-		Format::networkList($proxy->getNetworks());
-    }else{
-		Script::failure("There is no proxy container running");
+    if($format = $cli->getArg('networks')){
+        Format::networkList($proxy->getListeningNetworks(), $format);
     }
-}
 
-if($network = $cli->getArgWithVal('remove-network')){
-	Text::print("{blu}Disconnecting the network '$network' from the proxy{end}\n");
-
-	if($proxy->isRunning()){
-		$proxy->removeNetwork($network);
-		Format::networkList($proxy->getNetworks());
-	}else{
-		Script::failure("There is no proxy container running");
-	}
-}
-
-if($cli->hasArg('logs')){
-	if($proxy->isRunning()){
-		$proxy->logs();
-	}else{
-		Script::failure("There is no proxy container running");
-	}
-}
-
-if($cli->hasArg('logs-f')){
-    if($proxy->isRunning()){
-		$proxy->logsFollow();
-    }else{
-		Script::failure("There is no proxy container running");
+    if($containerName = $cli->getArgWithVal('set-container-name')){
+        $proxy->setContainerName($containerName);
     }
-}
 
-if($cli->hasArg('domains')){
-    if($proxy->isRunning()){
-		Format::networkList($proxy->getListeningNetworks());
-		Format::upstreamList($proxy->getUpstreams());
-    }else{
-		Script::failure("There is no proxy container running");
+    if($cli->hasArg('get-container-name')){
+        Text::print("Container: ".$proxy->getContainerName()."\n");
     }
+
+    if($dockerImage = $cli->getArgWithVal('set-docker-image')){
+        $proxy->setDockerImage($dockerImage);
+    }
+
+    if($cli->hasArg('get-docker-image')){
+        Text::print("Docker Image: ".$proxy->getDockerImage()."\n");
+    }
+}catch(ContainerNotRunningException $e){
+    Script::failure($e->getMessage());
 }
 
-if($format = $cli->getArg('networks')){
-    Format::networkList($proxy->getListeningNetworks(), $format);
-}
-
-if($containerName = $cli->getArgWithVal('set-container-name')){
-	$proxy->setContainerName($containerName);
-}
-
-if($cli->hasArg('get-container-name')){
-	Text::print("Container: ".$proxy->getContainerName()."\n");
-}
-
-if($dockerImage = $cli->getArgWithVal('set-docker-image')){
-	$proxy->setDockerImage($dockerImage);
-}
-
-if($cli->hasArg('get-docker-image')){
-	Text::print("Docker Image: ".$proxy->getDockerImage()."\n");
-}

@@ -31,9 +31,11 @@ EOF
 ## This always runs, it should always result in the same result
 ###################################################################
 try{
-    $newVersion = 1.0;
+    $newVersion = '1.0';
 	Shell::exec(__DIR__ . "/ddt-config");
-	Shell::exec(__DIR__ . "/ddt-setup --install");
+    Shell::exec(__DIR__ . "/ddt-setup --install");
+    $config = new SystemConfig();
+    $config->setVersion($newVersion);
 }catch(Exception $e){
     print(Text::red("The upgrade to $newVersion has failed, please report this error\n"));
 
@@ -42,9 +44,7 @@ try{
     exit(1);
 }
 
-$config = new Config();
 $version = $config->getVersion();
-
 print(Text::yellow("You are running version '$version' of the tools\n"));
 
 exit(0);

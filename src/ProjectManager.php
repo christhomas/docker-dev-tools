@@ -2,14 +2,27 @@
 class ProjectManager
 {
     private $config;
+    private $name;
 
-    public function __construct(Config $config, string $name)
+    public function __construct(SystemConfig $config, string $name)
     {
         $this->config	= $config;
-        $this->name		= $name;
+		$this->name		= $name;
     }
 
-    static public function list(?string $filter = null): array
+    public function install(string $project, string $url): bool
+    {
+        $repo = new Git();
+        $repo->exists($this->config->getToolsPath());
+        return false;
+    }
+
+    public function uninstall(string $project): bool
+    {
+        return false;
+    }
+
+	static public function list(?string $filter = null): array
 	{
 		$list = glob(CLI::getToolPath("/../**/.git"), GLOB_ONLYDIR);
 
@@ -33,7 +46,7 @@ class ProjectManager
 		return array_filter($results);
 	}
 
-    public function add(string $url, ?string $branch, ?string $dir): ?Project
+	public function add(string $url, ?string $branch, ?string $dir): ?Project
 	{
 		$basePath	= $this->config->getProjectPath();
 		$dir		= $dir ?? $this->name;
@@ -64,8 +77,8 @@ class ProjectManager
 			throw new DirectoryExistsException("An incompatible project with a different configuration exists");
 		}
 
-		$git = new Git($path);
-		if($git->clone($url)){
+		$git = new Git();
+		if($git->clone($url, $path)){
 			$project = new Project($this->name, $url, $branch, $dir);
 			$this->config->addProject($project);
 			if($this->config->write()){

@@ -4,7 +4,7 @@ $cli = require_once(__DIR__.'/../src/init.php');
 
 Script::title("DDT PROJECT", "Quickly manage your projects, push or pull them with various filters, etc");
 
-$config = new Config();
+$config = new SystemConfig();
 
 function help(CLI $cli)
 {
@@ -42,7 +42,7 @@ function help(CLI $cli)
         --pull=XXX (optional): This will pull all projects (optionally with a filter if provided) from their repositories to your local system, ignoring those which have had changes
         --push=XXX (optional): This will push all projects (optionally with a filter if provided) to their repositories from your local system
         --show-branch=XXX (optional): This will only show the branches for each project, the optional XXX part will show only the filtered project
-        
+
         {cyn}Managing Hooks{end}
         --list-hooks: This will list all the configured hooks with their respective scripts
         --add-hook=XXX: This will add a script to the named hook in this parameter
@@ -72,7 +72,7 @@ EOF
     exit(0);
 }
 
-if($cli->hasArg('help')){
+if($cli->hasArg('help') || $cli->countArgs() === 0){
     help($cli);
 }
 

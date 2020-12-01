@@ -2,12 +2,16 @@
 <?php declare(strict_types=1);
 $cli = require_once(__DIR__.'/../src/init.php');
 
-$config = new Config();
-$docker = new Docker($config);
-$dns = new DNSMasq($config, $docker);
-$alias = new IPAddress($config);
-
 Script::title("DNS Server", "Turn your network on....or...off....");
+
+try{
+    $config = new SystemConfig();
+    $docker = new Docker($config);
+    $dns    = new DNSMasq($config, $docker);
+    $alias  = new IPAddress($config);
+}catch(DockerMissingException $e){
+    Script::failure($e->getMessage());
+}
 
 function help(CLI $cli)
 {
@@ -72,114 +76,120 @@ if($cli->hasArg('help') || $cli->countArgs() === 0){
     help($cli);
 }
 
-if($cli->hasArg('enable')){
-	$dns->enable();
-}
-
-if($cli->hasArg('disable')){
-	$dns->disable();
-}
-
-if($cli->hasArg('restart')){
-    $cli->setArg('stop');
-    $cli->setArg('start');
-}
-
-if($cli->hasArg('stop')){
-    Text::print("{blu}Stopping DNS Container...{end}\n");
-    $dns->disable();
-
-    Format::ping($alias->ping('127.0.0.1'));
-    Format::ping($alias->ping('google.com'));
-
-    $domainList = $dns->listDomains();
-    foreach($domainList as $domain){
-        Format::ping($alias->ping($domain['domain'], $domain['ip_address']));
+try{
+    if($cli->hasArg('enable')){
+        $dns->enable();
     }
 
-	$dns->stop();
-}
-
-if($cli->hasArg('start')){
-	Text::print("{blu}Starting DNS Container...{end}\n");
-
-	try{
-		$dns->start();
-    }catch(UnsupportedDistroException $e){
-        Script::failure("This version of linux was not supported, version installed: ".$e->getMessage());
+    if($cli->hasArg('disable')){
+        $dns->disable();
     }
 
-	Format::ping($alias->ping('127.0.0.1'));
-	Format::ping($alias->ping('google.com'));
-
-	// Configure all the domains to be resolved on this computer
-	$domainList = $dns->listDomains();
-	foreach($domainList as $domain){
-		$dns->addDomain($alias->get(), $domain['domain']);
-		Format::ping($alias->ping($domain['domain'], $domain['ip_address']));
-	}
-}
-
-if($cli->hasArg('logs')){
-    if(!$dns->logs()){
-		Script::failure("DNS Container could not be found");
-    }
-}
-
-if($cli->hasArg('logs-f')){
-	if(!$dns->logsFollow()){
-		Script::failure("DNS Container could not be found");
-	}
-}
-
-if($cli->hasArg('domains')){
-    Text::print("{blu}Domains that are registered in the dns container:{end}\n");
-
-    $domainList = $dns->listDomains(true);
-
-    $table = new TextTable();
-    $table->setRightPadding(10);
-    $table->addRow(['Domain', 'IP Address']);
-    foreach($domainList as $domain){
-        $table->addRow([$domain['domain'], $domain['ip_address']]);
-    }
-    $table->render();
-}
-
-if($domain = $cli->getArgWithVal('add-domain'))
-{
-	$ipAddress = $cli->getArgWithVal('ip-address', $alias->get());
-
-	if($ipAddress !== $alias->get()){
-		Text::print("{blu}Overriding IP Alias:{end} '{yel}" . $alias->get() . "{end}' with custom IP Address '{yel}$ipAddress{end}'\n\n");
+    if($cli->hasArg('restart')){
+        $cli->setArg('stop');
+        $cli->setArg('start');
     }
 
-	$dns->addDomain($ipAddress, $domain);
+    if($cli->hasArg('stop')){
+        Text::print("{blu}Stopping DNS Container...{end}\n");
+        $dns->disable();
 
-	Format::ping($alias->ping('google.com'));
-	Format::ping($alias->ping($domain, $ipAddress));
+        Format::ping($alias->ping('127.0.0.1'));
+        Format::ping($alias->ping('google.com'));
+
+        $domainList = $dns->listDomains();
+        foreach($domainList as $domain){
+            Format::ping($alias->ping($domain['domain'], $domain['ip_address']));
+        }
+
+        $dns->stop();
+    }
+
+    if($cli->hasArg('start')){
+        Text::print("{blu}Starting DNS Container...{end}\n");
+
+        $dns->start();
+
+        Format::ping($alias->ping('127.0.0.1'));
+        Format::ping($alias->ping('google.com'));
+
+        // Configure all the domains to be resolved on this computer
+        $domainList = $dns->listDomains();
+        foreach($domainList as $domain){
+            $dns->addDomain($alias->get(), $domain['domain']);
+            Format::ping($alias->ping($domain['domain'], $domain['ip_address']));
+        }
+    }
+
+    if($cli->hasArg('logs')){
+        $dns->logs();
+    }
+
+    if($cli->hasArg('logs-f')){
+        $dns->logsFollow();
+    }
+
+    if($cli->hasArg('domains'))
+    {
+        Text::print("{blu}Domains that are registered in the dns container:{end}\n");
+
+        $domainList = $dns->listDomains(true);
+
+        $table = new TextTable();
+        $table->setRightPadding(10);
+        $table->addRow(['Domain', 'IP Address']);
+        foreach($domainList as $domain){
+            $table->addRow([$domain['domain'], $domain['ip_address']]);
+        }
+        $table->render();
+    }
+
+    if($domain = $cli->getArgWithVal('add-domain'))
+    {
+        $ipAddress = $cli->getArgWithVal('ip-address', $alias->get());
+
+        if($ipAddress !== $alias->get()){
+            Text::print("{blu}Overriding IP Alias:{end} '{yel}" . $alias->get() . "{end}' with custom IP Address '{yel}$ipAddress{end}'\n\n");
+        }
+
+        $dns->addDomain($ipAddress, $domain);
+
+        Format::ping($alias->ping('google.com'));
+        Format::ping($alias->ping($domain, $ipAddress));
+    }
+
+    if($domain = $cli->getArgWithVal('remove-domain'))
+    {
+        $dns->removeDomain($domain);
+
+        Format::ping($alias->ping('google.com'));
+        Format::ping($alias->ping($domain));
+    }
+
+    if($containerName = $cli->getArgWithVal('set-container-name')){
+        $dns->setContainerName($containerName);
+    }
+
+    if($cli->hasArg('get-container-name')){
+        Text::print("Container: ".$dns->getContainerName()."\n");
+    }
+
+    if($dockerImage = $cli->getArgWithVal('set-docker-image')){
+        $dns->setDockerImage($dockerImage);
+    }
+
+    if($cli->hasArg('get-docker-image')){
+        Text::print("Docker Image: ".$dns->getDockerImage()."\n");
+    }
+
+    exit(0);
+}catch(ConfigWriteException $e){
+    Script::failure($e->getMessage());
+}catch(UnsupportedDistroException $e){
+    Script::failure($e->getMessage());
+}catch(ContainerNotRunningException $e) {
+    $detail = $e->getMessage()."\nDetail: ".trim($e->getPrevious()->getMessage());
+    Script::failure($detail);
 }
 
-if($domain = $cli->getArgWithVal('remove-domain'))
-{
-    $dns->removeDomain($domain);
-
-    Format::ping($alias->ping('google.com'));
-	Format::ping($alias->ping($domain));
-}
-
-if($containerName = $cli->getArgWithVal('set-container-name')){
-    $dns->setContainerName($containerName);
-}
-
-if($cli->hasArg('get-container-name')){
-    Text::print("Container: ".$dns->getContainerName()."\n");
-}
-
-if($dockerImage = $cli->getArgWithVal('set-docker-image')){
-    $dns->setDockerImage($dockerImage);
-}
-
-if($cli->hasArg('get-docker-image')){
-	Text::print("Docker Image: ".$dns->getDockerImage()."\n");
-}
+exit(1);

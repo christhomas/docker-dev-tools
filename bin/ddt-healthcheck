@@ -2,87 +2,92 @@
 <?php declare(strict_types=1);
 $cli = require_once(__DIR__.'/../src/init.php');
 
-$config = new Config();
+$systemConfig = new SystemConfig();
 
-Script::title("Healthchecks", "Hopefully nobody died.....");
+// FIXME: This code is being moved into project configurations which means it's broken for now
+// $projectConfig = $systemConfig->getProjectConfig('api-server');
 
-$debug = $cli->hasArg("debug");
+// $config = $projectConfig; //new ProjectConfig();
 
-foreach($argv as $arg){
-    if($arg === "--list"){
-		$list = $config->listHealthcheck();
-		print("Listing Healthchecks...\n");
-		foreach($list as $healthcheck){
-		    print("\t$healthcheck\n");
-        }
-		die();
-    }
-}
+// Script::title("Healthchecks", "Hopefully nobody died.....");
 
-$list = $config->listHealthcheck();
-$table = new TextTable();
-$table->setRightPadding(5);
+// $debug = $cli->hasArg("debug");
 
-foreach($list as $name){
-	$healthcheck = $config->getHealthcheck($name);
+// foreach($argv as $arg){
+//     if($arg === "--list"){
+// 		$list = $config->listHealthcheck();
+// 		print("Listing Healthchecks...\n");
+// 		foreach($list as $healthcheck){
+// 		    print("\t$healthcheck\n");
+//         }
+// 		die();
+//     }
+// }
 
-	$result = $healthcheck->run();
+// $list = $config->listHealthcheck();
+// $table = new TextTable();
+// $table->setRightPadding(5);
 
-    $url = $result['url'];
+// foreach($list as $name){
+// 	$healthcheck = $config->getHealthcheck($name);
 
-	$access = $result['connected']
-        ? Text::green(Text::checkIcon() . " Connected")
-        : Text::red(Text::crossIcon() . " Failed");
+// 	$result = $healthcheck->run();
 
-	if(array_key_exists('http_code', $result)){
-		$http_status = $result['http_code'] === 200
-			? Text::green(Text::checkIcon() . " HTTP Success ({$result['http_code']})")
-			: Text::red(Text::crossIcon() . " HTTP Failed ({$result['http_code']})");
-    }else{
-		$http_status = "";
-    }
+//     $url = $result['url'];
 
-	if(array_key_exists('success', $result)){
-		if($result['success']){
-			$data_ok = Text::green(Text::checkIcon() . " Data OK");
-		}else{
-			$data_ok = Text::red(Text::crossIcon() . " Data Failed");
-		}
-    }else{
-	    $data_ok = "";
-    }
+// 	$access = $result['connected']
+//         ? Text::green(Text::checkIcon() . " Connected")
+//         : Text::red(Text::crossIcon() . " Failed");
 
-	if(array_key_exists('db_status', $result) && is_array($result['db_status'])){
-	    $db_ok = array_reduce(array_keys($result['db_status']), function($c, $i) use ($result){
-	        $status = $result['db_status'][$i] === true ? Text::green($i) : Text::red($i);
-            return trim("$c, $status", " ,");
-        }, "");
+// 	if(array_key_exists('http_code', $result)){
+// 		$http_status = $result['http_code'] === 200
+// 			? Text::green(Text::checkIcon() . " HTTP Success ({$result['http_code']})")
+// 			: Text::red(Text::crossIcon() . " HTTP Failed ({$result['http_code']})");
+//     }else{
+// 		$http_status = "";
+//     }
 
-		$data_ok = "$data_ok Databases ($db_ok)";
-    }
+// 	if(array_key_exists('success', $result)){
+// 		if($result['success']){
+// 			$data_ok = Text::green(Text::checkIcon() . " Data OK");
+// 		}else{
+// 			$data_ok = Text::red(Text::crossIcon() . " Data Failed");
+// 		}
+//     }else{
+// 	    $data_ok = "";
+//     }
 
-	$table->addRow([
-		ucwords(str_replace(["-","_"], " ", $name)).":",
-        $access,
-        $http_status,
-        $data_ok,
-        "URL: $url",
-    ]);
+// 	if(array_key_exists('db_status', $result) && is_array($result['db_status'])){
+// 	    $db_ok = array_reduce(array_keys($result['db_status']), function($c, $i) use ($result){
+// 	        $status = $result['db_status'][$i] === true ? Text::green($i) : Text::red($i);
+//             return trim("$c, $status", " ,");
+//         }, "");
 
-	if($reasons = ArrayWrapper::get($result, 'reasons')){
-		array_map(function($r) use ($table) {
-			$table->addRow(["\t$r"], true);
-		}, $reasons);
-	}
+// 		$data_ok = "$data_ok Databases ($db_ok)";
+//     }
+
+// 	$table->addRow([
+// 		ucwords(str_replace(["-","_"], " ", $name)).":",
+//         $access,
+//         $http_status,
+//         $data_ok,
+//         "URL: $url",
+//     ]);
+
+// 	if($reasons = ArrayWrapper::get($result, 'reasons')){
+// 		array_map(function($r) use ($table) {
+// 			$table->addRow(["\t$r"], true);
+// 		}, $reasons);
+// 	}
 
 
-	if(is_string($debug)){
-		print("Server Replied: $debug\n");
-	}
-}
+// 	if(is_string($debug)){
+// 		print("Server Replied: $debug\n");
+// 	}
+// }
 
-print($table->render(true));
+// print($table->render(true));
 
-if(empty($list)){
-    print(Text::yellow("There were no healthchecks found, nothing to test\n"));
-}
+// if(empty($list)){
+//     print(Text::yellow("There were no healthchecks found, nothing to test\n"));
+// }

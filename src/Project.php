@@ -6,9 +6,9 @@ class Project
 	protected $branch;
 	protected $directory;
 
-    public function __construct(string $name, string $url, string $branch, string $directory)
-    {
-    	$pattern = "[0-9a-z\-\_]+";
+	public function __construct(string $name, string $url, string $branch, string $directory)
+	{
+		$pattern = "[0-9a-z\-\_]+";
 
 		if(!preg_match("/$pattern/", $name)){
 			throw new InvalidArgumentException("the project name '$name' should match regex '$pattern'");
@@ -31,9 +31,9 @@ class Project
 		$this->url = $url;
 		$this->branch = $branch;
 		$this->directory = $directory;
-    }
+	}
 
-    public function getName(): string
+	public function getName(): string
 	{
 		return $this->name;
 	}

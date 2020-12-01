@@ -1,4 +1,5 @@
 <?php
+
 class Network
 {
 	public function __construct()
