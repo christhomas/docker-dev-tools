@@ -3,7 +3,7 @@ class RepositorySync
 {
 	private $config;
 
-	public function __construct(Config $config)
+	public function __construct(SystemConfig $config)
 	{
 		$this->config = $config;
 	}
