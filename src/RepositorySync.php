@@ -1,14 +1,14 @@
 <?php
 class RepositorySync
 {
-    private $config;
+	private $config;
 
-    public function __construct(Config $config)
-    {
-        $this->config = $config;
-    }
+	public function __construct(SystemConfig $config)
+	{
+		$this->config = $config;
+	}
 
-    public function push(?string $filter = null): void
+	public function push(?string $filter = null): void
 	{
 		$this->sync("push", $filter);
 	}

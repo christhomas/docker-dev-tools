@@ -3,7 +3,6 @@
 class DNSMasq {
 	private $config;
 	private $docker;
-	private $network;
 
 	private $keys = [
 		'docker_image'		=> 'dns.docker_image',
@@ -20,7 +19,6 @@ class DNSMasq {
 	{
 		$this->config = $config;
 		$this->docker = $docker;
-		$this->network = new Network($config);
 
 		if($this->config->getKey($this->keys['docker_image']) === null){
 			$this->setDockerImage($this->defaults['docker_image']);
@@ -151,22 +149,6 @@ class DNSMasq {
 		$this->docker->logsFollow($containerId);
 	}
 
-    /**
-     * @throws UnsupportedDistroException
-     */
-	public function enable(): void
-	{
-		$this->network->enableDNS();
-	}
-
-    /**
-     * @throws UnsupportedDistroException
-     */
-	public function disable(): void
-	{
-		$this->network->disableDNS();
-	}
-
 	public function pull(): void
 	{
 		$dockerImage = $this->getDockerImage();
@@ -180,18 +162,11 @@ class DNSMasq {
      */
 	public function start(): void
 	{
-		if(!$this->docker->isRunning()){
-			Text::print("{red}Docker is not running{end}\n");
-			return;
-		}
-
 		$this->pull();
 
 		$this->stop();
 
 		Text::print("{blu}Starting DNSMasq Container...{end}\n");
-
-		$this->enable();
 
 		$dockerImage = $this->getDockerImage();
 		$containerName = $this->getContainerName();
@@ -205,13 +180,6 @@ class DNSMasq {
      */
 	public function stop(): void
 	{
-		if(!$this->docker->isRunning()){
-			Text::print("{red}Docker is not running{end}\n");
-			return;
-		}
-
-		$this->disable();
-
 		$containerId = $this->docker->findRunning($this->getDockerImage());
 
 		if(!empty($containerId)){
