@@ -139,11 +139,11 @@ class Docker
     	return null;
 	}
 
-	public function run(string $image, string $name, array $ports = [], array $volumes = [], bool $restart = true): ?string
+	public function run(string $image, string $name, array $ports = [], array $volumes = [], array $options = []): ?string
 	{
-		$command = ["$this->command run -d"];
+		$command = ["$this->command run -d --restart-always"];
 
-		if($restart) $command[] = '--restart always';
+		$command = array_merge($command, $options);
 
 		foreach($ports as $p){
 			$command[] = "-p $p";

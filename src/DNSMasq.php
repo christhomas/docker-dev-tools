@@ -170,7 +170,7 @@ class DNSMasq {
 
 		$dockerImage = $this->getDockerImage();
 		$containerName = $this->getContainerName();
-		$this->docker->run($dockerImage, $containerName, ["53:53/udp"], [], true);
+		$this->docker->run($dockerImage, $containerName, ["53:53/udp"]);
 
 		sleep(2);
 	}

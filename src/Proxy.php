@@ -140,8 +140,7 @@ class Proxy
 				"/var/run/docker.sock:/tmp/docker.sock:ro",
 				"$path/proxy-config/global.conf:/etc/nginx/conf.d/global.conf",
 				"$path/proxy-config/nginx-proxy.conf:/etc/nginx/proxy.conf",
-			],
-			true
+			]
 		);
 
 		if(empty($networkList)){
