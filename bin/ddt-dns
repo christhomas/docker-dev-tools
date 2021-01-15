@@ -24,6 +24,7 @@ function help(CLI $cli)
         {cyn}Toggling the DNS Server:{end}
         --enable: Enable the DNS Server
         --disable: Disable the DNS Server
+        --reenable: Will disable and enable the server again (E.g: If there are issues after a network change)
         --reset: Toggles the DNS Server as disabled, enableds
         
         {cyn}Running of the DNS Server Container:{end}
@@ -86,6 +87,11 @@ try{
     $dns    = new DNSMasq($config, $docker);
 
     if($cli->hasArg('enable')){
+        $network->enableDNS();
+    }
+
+    if($cli->hasArg('reenable')){
+        $network->disableDNS();
         $network->enableDNS();
     }
 
