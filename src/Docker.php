@@ -141,7 +141,7 @@ class Docker
 
 	public function run(string $image, string $name, array $ports = [], array $volumes = [], array $options = []): ?string
 	{
-		$command = ["$this->command run -d --restart-always"];
+		$command = ["$this->command run -d --restart always"];
 
 		$command = array_merge($command, $options);
 
