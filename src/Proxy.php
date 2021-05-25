@@ -97,7 +97,7 @@ class Proxy
 
 	public function getNetworks(): array
 	{
-		return $this->config->getKey($this->keys['network']);
+		return $this->config->getKey($this->keys['network']) ?? [];
 	}
 
 	public function getListeningNetworks(): array
