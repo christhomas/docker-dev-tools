@@ -63,7 +63,8 @@ class Network
 		$name = $mode === 'docker' ? 'Docker Container' : $name;
 
 		if($mode === 'docker'){
-			$ipAddress = '0.0.0.0 127.0.0.1';
+			$existing = Shell::exec("scutil --dns | grep nameserver | awk '{print $3}' | sort | uniq");
+			$ipAddress = implode(' ', array_unique(array_merge($existing, ['127.0.0.1', '0.0.0.0'])));
 		}else{
 			$ipAddress = $mode;
 		}
