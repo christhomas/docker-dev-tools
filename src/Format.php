@@ -37,7 +37,7 @@ class Format
 			$output[] = "Can Resolve: {red}NO{end}";
 		}
 
-		$output = "\n".implode("\n", $output)."\n";
+		$output = implode(", ", $output) . "\n";
 
 		if($buffer === false) Text::print($output);
 
