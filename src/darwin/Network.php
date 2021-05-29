@@ -64,12 +64,12 @@ class Network
 
 		if($mode === 'docker'){
 			$existing = Shell::exec("scutil --dns | grep nameserver | awk '{print $3}' | sort | uniq");
-			$ipAddress = implode(' ', array_unique(array_merge($existing, ['127.0.0.1', '0.0.0.0'])));
+			$ipAddress = implode(' ', array_unique(array_merge(['127.0.0.1', '0.0.0.0'], $existing)));
 		}else{
 			$ipAddress = $mode;
 		}
 
-		Text::print("DNS Servers: '{yel}$name{end}'\n");
+		Text::print("DNS Servers: '{yel}$name{end}' => '{yel}$ipAddress{end}'\n");
 
 		$interfaces = $this->enumerateInterfaces();
 		foreach($interfaces as $i){
