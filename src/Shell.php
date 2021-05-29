@@ -28,14 +28,12 @@ class Shell
 
 	static public function printDebug($prefix, $content)
     {
-        print(Text::blue("[DEBUG] $prefix: ").$content."\n");
+		print(Text::blue("[DEBUG] $prefix: ").$content."\n");
     }
 
 	static public function exec(string $command, bool $firstLine=false, bool $throw=true)
 	{
-		if(self::$debug){
-		    self::printDebug("Run command", $command);
-		}
+		$debug = "{blu}[DEBUG] Run command:{end} $command";
 
 		unset($pipes);
 		$pipes = [];
@@ -55,10 +53,12 @@ class Shell
 
 		self::$exitCode = $code;
 
-        if(self::$debug){
-            self::printDebug("Code", $code);
-            self::printDebug("StdErr", "'".self::$stderr."'");
-        }
+		$debug = "$debug, {blu}Return Code:{end} $code";
+		$debug = "$debug, {blu}Error Output:{end} '".self::$stderr."'";
+
+		if(self::$debug){
+			Text::print($debug."\n");
+		}
 
 		if($code !== 0 && $throw === true){
 			throw new Exception(self::$stdout." ".self::$stderr, $code);
