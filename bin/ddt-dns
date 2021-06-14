@@ -6,7 +6,7 @@ Script::title("DNS Server", "Turn your network on....or...off....");
 
 $config     = new SystemConfig();
 $network    = new DDT\Network\Network(DDT\Distro\DistroDetect::get());
-$alias      = new IPAddress($config);
+$alias      = new IPAddress($config, $network);
 
 function help(DDT\CLI $cli)
 {
