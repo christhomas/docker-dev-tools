@@ -178,7 +178,7 @@ class DNSMasq {
     /**
      * @throws UnsupportedDistroException
      */
-	public function stop(): void
+	public function stop(bool $delete=true): void
 	{
 		$containerId = $this->docker->findRunning($this->getDockerImage());
 
@@ -196,5 +196,10 @@ class DNSMasq {
 		}catch(Exception $e){
 			Text::print("Exception: ".$e->getMessage());
 		}
+	}
+
+	public function refresh(): void
+	{
+		$this->network->flushDNS();
 	}
 }

@@ -1,7 +1,8 @@
-<?php
+<?php declare(strict_types=1);
+
+namespace DDT;
 class CLI
 {
-	private $rawArgs = [];
 	private $args = [];
 	private $name = null;
 
@@ -11,14 +12,14 @@ class CLI
 			$this->enableErrors();
 		}
 
-		$this->parseArgs($argv);
 		$this->setName($argv[0]);
+		$this->setArgs(array_slice($argv, 1));
 	}
 
 	public function enableErrors()
 	{
 		error_reporting(-1);
-		ini_set("display_errors", true);
+		ini_set("display_errors", 'true');
 	}
 
 	public function setName(string $name): void
@@ -43,50 +44,30 @@ class CLI
 		return dirname(__DIR__) . $subpath;
 	}
 
-	public function parseArgs(array $argv): array
+	public function setArgs(array $argv): array
 	{
-		$args = implode('&', array_slice($argv, 1));
+		$this->args = [];
 
-		$args = preg_replace_callback(
-			'/(^|(?<=&))[^=[&]+/',
-			function($key) { return bin2hex(urldecode($key[0])); },
-			$args
-		);
+		foreach($argv as $v){
+			$v = explode('=', $v);
 
-		parse_str($args, $this->args);
-
-		array_map(function($k) {
-			static $count = 0;
-
-			$v = $this->args[$k];
-			unset($this->args[$k]);
-			$k = hex2bin($k);
-
-			// Sometimes we need the raw unadultered arguments
-			$this->rawArgs[$k] = trim(implode("=", [$k,$v]), '=');
-
-			$k = str_replace("--","",$k);
-
-			if(!empty($v)){
-				$this->args[$k] = $v;
-			}else{
-				$this->args[$count++] = $k;
-			}
-		}, array_keys($this->args));
+			$this->args[] = ['name' => trim(array_shift($v), '-'), 'value' => array_shift($v)];
+		}
 
 		return $this->args;
 	}
 
-	public function getArgList(bool $rawArgs=false): array
+	public function getArgList(): array
 	{
-		return $rawArgs ? $this->rawArgs : $this->args;
+		return $this->args;
 	}
 
 	public function getArg(string $name, $default=null): ?string
 	{
-		foreach($this->args as $key => $value){
-			if(is_int($key) && $value === $name) return "true";
-			if($key === $name) return $value;
+		foreach($this->args as $arg){
+			if($arg['name'] === $name){
+				return empty($arg['value']) ? "true" : $arg['value'];
+			}
 		}
 
 		return $default;
@@ -94,11 +75,7 @@ class CLI
 
 	public function setArg(string $name, $value=null): void
 	{
-		if($value === null){
-			$this->args[] = $name;
-		}else{
-			$this->args[$name] = $value;
-		}
+		$this->args[] = ['name' => $name, 'value' => $value];
 	}
 
 	public function getArgWithVal(string $name, $default=null): ?string
@@ -108,19 +85,28 @@ class CLI
 		return $arg != "true" ? $arg : $default;
 	}
 
+	public function getArgByIndex(int $index): ?string
+	{
+		return array_key_exists($index, $this->args) ? $this->args[$index]['value'] : null;
+	}
+
+	public function shiftArg(): array
+	{
+		return array_shift($this->args);
+	}
+
 	public function hasArg($name): ?bool
 	{
 		if(is_string($name)) $name = [$name];
-		if(!is_array($name)) throw new Exception("name parameter must be string or array");
+		if(!is_array($name)) throw new \Exception("name parameter must be string or array");
 
 		foreach($name as $test){
-			foreach($this->args as $key => $value){
-				if(is_int($key) && $value === $test) return true;
-				if($key === $name) return true;
+			if($this->getArg($test) === null){
+				return false;
 			}
 		}
 
-		return false;
+		return true;
 	}
 
 	public function countArgs(): int
@@ -131,7 +117,7 @@ class CLI
 	static public function ask(string $question, array $accept): string
 	{
 		$responses = "(Accepts: " . implode(", ", $accept) . "): ";
-		$reply = readline(Text::write("{yel}$question $responses{end}"));
+		$reply = readline(\Text::write("{yel}$question $responses{end}"));
 
 		return $reply;
 	}

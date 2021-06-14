@@ -15,7 +15,7 @@ try{
     Script::failure($e->getMessage());
 }
 
-function help(CLI $cli)
+function help(DDT\CLI $cli)
 {
 	$script = $cli->getScript(false);
 

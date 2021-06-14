@@ -6,7 +6,7 @@ $cli = require_once(__DIR__.'/../src/init.php');
 $config     = new SystemConfig();
 $shellPath = new ShellPath($config);
 
-function help(CLI $cli)
+function help(DDT\CLI $cli)
 {
 	$script = $cli->getScript(false);
 

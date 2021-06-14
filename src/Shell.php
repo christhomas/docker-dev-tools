@@ -19,7 +19,7 @@ class Shell
 	static public function isCommand($command): bool
 	{
 		try{
-			Shell::exec("command -v $command");
+			self::exec("command -v $command");
 			return true;
 		}catch(Exception $e){
 			return false;
@@ -30,6 +30,11 @@ class Shell
     {
 		print(Text::blue("[DEBUG] $prefix: ").$content."\n");
     }
+
+	static public function sudo()
+	{
+		return self::exec("sudo echo");
+	}
 
 	static public function exec(string $command, bool $firstLine=false, bool $throw=true)
 	{
@@ -86,5 +91,15 @@ class Shell
 		}
 
 		return $code;
+	}
+
+	static public function sudoExec($command)
+	{
+		return self::exec("sudo $command");
+	}
+
+	static public function sudoPassthru($command)
+	{
+		return self::passthru("sudo $command");
 	}
 }

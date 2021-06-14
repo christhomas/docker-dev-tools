@@ -14,7 +14,7 @@ try{
     Script::failure($e->getMessage());
 }catch(Exception $e){
     if(!Shell::isCommand('fswatch')){
-        $answer = CLI::ask("fswatch is not installed, install it?", ['yes', 'no']);
+        $answer = DDT\CLI::ask("fswatch is not installed, install it?", ['yes', 'no']);
         if($answer === 'yes'){
             $os = strtolower(PHP_OS);
             if($os === 'darwin') Shell::passthru('brew install fswatch');
@@ -28,7 +28,7 @@ try{
     }
 }
 
-function help(CLI $cli)
+function help(DDT\CLI $cli)
 {
 	$script = $cli->getScript(false);
 

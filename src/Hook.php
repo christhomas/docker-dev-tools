@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 class Hook
 {
     const BEFORE_INSTALL = "before_install";
@@ -23,7 +23,7 @@ class Hook
     {
         if(array_key_exists($name, $this->hooks)){
             $list = $this->hooks[$name];
-            var_dump($h);
+            var_dump($list);
             return true;
         }
 

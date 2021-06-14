@@ -4,22 +4,24 @@ class IPAddress
 	private $key = "ip_address";
 	private $default = "10.254.254.254";
 	private $config = null;
+
+	/** @var $network DDT\Network\Network */
 	private $network = null;
 
-	public function __construct(SystemConfig $config)
+	public function __construct(SystemConfig $config, ?DDT\Network\Network $network = null)
 	{
 		$this->config = $config;
-		$this->network = new Network();
+		$this->network = $network ?? new DDT\Network\Network(DDT\Distro\DistroDetect::get());
 	}
 
 	public function install(): bool
 	{
-		return $this->network->installIPAddress($this->get());
+		return $this->network->createIpAddressAlias($this->get());
 	}
 
 	public function uninstall(): bool
 	{
-		return $this->network->uninstallIPAddress($this->get());
+		return $this->network->removeIpAddressAlias($this->get());
 	}
 
 	public function get(?string $default=null): string

@@ -60,7 +60,6 @@ class Docker
 
 	public function pull(string $image): int
 	{
-
 		try{
 			return Shell::passthru("$this->command pull $image");
 		}catch(Exception $e){
@@ -268,7 +267,7 @@ class Docker
 	{
 		$profile = new DockerProfile($name, $host, $port, $tlscacert, $tlscert, $tlskey);
 
-		$this->config->setKey("$this->key.$name", $profile);
+		$this->config->setKey("$this->key.profile.$name", $profile);
 
 		return $this->config->write();
 	}
@@ -281,7 +280,7 @@ class Docker
 			if($profile === $name){
 				unset($profileList[$name]);
 
-				$this->config->setKey($this->key, $profileList);
+				$this->config->setKey("$this->key.profile", $profileList);
 				$this->config->write();
 
 				return true;
@@ -293,7 +292,7 @@ class Docker
 
 	public function getProfile(string $name): ?DockerProfile
 	{
-		$profile = $this->config->getKey("$this->key.$name");
+		$profile = $this->config->getKey("$this->key.profile.$name");
 
 		if(ArrayWrapper::hasAll($profile, ['host', 'port','tlscacert','tlscert','tlskey'])){
 			return new DockerProfile(
@@ -311,7 +310,7 @@ class Docker
 
 	public function listProfiles(): array
 	{
-		$profileList = $this->config->getKey($this->key);
+		$profileList = $this->config->getKey("$this->key.profile");
 
 		foreach(array_keys($profileList) as $name){
 			$profileList[$name] = $this->getProfile($name);
