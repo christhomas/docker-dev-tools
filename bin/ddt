@@ -1,29 +1,4 @@
 #!/usr/bin/env php
 <?php declare(strict_types=1);
 
-use DDT\Exceptions\Tool\ToolNotFoundException;
-use DDT\Exceptions\Tool\CommandNotFoundException;
-
-try{
-    $cli = require_once(__DIR__.'/../src/init.php');
-
-    $tool = $cli->shiftArg();
-    
-    $class = 'DDT\\Tool\\'.ucwords($tool['name']).'Tool';
-    
-    if(!empty($tool) && class_exists($class)){
-        $config = new \SystemConfig();
-        $handler = new $class($cli, $config);
-        $handler->handle();
-    }else if(empty($tool)){
-        throw new \Exception("There was no tool specified to use");
-    }else{
-        throw new ToolNotFoundException($tool['name']);
-    }
-}catch(ToolNotFoundException $e){
-    Script::failure($e->getMessage());
-}catch(CommandNotFoundException $e){
-    Script::failure($e->getMessage());
-}catch(\Exception $e){
-    Script::failure('The tool has a non-specified exception: ' . $e->getMessage());
-}
+require_once(__DIR__ . '/../src/bootstrap.php');

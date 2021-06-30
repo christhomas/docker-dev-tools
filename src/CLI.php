@@ -90,7 +90,7 @@ class CLI
 		return array_key_exists($index, $this->args) ? $this->args[$index]['value'] : null;
 	}
 
-	public function shiftArg(): array
+	public function shiftArg(): ?array
 	{
 		return array_shift($this->args);
 	}

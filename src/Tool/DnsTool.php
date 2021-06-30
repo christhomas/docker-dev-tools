@@ -4,7 +4,6 @@ namespace DDT\Tool;
 
 use DDT\CLI;
 use DDT\Distro\DistroDetect;
-use DDT\Exceptions\Tool\CommandNotFoundException;
 use DDT\Network\DNSMasq;
 use DDT\Network\Network;
 
@@ -15,45 +14,25 @@ use DDT\Network\Network;
  * - arp eu-west-1.s3.aws.develop = show information about a specific hostname
  */
 
-class DnsTool
+class DnsTool extends BaseTool
 {
-    private $cli;
     private $config;
     private $network;
     private $dns;
 
     public function __construct(CLI $cli, \SystemConfig $config)
     {
-        $this->cli = $cli;
+    	parent::__construct('dns', $cli);
+
         $this->config = $config;
         $distro = DistroDetect::get();
         $this->network = new Network($distro);
         $this->dns = new DNSMasq($this->network);
     }
 
-    public function handle(): void
+    protected function help(): void
     {
-        $argList = $this->cli->getArgList();
-
-        if(count($argList) === 0){
-            $this->help();
-        }
-
-        foreach($argList as $arg){
-            $command = $arg['name'];
-            $method = lcfirst(str_replace(' ', '', ucwords(str_replace(['-','_'], ' ', strtolower($command)))));
-
-            if(!method_exists($this, $method)){
-                throw new CommandNotFoundException('ddt dns', $command);
-            }
-
-            call_user_func([$this, $method]);
-        }
-    }
-
-    private function help(): void
-    {
-        \Text::print(file_get_contents($this->config->getToolsPath('/help/dns.txt')));
+        \Text::print(file_get_contents($this->config->getToolsPath("/help/{$this->name}.txt")));
         \Script::die();
     }
 
