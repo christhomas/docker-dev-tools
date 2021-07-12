@@ -4,16 +4,40 @@ namespace DDT\Tool;
 
 use DDT\CLI;
 
-class ProxyTool
+class ProxyTool extends Tool
 {
-    private $cli;
     private $config;
 
-    public function __construct(CLI $cli, \SystemConfig $config)
+    public function __construct(CLI $cli, \DDT\Config\SystemConfig $config)
     {
-        $this->cli = $cli;
+        parent::__construct('proxy', $cli);
+
         $this->config = $config;
     }
+
+    public function getTitle(): string
+    {
+        return 'The Tool Title';
+    }
+
+    public function getShortDescription(): string
+    {
+        return 'A tool to control how the local proxy is configured and control whether it is running or not';
+    }
+
+    public function getDescription(): string
+    {
+        return "This tool will start a docker container and listen on DNS Port 53 and handle
+        requests for your local development networks. Whilst pushing upstream all
+        other requests it can't resolve to an online DNS server";
+    }
+
+    public function getHelp(): string
+    {
+        return 'The Help Template';
+    }
+
+    public function help(): void{}
 
     public function isRunning(): bool 
     {

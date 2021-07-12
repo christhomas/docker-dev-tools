@@ -6,7 +6,7 @@ use DDT\CLI;
 use DDT\Distro\DistroDetect;
 use DDT\Network\Network;
 
-class IpTool extends Tool
+class ConfigTool extends Tool
 {
     /** @var \DDT\Config\SystemConfig  */
     private $config;
@@ -16,7 +16,7 @@ class IpTool extends Tool
 
     public function __construct(CLI $cli, \DDT\Config\SystemConfig $config)
     {
-    	parent::__construct('ip', $cli);
+    	parent::__construct('config', $cli);
 
         $this->cli = $cli;
         $this->config = $config;
@@ -26,31 +26,18 @@ class IpTool extends Tool
 
     public function getTitle(): string
     {
-        return 'The Tool Title';
+        return 'Docker Dev Tools Configuration';
     }
 
     public function getShortDescription(): string
     {
-        return 'A tool to configure and control local ip addresses used to enable the dns server';
+        return 'A tool to manage the configuration of the overall system, setting and getting parameters from the main system config';
     }
 
     public function getDescription(): string
     {
-        return "This tool will start a docker container and listen on DNS Port 53 and handle
-        requests for your local development networks. Whilst pushing upstream all
-        other requests it can't resolve to an online DNS server";
+        return "This tool is to manipulate your system configuration";
     }
-
-    public function getHelp(): string
-    {
-        return 'The Help Template';
-    }
-
-    protected function help(): void
-	{
-		\Text::print(file_get_contents($this->config->getToolsPath("/help/{$this->name}.txt")));
-		\Script::die();
-	}
 
 	protected function set(): void
 	{

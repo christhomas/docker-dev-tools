@@ -1,5 +1,7 @@
 .idea/
 .vscode
+.phpunit
+/vendor
 /extensions
 !/extensions/.gitkeep
 .ddt-config.json

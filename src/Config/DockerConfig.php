@@ -8,7 +8,7 @@ class DockerConfig
 {
     private $key = 'docker';
 
-    public function __construct(\SystemConfig $config)
+    public function __construct(SystemConfig $config)
     {
         $this->config = $config;
     }

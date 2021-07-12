@@ -34,7 +34,7 @@ try{
     $newVersion = '1.0';
 	Shell::exec(__DIR__ . "/ddt-config");
     Shell::exec(__DIR__ . "/ddt-setup --install");
-    $config = new SystemConfig();
+    $config = new \DDT\Config\SystemConfig();
     $config->setVersion($newVersion);
 }catch(Exception $e){
     print(Text::red("The upgrade to $newVersion has failed, please report this error\n"));

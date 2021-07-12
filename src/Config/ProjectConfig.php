@@ -1,13 +1,18 @@
-<?php
+<?php declare(strict_types=1);
+
+namespace DDT\Config;
 class ProjectConfig extends BaseConfig
 {
-	const FILENAME = "ddt-project.json";
+	public function getDefaultFilename(): string
+	{
+		return 'ddt-project.json';
+	}
 
     public function listHealthcheck(): array
 	{
 		// FIXME: broken because scanConfigTree was replaced and not upgraded with the ability to callback on the found information
 		$list = $this->scanConfigTree("healthchecks", function($key, $value) {
-			if(Healthcheck::isHealthcheck($value)){
+			if(\Healthcheck::isHealthcheck($value)){
 				return [$key];
 			}
 		});
@@ -15,16 +20,16 @@ class ProjectConfig extends BaseConfig
 		return is_array($list) ? $list : [];
 	}
 
-	public function getHealthcheck(string $name): Healthcheck
+	public function getHealthcheck(string $name): \Healthcheck
 	{
 		// FIXME: broken because scanConfigTree was replaced and not upgraded with the ability to callback on the found information
 		$data = $this->scanConfigTree("healthchecks", function($key, $value) use ($name) {
-			if($key === $name && Healthcheck::isHealthcheck($value)){
+			if($key === $name && \Healthcheck::isHealthcheck($value)){
 				$value["name"] = $key;
 				return [$key => $value];
 			}
 		});
 
-		return new Healthcheck(current($data));
+		return new \Healthcheck(current($data));
 	}
 }

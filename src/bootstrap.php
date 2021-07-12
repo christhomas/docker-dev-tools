@@ -7,33 +7,12 @@ if (version_compare(phpversion(), '7.2', '<')) {
 use DDT\Exceptions\Tool\ToolNotFoundException;
 use DDT\Exceptions\Tool\ToolNotSpecifiedException;
 use DDT\Exceptions\Tool\CommandNotFoundException;
+use DDT\Tool\Tool;
 
 try{
-	spl_autoload_register(function ($fqcn) {
-		// namespace autoloader
-		$class = implode('/', array_slice(explode('\\', $fqcn), 1));
+	require_once(__DIR__ . '/autoload.php');
 
-		$file = __DIR__ . '/' . $class . '.php';
-
-		if (strlen($class) && file_exists($file)) {
-			return require_once($file);
-		}
-
-		// old autoloader (deprecated)
-		$search = [
-			__DIR__ . '/',
-			__DIR__ . '/Exceptions/',
-			__DIR__ . '/Config/',
-		];
-
-		foreach($search as $base){
-			$file = $base . $fqcn . '.php';
-
-			if(file_exists($file)){
-				return require_once($file);
-			}
-		}
-	});
+	$systemConfig = \DDT\Config\SystemConfig::instance();
 
 	if(!isset($showErrors)) $showErrors = false;
 
@@ -45,20 +24,23 @@ try{
 	$tool = $cli->shiftArg();
 
 	if(empty($tool)) {
-		throw new ToolNotSpecifiedException();
+		\Text::print("{blu}DDT - Docker Dev Tools{end}\n\n");
+		\Text::print("Installed Tools:\n");
+		
+		foreach(Tool::list() as $tool){
+			$instance = Tool::instance($tool['name'], $cli, $systemConfig);
+			\Text::print("  - {$instance->getName()} - {$instance->getShortDescription()}\n");
+		}
+
+		Script::die("\n\n");
+	}else{
+		$instance = Tool::instance($tool['name'], $cli, $systemConfig);
+		$instance->handle();
+	
+		return $instance;
 	}
-
-	$class = 'DDT\\Tool\\'.ucwords($tool['name']).'Tool';
-
-	if(class_exists($class) === false){
-		throw new ToolNotFoundException($tool['name']);
-	}
-
-	$config = new \SystemConfig();
-	$handler = new $class($cli, $config);
-	$handler->handle();
-
-	return $handler;
+}catch(\ConfigMissingException $e){
+	Script::die(\Text::box($e->getMessage(), "white", "red"));
 }catch(ToolNotFoundException $e){
 	Script::failure($e->getMessage());
 }catch(ToolNotSpecifiedException $e){

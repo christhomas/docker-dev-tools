@@ -3,7 +3,7 @@
 $showErrors = true;
 $cli = require_once(__DIR__.'/../src/init.php');
 
-$config     = new SystemConfig();
+$config     = new \DDT\Config\SystemConfig();
 $shellPath = new ShellPath($config);
 
 function help(DDT\CLI $cli)

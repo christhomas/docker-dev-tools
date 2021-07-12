@@ -14,13 +14,13 @@ use DDT\Network\Network;
  * - arp eu-west-1.s3.aws.develop = show information about a specific hostname
  */
 
-class DnsTool extends BaseTool
+class DnsTool extends Tool
 {
     private $config;
     private $network;
     private $dns;
 
-    public function __construct(CLI $cli, \SystemConfig $config)
+    public function __construct(CLI $cli, \DDT\Config\SystemConfig $config)
     {
     	parent::__construct('dns', $cli);
 
@@ -28,6 +28,28 @@ class DnsTool extends BaseTool
         $distro = DistroDetect::get();
         $this->network = new Network($distro);
         $this->dns = new DNSMasq($this->network);
+    }
+
+    public function getTitle(): string
+    {
+        return 'The Tool Title';
+    }
+
+    public function getShortDescription(): string
+    {
+        return 'A tool to manage the DNS configuration used when the system is running';
+    }
+
+    public function getDescription(): string
+    {
+        return "This tool will start a docker container and listen on DNS Port 53 and handle
+        requests for your local development networks. Whilst pushing upstream all
+        other requests it can't resolve to an online DNS server";
+    }
+
+    public function getHelp(): string
+    {
+        return 'The Help Template';
     }
 
     protected function help(): void

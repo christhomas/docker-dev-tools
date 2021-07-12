@@ -1,28 +1,19 @@
-<?php
+<?php declare(strict_types=1);
+
+namespace DDT\Config;
 class ExtensionConfig extends BaseConfig
 {
-    const FILENAME = "ddt-extension.json";
-
     public function __construct(string $path)
     {
-        switch(true){
-            case is_file($path):
-                $filename = $path;
-            break;
-
-            case is_file($path . '/' . self::FILENAME):
-                $filename = $path . '/' . self::FILENAME;
-            break;
-
-            default:
-                throw new ConfigMissingException($path);
-            break;
-        }
-
-        parent::__construct($filename);
+        parent::__construct($path);
 
         if($this->getType() !== 'extension'){
-            throw new ConfigWrongTypeException([$this->getType(), 'extension']);
+            throw new \ConfigWrongTypeException([$this->getType(), 'extension']);
         }
+    }
+
+    public function getDefaultFilename(): string
+    {
+        return 'ddt-extension.json';
     }
 }

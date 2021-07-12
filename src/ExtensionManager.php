@@ -12,7 +12,7 @@ class ExtensionManager{
 		$git = new Git();
 		$git->clone($url, $path);		
 
-		$extensionConfig = new ExtensionConfig($path);
+		$extensionConfig = new \DDT\Config\ExtensionConfig($path);
 		$hook = new Hook($extensionConfig);
 		$hook->run(Hook::BEFORE_INSTALL);
 
@@ -74,7 +74,7 @@ class ExtensionManager{
 
 		$repo = new Git();
 		if($repo->exists($path)){
-			$extensionConfig = new ExtensionConfig($path);
+			$extensionConfig = new \DDT\Config\ExtensionConfig($path);
 
 			Text::print("Pulling branch '{yel}".$repo->branch($path)."{end}' from repository '{yel}".$repo->remote($path)."{end}'\n");
 			$repo->pull($path);
@@ -94,12 +94,12 @@ class ExtensionManager{
 	public function list(): array
 	{
 		return array_map(function($file){
-			$config = new ExtensionConfig($file);
+			$config = new \DDT\Config\ExtensionConfig($file);
 			
 			return [
 				'name' => $config->getName(),
 				'path' => dirname($file),
 			];
-		}, glob($this->config->getToolsPath("/extensions/*/" . ExtensionConfig::FILENAME)));
+		}, glob($this->config->getToolsPath("/extensions/*/" . \DDT\Config\ExtensionConfig::FILENAME)));
 	}
 }

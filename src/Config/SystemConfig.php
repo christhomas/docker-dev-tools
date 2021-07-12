@@ -1,29 +1,36 @@
-<?php
+<?php declare(strict_types=1);
+
+namespace DDT\Config;
 
 class SystemConfig extends BaseConfig
 {
     private $extensions;
 	private $projects;
 	
-	const FILENAME = ".ddt-system.json";
-
-    static public function getDefaultFilename(): string
+    public function __construct(string $path)
     {
-        return $_SERVER['HOME'] . '/' . self::FILENAME;
-    }
-
-    public function __construct(?string $filename=null)
-    {
-        $filename = $filename ?: self::getDefaultFilename();
-        
         try{
-            parent::__construct($filename);
-        }catch(ConfigMissingException $e){
-            die(Text::box("The config file must exist: '$filename'", "white", "red"));
-        }catch(ConfigInvalidException $e){
-            die(Text::box("The config file was invalid, it could not be decoded: '$filename'", "white", "red"));
+            parent::__construct($path);
+        }catch(\ConfigInvalidException $e){
+            die(\Text::box("The config file was invalid, it could not be decoded: '$filename'", "white", "red"));
         }
     }
+
+	static public function instance(): self
+	{
+		static $instance = null;
+
+		if($instance === null){
+			$instance = new self($_SERVER['HOME']);
+		}
+
+		return $instance;
+	}
+
+	public function getDefaultFilename(): string
+	{
+		return '.ddt-system.json';
+	}
 
     public function setToolsPath(string $path): void
 	{

@@ -62,12 +62,12 @@ EOF
 if($cli->hasArg('help')) help($cli);
 
 if($cli->hasArg('version')){
-    $config = new SystemConfig();
+    $config = new \DDT\Config\SystemConfig();
     print($config->getVersion());
     exit(0);
 }
 
-$filename = SystemConfig::getDefaultFilename();
+$filename = \DDT\Config\SystemConfig::getDefaultFilename();
 $exists = file_exists($filename);
 
 if($cli->hasArg('filename')){
@@ -85,13 +85,13 @@ if($cli->hasArg('show')){
 
 $key = $key = $cli->getArg('key');
 if($key && $key != 'true'){
-    $config = new SystemConfig();
+    $config = new \DDT\Config\SystemConfig();
     print($config->getKeyAsJson($key)."\n");
     exit(0);
 }
 
 if($exists && $removeKey = $cli->getArgWithVal('remove-key')){
-    $config = new SystemConfig();
+    $config = new \DDT\Config\SystemConfig();
     $config->deleteKey($removeKey);
     $config->write();
     exit(0);
@@ -119,14 +119,14 @@ if(!$cli->hasArg('validate')){
 		if($cli->hasArg('break-me')) file_put_contents($filename, file_get_contents($filename)."!@#@#^#$!@#");
 	}else{
 		print(Text::box("Writing the configuration file: $filename", 'black', 'yellow'));
-		$config = new SystemConfig(DDT\CLI::getToolPath("/defaults.json"));
+		$config = new \DDT\Config\SystemConfig(DDT\CLI::getToolPath("/defaults.json"));
 		$config->write($filename);
 	}
 }
 
 print(Text::blue("Testing if the file is valid by trying to decode it\n"));
 try{
-	$config = new SystemConfig($filename);
+	$config = new \DDT\Config\SystemConfig($filename);
 	print(Text::box("The file '$filename' is valid", 'black', 'green'));
 	exit(0);
 }catch(Exception $e){

@@ -6,24 +6,43 @@ use DDT\CLI;
 use DDT\Config\DockerConfig;
 use DDT\Docker\Docker;
 
-class DockerTool
+class DockerTool extends Tool
 {
-    /** @var CLI $cli */
-    private $cli;
-
     /** @var DockerConfig $config */
     private $config;
     
-    public function __construct(CLI $cli, ?\SystemConfig $systemConfig)
+    public function __construct(CLI $cli, ?\DDT\Config\SystemConfig $systemConfig)
     {
-        $this->cli = $cli;
+        parent::__construct('docker', $cli);
         
-        $systemConfig = $systemConfig ?? new \SystemConfig();
+        $systemConfig = $systemConfig ?? new \DDT\Config\SystemConfig();
         $dockerConfig = new DockerConfig($systemConfig);
 
         $this->setDocker(new Docker($dockerConfig));
         $this->setDockerConfig($dockerConfig);
     }
+
+    public function getTitle(): string
+    {
+        return 'The Tool Title';
+    }
+
+    public function getShortDescription(): string
+    {
+        return 'A tool to interact with docker enhanced by the dev tools to provide extra functionality';
+    }
+
+    public function getDescription(): string
+    {
+        return "There is no description";
+    }
+
+    public function getHelp(): string
+    {
+        return 'The Help Template';
+    }
+
+    public function help(): void{}
 
     public function setDocker(Docker $docker)
     {

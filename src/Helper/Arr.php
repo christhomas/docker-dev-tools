@@ -1,5 +1,8 @@
-<?php
-class ArrayWrapper
+<?php declare(strict_types=1);
+
+namespace DDT\Helper;
+
+class Arr
 {
 	static public function hasAll(array $array, array $key, bool $allowEmpty=true): bool
 	{

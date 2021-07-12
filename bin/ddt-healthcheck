@@ -2,12 +2,12 @@
 <?php declare(strict_types=1);
 $cli = require_once(__DIR__.'/../src/init.php');
 
-$systemConfig = new SystemConfig();
+$systemConfig = new \DDT\Config\SystemConfig();
 
 // FIXME: This code is being moved into project configurations which means it's broken for now
 // $projectConfig = $systemConfig->getProjectConfig('api-server');
 
-// $config = $projectConfig; //new ProjectConfig();
+// $config = $projectConfig; //new \DDT\Config\ProjectConfig();
 
 // Script::title("Healthchecks", "Hopefully nobody died.....");
 
@@ -74,7 +74,7 @@ $systemConfig = new SystemConfig();
 //         "URL: $url",
 //     ]);
 
-// 	if($reasons = ArrayWrapper::get($result, 'reasons')){
+// 	if($reasons = \DDT\Helper\Arr::get($result, 'reasons')){
 // 		array_map(function($r) use ($table) {
 // 			$table->addRow(["\t$r"], true);
 // 		}, $reasons);

@@ -18,7 +18,7 @@ class Config extends SystemConfig
 
 	// 	if($config === null) throw new Exception("Bastion Host '$name' was not configured");
 
-	// 	if(ArrayWrapper::get($config, 'type') === 'aws-ssm'){
+	// 	if(\DDT\Helper\Arr::get($config, 'type') === 'aws-ssm'){
 	// 		list ($config["host"],$config["port"]) = Aws::getParam([$config["host"],$config["port"]]);
 	// 	}
 
@@ -34,7 +34,7 @@ class Config extends SystemConfig
 
 	// 	if($config === null) throw new Exception("Bastion Service '$name' was not configured");
 
-	// 	if(ArrayWrapper::get($config, 'type') === 'aws-ssm'){
+	// 	if(\DDT\Helper\Arr::get($config, 'type') === 'aws-ssm'){
 	// 		list ($config["host"],$config["port"]) = Aws::getParam([$config["host"],$config["port"]]);
 
 	// 		return $config;

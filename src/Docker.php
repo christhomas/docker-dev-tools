@@ -294,7 +294,7 @@ class Docker
 	{
 		$profile = $this->config->getKey("$this->key.profile.$name");
 
-		if(ArrayWrapper::hasAll($profile, ['host', 'port','tlscacert','tlscert','tlskey'])){
+		if(\DDT\Helper\Arr::hasAll($profile, ['host', 'port','tlscacert','tlscert','tlskey'])){
 			return new DockerProfile(
 				$name,
 				$profile['host'],
