@@ -6,7 +6,7 @@ $cli = require_once(__DIR__.'/../src/init.php');
 Script::title("NGINX Frontend Proxy", "(club bouncer says) if your names not down, you're not coming in");
 
 try{
-    $config = new \DDT\Config\SystemConfig();
+    $config = \DDT\Config\SystemConfig::instance();
     $docker = new Docker($config);
     $proxy = new Proxy($config, $docker);
 }catch(DockerNotRunningException $e){

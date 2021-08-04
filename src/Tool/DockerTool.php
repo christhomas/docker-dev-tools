@@ -15,7 +15,7 @@ class DockerTool extends Tool
     {
         parent::__construct('docker', $cli);
         
-        $systemConfig = $systemConfig ?? new \DDT\Config\SystemConfig();
+        $systemConfig = $systemConfig ?? \DDT\Config\SystemConfig::instance();
         $dockerConfig = new DockerConfig($systemConfig);
 
         $this->setDocker(new Docker($dockerConfig));

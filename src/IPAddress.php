@@ -8,7 +8,7 @@ class IPAddress
 	/** @var $network DDT\Network\Network */
 	private $network = null;
 
-	public function __construct(SystemConfig $config, ?DDT\Network\Network $network = null)
+	public function __construct(DDT\Config\SystemConfig $config, ?DDT\Network\Network $network = null)
 	{
 		$this->config = $config;
 		$this->network = $network ?? new DDT\Network\Network(DDT\Distro\DistroDetect::get());

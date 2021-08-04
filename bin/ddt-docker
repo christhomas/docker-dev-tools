@@ -5,7 +5,7 @@ $cli = require_once(__DIR__.'/../src/init.php');
 Script::title("DDT DOCKER", "Configure docker profiles and easily interface with remote docker daemons");
 
 try{
-    $config = new SystemConfig();
+    $config = \DDT\Config\SystemConfig::instance();
     $docker = new Docker($config);
 }catch(DockerNotRunningException $e){
     Script::failure($e->getMessage());

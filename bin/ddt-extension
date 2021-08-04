@@ -3,7 +3,7 @@
 $showErrors = true;
 $cli = require_once(__DIR__.'/../src/init.php');
 
-$config = new \DDT\Config\SystemConfig();
+$config = \DDT\Config\SystemConfig::instance();
 
 Script::title("DDT EXTENSION CONFIGURATOR", "Install new Batteries");
 
@@ -39,7 +39,7 @@ if($cli->hasArg('help') || $cli->countArgs() === 0){
 $name   = $cli->getArgWithVal('install');
 $url    = $cli->getArgWithVal('url');
 
-$config = new \DDT\Config\SystemConfig();
+$config = \DDT\Config\SystemConfig::instance();
 
 if($name && $url){
     Text::print("Installing new ExtensionManager '{yel}$name{end}' from url '{yel}$url{end}'\n");

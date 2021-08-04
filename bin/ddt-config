@@ -62,7 +62,7 @@ EOF
 if($cli->hasArg('help')) help($cli);
 
 if($cli->hasArg('version')){
-    $config = new \DDT\Config\SystemConfig();
+    $config = \DDT\Config\SystemConfig::instance();
     print($config->getVersion());
     exit(0);
 }
@@ -85,13 +85,13 @@ if($cli->hasArg('show')){
 
 $key = $key = $cli->getArg('key');
 if($key && $key != 'true'){
-    $config = new \DDT\Config\SystemConfig();
+    $config = \DDT\Config\SystemConfig::instance();
     print($config->getKeyAsJson($key)."\n");
     exit(0);
 }
 
 if($exists && $removeKey = $cli->getArgWithVal('remove-key')){
-    $config = new \DDT\Config\SystemConfig();
+    $config = \DDT\Config\SystemConfig::instance();
     $config->deleteKey($removeKey);
     $config->write();
     exit(0);

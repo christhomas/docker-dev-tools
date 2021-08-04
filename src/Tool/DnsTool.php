@@ -58,25 +58,25 @@ class DnsTool extends Tool
         \Script::die();
     }
 
-    private function enable(): void
+    public function enable(): void
     {
         \Text::print("{grn}Enabling:{end} DNS...\n");
         $this->dns->enable();
     }
 
-    private function disable(): void
+    public function disable(): void
     {
         \Text::print("{red}Disabling:{end} DNS...\n");
         $this->dns->disable();
     }
 
-    private function refresh(): void
+    public function refresh(): void
     {
         \Text::print("{yel}Refreshing:{end} DNS...\n");
         $this->dns->refresh();
     }
 
-    private function start(): bool
+    public function start(): bool
     {
         \Text::print("{blu}Starting:{end} DNS...\n");
 
@@ -98,7 +98,7 @@ class DnsTool extends Tool
         // }
     }
 
-    private function stop(): bool
+    public function stop(): bool
     {
         \Text::print("{red}Stopping:{end} DNS...\n");
 
@@ -119,7 +119,7 @@ class DnsTool extends Tool
         // $dns->stop();
     }
 
-    private function restart(): void
+    public function restart(): void
     {
         \Text::print("{yel}Restarting:{end} DNS...\n");
 
@@ -131,19 +131,19 @@ class DnsTool extends Tool
         }
     }
 
-    private function logs(): void
+    public function logs(): void
     {
         \Text::print("{yel}TODO: logs{end}\n");
         $this->dns->logs();
     }
 
-    private function logsF(): void
+    public function logsF(): void
     {
         \Text::print("{yel}TODO: logs follow{end}\n");
         $this->dns->logs(true);
     }
 
-    private function addDomain(): void
+    public function addDomain(): void
     {
         \Text::print("{yel}TODO: addDomain{end}\n");
         // $ipAddress = $cli->getArgWithVal('ip-address', $alias->get());
@@ -158,7 +158,7 @@ class DnsTool extends Tool
         // Format::ping($alias->ping($domain, $ipAddress));
     }
 
-    private function removeDomain(): void
+    public function removeDomain(): void
     {
         \Text::print("{yel}TODO: removeDomain{end}\n");
         // $dns->removeDomain($domain);
@@ -167,26 +167,26 @@ class DnsTool extends Tool
         // Format::ping($alias->ping($domain));
     }
 
-    private function setIp(): void
+    public function setIp(): void
     {
         \Text::print("{yel}TODO: setIp{end}\n");
     }
 
-    private function containerName(): void
+    public function containerName(): void
     {
         \Text::print("{yel}TODO: containerName{end}\n");
         // set: $dns->setContainerName($containerName);
         // get: Text::print("Container: ".$dns->getContainerName()."\n");
     }
 
-    private function dockerImage(): void
+    public function dockerImage(): void
     {
         \Text::print("{yel}TODO: dockerImage{end}\n");
         // set: $dns->setDockerImage($dockerImage);
         // get: Text::print("Docker Image: ".$dns->getDockerImage()."\n");
     }
 
-    private function status(): void
+    public function status(): void
     {
         \Text::print("{yel}TODO: Show status information here{end}\n");
         // Text::print("{blu}Domains that are registered in the dns container:{end}\n");
