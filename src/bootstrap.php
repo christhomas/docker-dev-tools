@@ -10,16 +10,9 @@ use DDT\Exceptions\Tool\CommandNotFoundException;
 use DDT\Tool\Tool;
 
 try{
-	require_once(__DIR__ . '/autoload.php');
+	$cli = require_once(__DIR__ . '/init.php');
 
 	$systemConfig = \DDT\Config\SystemConfig::instance();
-
-	if(!isset($showErrors)) $showErrors = false;
-
-	$cli = new DDT\CLI($argv, $showErrors);
-
-	\Shell::setDebug($cli->hasArg('debug'));
-	\Text::setQuiet($cli->hasArg('quiet'));
 
 	$tool = $cli->shiftArg();
 
