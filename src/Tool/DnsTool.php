@@ -32,7 +32,7 @@ class DnsTool extends Tool
 
     public function getTitle(): string
     {
-        return 'The Tool Title';
+        return 'DNS Tool';
     }
 
     public function getShortDescription(): string
@@ -47,15 +47,50 @@ class DnsTool extends Tool
         other requests it can't resolve to an online DNS server";
     }
 
-    public function getHelp(): string
+    public function getOptions(): string
     {
-        return 'The Help Template';
+        return<<<OPTIONS
+{cyn}Configuring IP Address and domains:{end}
+    add-domain=yourdomain.com: Add a domain to the running DNS server
+    remove-domain=yourdomain.com: Remove a domain to the running DNS server (see also --ip-address)
+    set-ip=xxx.xxx.xxx.xxx: Use this ip address when configuring the server instead of the default one
+
+{cyn}Toggling the DNS Server:{end}
+    enable: Enable the DNS Server
+    disable: Disable the DNS Server
+    reset: Toggles the DNS Server as disabled then enabled as well as refreshing the dns cache
+
+{cyn}Running of the DNS Server Container:{end}
+    start: Setup the DNS servers and start the DNS container
+    restart: Restart the DNS Container
+    stop: Stop the DNS container
+    
+{cyn}Logging:{end}
+    logs: View the logs from the DNS container
+    logs-f: View and follow the logs from the DNS container
+
+{cyn}Configuration:{end}
+    status: View a list of all the domains that are registered with the DNS server
+    container-name[=xxx]: Get the name of this container to use, if passed a parameter it will update the settings with that value
+    docker-image[=xxx]: Get the docker image name to use, if passed a parameter it will update the settings with that value
+OPTIONS;
     }
 
-    protected function help(): void
+    public function getNotes(): string
     {
-        \Text::print(file_get_contents($this->config->getToolsPath("/help/{$this->name}.txt")));
-        \Script::die();
+        return<<<NOTES
+{yel}Enabling, disable, and resetting{end} the DNS Server doesn't change the running status of the 
+DNS Container. It's just changing your system configuration from using the DNS Server or 
+going back to your default computer DNS settings. It's useful when you need to quickly toggle back 
+to the system defaults because the DNS Server might interfere with running a VPN. So you can quickly 
+disable it, do your other work. Then re-enable it when you need to get back to working with the 
+development environment. It's like a soft reset of your DNS configuration so you can temporarily 
+do something.
+
+{yel}Starting, Stopping, and Restarting{end} implies also {yel}enabling and disabling{end} the 
+DNS Server like explained above. However it does the extra step of Starting or Stopping the 
+docker container as well. So it's more like a hard reset.
+NOTES;
     }
 
     public function enable(): void

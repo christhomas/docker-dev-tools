@@ -4,29 +4,28 @@ namespace DDT\Tool;
 
 use DDT\CLI;
 use DDT\Distro\DistroDetect;
+use DDT\Config\SystemConfig;
+use DDT\Exceptions\Config\ConfigMissingException;
 use DDT\Network\Network;
-
 class ConfigTool extends Tool
 {
-    /** @var \DDT\Config\SystemConfig  */
+    /** @var SystemConfig  */
     private $config;
 
     /** @var Network  */
     private $network;
 
-    public function __construct(CLI $cli, \DDT\Config\SystemConfig $config)
+    public function __construct(CLI $cli)
     {
     	parent::__construct('config', $cli);
 
-        $this->cli = $cli;
-        $this->config = $config;
-		$distro = DistroDetect::get();
-		$this->network = new Network($distro);
+        //$this->config = container(SystemConfig::class);
+		$this->network = new Network(DistroDetect::get());
     }
 
     public function getTitle(): string
     {
-        return 'Docker Dev Tools Configuration';
+        return 'Configuration';
     }
 
     public function getShortDescription(): string
@@ -36,81 +35,160 @@ class ConfigTool extends Tool
 
     public function getDescription(): string
     {
-        return "This tool is to manipulate your system configuration";
+		return "This tool will manipulate the configuration or query part of it for use in other tools";
     }
 
-	protected function set(): void
+	public function getOptions(): string
 	{
-		\Script::failure("TODO: implement set functionality");
-		$this->network->createIpAddressAlias();
-//		if($newIpAddress = $cli->getArgWithVal('set')){
-//			Text::print("Writing IP Address '{yel}$newIpAddress{end}': ");
-//
-//			if($ipAddress->set($newIpAddress)){
-//				Text::print("{grn}SUCCESS{end}\n");
-//			}else{
-//				Text::print("{red}FAILURE{end}\n");
-//				Script::failure();
-//			}
-//		}else{
-//			Script::failure("{red}You must pass an ip address to the --set=xxx parameter{end}");
-//		}
+		return "\t" . implode("\n\t", [
+			"filename: Returns a single string containing the filename",
+			"exists: Script will exit with {yel}code 0{end} if configuration file exists or {yel}code 1{end} if it's missing",
+			"reset: Will reset your configuration file to the default 'empty' configuration, {red}it will destroy any setup you already have{end}",
+			"get: Will retrieve a specific key, if no key is specified, the entire config is shown",
+			"validate: Only validate the file can be read without errors",
+			"version: Output some information about the configuration that is deemed useful",
+			"help: This information, also if no sub command is given help is automatically shown",
+		]);
 	}
 
-	protected function get(): void
+	public function getExamples(): string
 	{
-		\Script::failure("TODO: implement get functionality");
-//		Text::print("IP Address: '{yel}$alias{end}'\n");
+		$entrypoint = $this->cli->getScript(false) . " " . $this->getName();
+
+		return<<<EXAMPLES
+Basic commands are simple to understand:
+	{$entrypoint} filename (will output where the system configuration file is located)
+	{$entrypoint} version (will output version information, etc)
+	
+To query parts of the configuration: 
+	{$entrypoint} get (with no specific key mentioned, will output entire configuration)
+	{$entrypoint} get=.type
+	{$entrypoint} get=.this.0.must.be.3.valid
+		
+The last one will do a recursive lookup drilling down each level that are split by the dots
+	key(this) -> index(0) -> key(must) -> key(be) -> index(3) -> key(valid)
+	
+The json for the above example could be:
+{cyn}{
+	"this": [
+		{
+			"must": {
+				"be": [
+					"not this",
+					"or this",
+					"neither this",
+					{
+						"valid": "this one! this is index 3",
+						"json": "doesn't care if you mix strings with objects or sub-arrays"
+					},
+					"ignore this"
+				]
+			}   
+		}
+	]
+}
+{end}
+bash# {$entrypoint} get=.this.0.must.be.3.valid
+"this one! this is index 3"
+EXAMPLES;
 	}
 
-	protected function add(): void
+	public function getNotes(): string
 	{
-		\Script::failure("TODO: implement add functionality");
-//		Shell::sudo();
-//		Text::print("Installing IP Address '{yel}$alias{end}': ");
-//		$status = $ipAddress->install();
-//
-//		if($status === true){
-//			Text::print("{grn}SUCCESS{end}\n");
-//			Format::ping($ipAddress->ping());
-//		}else{
-//			Text::print("{red}FAILURE{end}\n");
-//			Script::failure();
-//		}
+		return "\t- " . implode("\n\t- ", [
+			"All keys begin with '.' (dot), e.g: '.description'",
+			"Keys are a dotted syntax that allows you to pluck out a segment of the configuration",
+			"If you ask for an invalid heirarchy. This function will return null",
+		]);
 	}
 
-	protected function remove(): void
+	public function filename(): string
 	{
-		\Script::failure("TODO: implement remove functionality");
-//		Text::print("Uninstalling IP Address '{yel}$alias{end}': ");
-//		$status = $ipAddress->uninstall();
-//		$cli->setArg('ping', false);
-//
-//		if($status === true){
-//			Text::print("{grn}SUCCESS{end}\n");
-//		}else{
-//			Text::print("{red}FAILURE{end}\n");
-//			Script::failure();
-//		}
+		$config = container(\DDT\Config\SystemConfig::class);
+
+		return $config->getFilename();
 	}
 
-	protected function reset(): void
+	/**
+	 * I don't think this function does anything useful
+	 */
+	public function exists(): string
 	{
-		\Script::failure("TODO: implement reset functionality");
-//		Text::print("{blu}Resetting IP Address:{end}\n");
-//
-//		Text::print("\t{blu}Uninstalling:{end} ");
-//		$result = $ipAddress->uninstall() ? "{grn}success{end}" : "{red}failure{end}";
-//		Text::print("$result\n");
-//
-//		Text::print("\t{blu}Installing:{end} ");
-//		$result = $ipAddress->install() ? "{grn}success{end}" : "{red}failure{end}";
-//		Text::print("$result\n");
+		return is_file($this->filename()) ? 'true' : 'false';
 	}
 
-	protected function ping(): void
+	public function reset(): string
 	{
-		\Script::failure("TODO: implement ping functionality");
-//		Format::ping($ipAddress->ping());
+		$reply = \DDT\CLI::ask('Are you sure you want to reset your configuration?', ['yes', 'no']);
+
+		if($reply === 'yes'){
+			return \Text::box("The request to reset was refused", "black", "green");
+		}else{
+			return \Text::box("The request to reset was refused", "white", "red");
+		}
+
+
+		// if(!$cli->hasArg('validate')){
+		// 	if($exists === true && $write === false){
+		// 		print(Text::write("The configuration file '{yel}$filename{end}' already exists\n"));
+		// 		if($cli->hasArg('break-me')) file_put_contents($filename, file_get_contents($filename)."!@#@#^#$!@#");
+		// 	}else{
+		// 		print(Text::box("Writing the configuration file: $filename", 'black', 'yellow'));
+		// 		$config = new \DDT\Config\SystemConfig(DDT\CLI::getToolPath("/defaults.json"));
+		// 		$config->write($filename);
+		// 	}
+		// }
+		
+
+		\Script::failure("implement: " . __METHOD__);
+		/*
+		$reset = $cli->hasArg('reset');
+
+		if($exists === true && $reset === true) {
+		$reply = \DDT\CLI::ask('Are you sure you want to reset your configuration?', ['yes', 'no']);
+
+		if($reply !== 'yes'){
+			exit(0);
+		}
+
+		$write = true;
+		*/
+	}
+
+	public function get($value/*, $arg1, $arg2, $arg3*/): string
+	{
+		return $this->config->getKeyAsJson($value);
+	}
+
+	public function delete($value): string
+	{
+		\Script::failure("implement: " . __METHOD__);
+		/*
+		if($exists && $removeKey = $cli->getArgWithVal('remove-key')){
+			$config = \DDT\Config\SystemConfig::instance();
+			$config->deleteKey($removeKey);
+			$config->write();
+			exit(0);
+		}
+		*/
+	}
+
+	public function validate(): string
+	{
+		// FIXME: add extensions to this output
+		// FIXME: add projects to this output
+
+		$config = container(\DDT\Config\SystemConfig::class);
+
+		return implode("\n", [
+			\Text::box("The system configuration in file '{$config->getFilename()}' was valid", 'black', 'green'),
+		]);
+	}
+
+	public function version(): string
+	{
+		$config = container(\DDT\Config\SystemConfig::class);
+
+		return $config->getVersion();
 	}
 }
