@@ -1,34 +1,25 @@
 <?php declare(strict_types=1);
 
-spl_autoload_register(function ($fqcn) {
-	// namespace autoloader
-	$class = implode('/', array_slice(explode('\\', $fqcn), 1));
+require_once(__DIR__ . '/container.php');
+require_once(__DIR__ . '/autoload.php');
 
-	$file = __DIR__ . '/' . $class . '.php';
+$container = new Container();
+$container->singleton(\DDT\CLI::class, function() use ($argv){
+	$cli = new \DDT\CLI($argv);
+	$cli->enableErrors($cli->hasArg('--debug'));
 
-	if (strlen($class) && file_exists($file)) {
-		return require_once($file);
-	}
-
-	// old autoloader (deprecated)
-	$search = [
-		__DIR__ . '/',
-		__DIR__ . '/Exceptions/',
-		__DIR__ . '/Config/',
-	];
-
-	foreach($search as $base){
-		$file = $base . $fqcn . '.php';
-
-		if(file_exists($file)){
-			return require_once($file);
-		}
-	}
+	return $cli;
+});
+$container->singleton(\DDT\Config\SystemConfig::class, function(){
+	return new \DDT\Config\SystemConfig($_SERVER['HOME']);
+});
+$container->singleton('tool-list', function(){
+	return array_map(function($t){ 
+		return ['name' => str_replace(['tool', '.php'], '', strtolower(basename($t))), 'path' => $t];
+	}, glob(__DIR__ . "/Tool/?*Tool.php"));
 });
 
-if(!isset($showErrors)) $showErrors = false;
-
-$cli = new DDT\CLI($argv, $showErrors);
+$cli = container(\DDT\CLI::class);
 
 \Shell::setDebug($cli->hasArg('debug'));
 \Text::setQuiet($cli->hasArg('quiet'));
