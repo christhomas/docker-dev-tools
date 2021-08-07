@@ -141,7 +141,7 @@ class Text
 
 	static public function box(string $string, string $foreground, string $background): string
 	{
-		return self::write("{" . $foreground . "}{" . $background . "_b}\n\t\n\t" . trim($string) . "\n{end}\n\n");
+		return self::write("{" . $foreground . "}{" . $background . "_b}\n\t\n\t" . trim($string) . "\n{end}\n");
 	}
 
 	static public function print(string $string, ?string $foreground=null, ?string $background=null): void
