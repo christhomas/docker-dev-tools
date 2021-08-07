@@ -16,7 +16,7 @@ class Proxy
 		'network'			=> 'ddt-proxy'
 	];
 
-	public function __construct(SystemConfig $config, Docker $docker)
+	public function __construct(\DDT\Config\SystemConfig $config, Docker $docker)
 	{
 		$this->config = $config;
 		$this->docker = $docker;

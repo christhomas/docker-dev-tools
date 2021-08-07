@@ -15,7 +15,7 @@ class DNSMasq {
 		'container_name'	=> 'ddt-dnsmasq',
 	];
 
-	public function __construct(SystemConfig $config, Docker $docker)
+	public function __construct(\DDT\Config\SystemConfig $config, Docker $docker)
 	{
 		$this->config = $config;
 		$this->docker = $docker;
@@ -106,7 +106,7 @@ class DNSMasq {
         $this->config->setKey($this->keys['domains'], array_values($domainList));
 
         if(!$this->config->write()){
-            throw new ConfigWriteException("Could not write new '{$this->keys['domains']}' configuration");
+            throw new \DDT\Exceptions\Config\ConfigWriteException("Could not write new '{$this->keys['domains']}' configuration");
         }
 	}
 
@@ -131,7 +131,7 @@ class DNSMasq {
         $this->config->setKey($this->keys['domains'], $domainList);
 
         if(!$this->config->write()){
-            throw new ConfigWriteException("Could not write new '{$this->keys['domains']}' configuration");
+            throw new \DDT\Exceptions\Config\ConfigWriteException("Could not write new '{$this->keys['domains']}' configuration");
         }
 	}
 

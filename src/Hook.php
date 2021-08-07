@@ -13,7 +13,7 @@ class Hook
     private $config;
     private $hooks;
 
-    public function __construct(ConfigInterface $config)
+    public function __construct(\DDT\Config\ConfigInterface $config)
     {
         $this->config = $config;
         $this->hooks = $this->config->getKey('hooks');

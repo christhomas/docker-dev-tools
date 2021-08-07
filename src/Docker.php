@@ -31,7 +31,7 @@ class Docker
 		return $message;
 	}
 
-	public function __construct(SystemConfig $config)
+	public function __construct(\DDT\Config\SystemConfig $config)
 	{
         $this->config = $config;
         $this->profile = 'default';
