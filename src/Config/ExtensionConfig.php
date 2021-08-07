@@ -8,7 +8,7 @@ class ExtensionConfig extends BaseConfig
         parent::__construct($path);
 
         if($this->getType() !== 'extension'){
-            throw new \ConfigWrongTypeException([$this->getType(), 'extension']);
+            throw new \DDT\Exceptions\Config\ConfigWrongTypeException([$this->getType(), 'extension']);
         }
     }
 
