@@ -20,10 +20,16 @@ abstract class BaseConfig implements ConfigInterface
             $filename = $filename . '/' . $this->getDefaultFilename();
         }
 
-        $filename = realpath($filename);
+        $temp = realpath($filename);
+
+        if(!$temp){
+            throw new ConfigMissingException($filename);
+        }
+
+        $filename = $temp;
 
         if(!is_file($filename)){
-            throw new \ConfigMissingException($filename);
+            throw new ConfigMissingException($filename);
 		}
 
 		$this->filename = $filename;
