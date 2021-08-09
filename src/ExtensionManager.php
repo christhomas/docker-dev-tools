@@ -1,6 +1,6 @@
 <?php
 class ExtensionManager{
-	public function __construct(SystemConfig $config)
+	public function __construct(\DDT\Config\SystemConfig $config)
 	{
 		$this->config = $config;
 	}
@@ -52,7 +52,7 @@ class ExtensionManager{
 		if($git->exists($path)){
 			$cmd = "rm -rf $path";
 			Text::print("{red}WARNING: BE CAREFUL THE PATH IS CORRECT{end}\n");
-			$answer = CLI::ask("Should we remove the extension directory with the command '$cmd'?",["yes"]);
+			$answer = \DDT\CLI::ask("Should we remove the extension directory with the command '$cmd'?",["yes"]);
 
 			if($answer === "yes") {
 				Shell::passthru($cmd);
