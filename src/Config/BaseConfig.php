@@ -117,6 +117,8 @@ abstract class BaseConfig implements ConfigInterface
     
     public function setKey(string $key, $value): void
 	{
+        $key = ltrim($key ?? '', '.');
+
         $parts = explode(".", $key);
 
         $array = &$this->data;
@@ -135,9 +137,11 @@ abstract class BaseConfig implements ConfigInterface
         unset($array);
 	}
     
-    public function getKey(string $key)
+    public function getKey(?string $key = null)
 	{
-        if ($key === '.') return $this->data;
+        $key = ltrim($key ?? '', '.');
+
+        if(empty($key)) return $this->data;
 
         if (array_key_exists($key, $this->data)) {
             return $this->data[$key];
@@ -156,7 +160,7 @@ abstract class BaseConfig implements ConfigInterface
         return $array;
     }
     
-    public function getKeyAsJson(string $key): string
+    public function getKeyAsJson(?string $key = null): string
 	{
 		$data = $this->getKey($key);
 
@@ -165,11 +169,13 @@ abstract class BaseConfig implements ConfigInterface
 
     public function toJson(): string
     {
-        return $this->getKeyAsJson('.');
+        return $this->getKeyAsJson();
     }
     
     public function deleteKey(string $key): bool
     {
+        $key = ltrim($key ?? '', '.');
+
         $keys = explode('.', $key);
 
         $array = &$this->data;
