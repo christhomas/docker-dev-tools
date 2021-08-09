@@ -38,6 +38,7 @@ abstract class BaseConfig implements ConfigInterface
 	}
 
     abstract public function getDefaultFilename(): string;
+
 	public function getFilename(): string
 	{
 		return $this->filename;
