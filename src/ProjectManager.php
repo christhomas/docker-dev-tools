@@ -1,4 +1,8 @@
-<?php
+<?php declare(strict_types=1);
+
+use DDT\CLI;
+use DDT\Config\SystemConfig;
+
 class ProjectManager
 {
     private $config;
