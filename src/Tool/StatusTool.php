@@ -1,8 +1,53 @@
-#!/usr/bin/env php
 <?php declare(strict_types=1);
-$cli = require_once(__DIR__.'/../src/init.php');
 
-$systemConfig = \DDT\Config\SystemConfig::instance();
+namespace DDT\Tool;
+
+use DDT\CLI;
+use DDT\Config\SystemConfig;
+
+class StatusTool extends Tool
+{
+    /** @var \DDT\Config\SystemConfig  */
+    private $config;
+
+    public function __construct(CLI $cli, SystemConfig $config)
+    {
+    	parent::__construct('status', $cli);
+
+        $this->config = $config;
+        $this->setDefaultHandler([$this, 'main']);
+    }
+
+    public function getTitle(): string
+    {
+        return 'Status';
+    }
+
+    public function getShortDescription(): string
+    {
+        return 'A tool to provide a quick status breakdown of resources';
+    }
+
+    public function getDescription(): string
+    {
+		return "This tool will provide a series of status feedbacks from various tools like the proxy, the dns, and various installed projects, with the ability to call specific groups of projects";
+    }
+
+    public function getExamples(): string
+    {
+        $entrypoint = $this->cli->getScript(false) . " " . $this->getName();
+
+        return implode("\n", [
+            "{yel}Usage Example:{end} $entrypoint - Will return status information the proxy, the dns, and for every project in every group (could be a large list)",
+            "{yel}Usage Example:{end} $entrypoint <group> - Will return status information for the proxy, the dns, and a specific group of projects",
+        ]);   
+    }
+
+    public function main()
+    {
+        \Script::failure('TODO: please implement me');
+    }
+}
 
 // FIXME: This code is being moved into project configurations which means it's broken for now
 // $projectConfig = $systemConfig->getProjectConfig('api-server');

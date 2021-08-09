@@ -1,9 +1,85 @@
-#!/usr/bin/env php
 <?php declare(strict_types=1);
-$cli = require_once(__DIR__.'/../src/init.php');
 
-Script::title("DDT DOCKER SYNC", "Transport files into running containers");
+namespace DDT\Tool;
 
+use DDT\CLI;
+use DDT\Config\SystemConfig;
+
+class SyncTool extends Tool
+{
+    /** @var \DDT\Config\SystemConfig  */
+    private $config;
+
+    public function __construct(CLI $cli, SystemConfig $config)
+    {
+    	parent::__construct('extension', $cli);
+
+        $this->config = $config;
+    }
+
+    public function getTitle(): string
+    {
+        return 'Container File Sync Tool';
+    }
+
+    public function getShortDescription(): string
+    {
+        return 'A tool to sync your local project with a docker container';
+    }
+
+    public function getDescription(): string
+    {
+		return "This tool will watch and sync changes from your local file system into a docker container.
+        {yel}It does not handle file changes inside the container and syncing them back to your local setup{end}
+        This tool only syncs in one direction from your local system to the docker container.";
+    }
+
+    public function getExamples(): string
+    {
+        $entrypoint = $this->cli->getScript(false) . " " . $this->getName();
+
+        return implode("\n", [
+            "{cyn}Managing Sync Profiles{end}",
+            "$entrypoint  --docker=company-staging --add-profile=phpfpm --local-dir=/a/directory/path --remote-dir=/www",
+            "$entrypoint  --docker=company-staging --remove-profile=phpfpm",
+            "{cyn}Watching Changes{end}",
+            "$entrypoint --docker=company-staging --profile=phpfpm --watch",
+            "$entrypoint --docker=company-staging --profile=phpfpm --write=filename.txt",
+        ]);   
+    }
+
+    public function getOptions(): string
+	{
+		$alias = $this->config->getKey('.ip_address') ?? 'unknown';
+
+		return "\t" . implode("\n\t", [
+            "--docker: Which docker configuration to use",
+            "--add-profile: The name of the profile to create",
+            "--remove-profile: The name of the profile to remove",
+            "--list-profile: List all the sync profiles for this specified docker configuration",
+            "--container: (Optional: defaults to profile name) The name of the container to connect to",
+            "--local-dir: The local directory to watch for modifications",
+            "--remote-dir: The directory inside the container to sync the changed files into",
+            "--profile: The name of the profile to use",
+            "--watch: To create a new 'fswatch' on the selected profile",
+            "--write=filename.txt: Which file was modified and should be uploaded",
+            "{cyn}Ignore Rules{end}: Ignore Rules are global and apply to all projects",
+            "--add-ignore-rule=^.git",
+            "--remove-ignore-rule=^.git",    
+		]);
+	}
+
+    public function getNotes(): string
+    {
+        return "The parameter {yel}--add-profile{end} depends on: {yel}local-dir, remote-dir{end} options in 
+        order to create the profile.
+        
+        {yel}Please remember, any changes inside the container are not respected here, 
+        everything is overwritten{end}";
+    }
+}
+
+/*
 try{
     $config = \DDT\Config\SystemConfig::instance();
     $docker = new Docker($config);
@@ -34,41 +110,12 @@ function help(DDT\CLI $cli)
 
 	Text::print(<<<EOF
     {yel}Usage Examples: {end}
-        {cyn}Managing Sync Profiles{end}
-        $script --docker=company-staging --add-profile=phpfpm --local-dir=/a/directory/path --remote-dir=/www
-        $script --docker=company-staging --remove-profile=phpfpm
-        
-        {cyn}Watching Changes{end}
-        $script --docker=company-staging --profile=phpfpm --watch
-        $script --docker=company-staging --profile=phpfpm --write=filename.txt
 
     {blu}Description:{end}
-        This tool will watch and sync changes from your local file system into a docker container.
-        {yel}It does not handle file changes inside the container and syncing them back to your local setup{end}
-        This tool only syncs in one direction from your local system to the docker container. 
 
-    {blu}Options:{end}
-        --docker: Which docker configuration to use
-        --add-profile: The name of the profile to create
-        --remove-profile: The name of the profile to remove
-        --list-profile: List all the sync profiles for this specified docker configuration
-        --container: (Optional: defaults to profile name) The name of the container to connect to
-        --local-dir: The local directory to watch for modifications
-        --remote-dir: The directory inside the container to sync the changed files into
-        --profile: The name of the profile to use
-        --watch: To create a new 'fswatch' on the selected profile
-        --write=filename.txt: Which file was modified and should be uploaded
-        
-        {cyn}Ignore Rules{end}: Ignore Rules are global and apply to all projects
-        --add-ignore-rule=^.git
-        --remove-ignore-rule=^.git
-     
+    {blu}Options:{end}     
     {blu}Notes:{end}
-        The parameter {yel}--add-profile{end} depends on: {yel}local-dir, remote-dir{end} options in 
-        order to create the profile.
         
-        {yel}Please remember, any changes inside the container are not respected here, 
-        everything is overwritten{end}
 
 
 EOF
@@ -216,3 +263,4 @@ if(($localFilename = $cli->getArgWithVal('write')) !== null){
 }
 
 Script::failure('no action taken');
+*/

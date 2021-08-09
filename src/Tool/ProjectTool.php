@@ -1,7 +1,63 @@
-#!/usr/bin/env php
 <?php declare(strict_types=1);
-$cli = require_once(__DIR__.'/../src/init.php');
 
+namespace DDT\Tool;
+
+use DDT\CLI;
+use DDT\Config\SystemConfig;
+
+class ProjectTool extends Tool
+{
+    /** @var \DDT\Config\SystemConfig  */
+    private $config;
+
+    public function __construct(CLI $cli, SystemConfig $config)
+    {
+    	parent::__construct('extension', $cli);
+
+        $this->config = $config;
+    }
+
+    public function getTitle(): string
+    {
+        return 'Extension Management Tool';
+    }
+
+    public function getShortDescription(): string
+    {
+        return 'A tool to manage tool extensions and update them';
+    }
+
+    public function getDescription(): string
+    {
+		return "This tool will manage extensions installed within the tools. It can install, uninstall, or update them. At this time
+        the tool only supports extensions from GIT repositories";
+    }
+
+    public function getExamples(): string
+    {
+        $entrypoint = $this->cli->getScript(false) . " " . $this->getName();
+
+        return implode("\n", [
+            "{yel}Usage Example:{end} $entrypoint {yel}install name url=https://github.com/something/extension_repo.git{end}",
+            "{yel}Usage Example:{end} $entrypoint {yel}uninstall plista{end}"
+        ]);   
+    }
+
+    public function getOptions(): string
+	{
+		$alias = $this->config->getKey('.ip_address') ?? 'unknown';
+
+		return "\t" . implode("\n\t", [
+            "--install=XXX: Will install a new extension using the parameters value as the given name",
+            "--url=XXX: Will use this location to install the extension, only git repositories are supported",
+            "--uninstall=XXX: Will uninstall an extension with the given name",
+            "--list: Will list the installed extensions",
+            "--update: Will update all extensions from their repository urls given during installation",
+		]);
+	}
+}
+
+/*
 Script::title("DDT PROJECT", "Quickly manage your projects, push or pull them with various filters, etc");
 
 $config = \DDT\Config\SystemConfig::instance();
@@ -254,7 +310,7 @@ $showBranch = $cli->getArgWithVal("show-branch");
 $filter     = $cli->getArgWithVal("filter") ?: $showBranch;
 $showBranch = $showBranch !== null;
 
-foreach(glob(CLI::getToolPath("/../**/.git"), GLOB_ONLYDIR) as $dir){
+foreach(glob(CLI::getToolPath("/../** <<-delete this space>/.git"), GLOB_ONLYDIR) as $dir){
     $dir = dirname(realpath($dir));
     $project = basename($dir);
 
@@ -309,3 +365,4 @@ foreach(glob(CLI::getToolPath("/../**/.git"), GLOB_ONLYDIR) as $dir){
         Text::print("Error Output: " . $e->getMessage());
     }
 }
+*/
