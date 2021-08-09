@@ -13,7 +13,7 @@ try{
     // Couldn't sync, we should fail here
 	$output = $e->getMessage();
 	if(strpos($output, "Skipping") !== false){
-		print(Text::box('Cannot perform update because cannot upgrade tools, on the plista tools project you must perform one of the following commands:', 'white', 'red'));
+		print(Text::box('Cannot perform update because cannot upgrade tools, on the tools project you must perform one of the following commands:', 'white', 'red'));
 	    print(<<<EOF
             1: git --reset hard
             2: git stash
