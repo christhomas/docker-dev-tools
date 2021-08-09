@@ -3,6 +3,8 @@
 namespace DDT\Config;
 
 use DDT\Helper\Arr;
+use DDT\Exceptions\Config\ConfigMissingException;
+use DDT\Exceptions\Config\ConfigInvalidException;
 abstract class BaseConfig implements ConfigInterface
 {
     private $data = [];
@@ -35,6 +37,7 @@ abstract class BaseConfig implements ConfigInterface
 		$this->filename = $filename;
 	}
 
+    abstract public function getDefaultFilename(): string;
 	public function getFilename(): string
 	{
 		return $this->filename;
@@ -50,7 +53,7 @@ abstract class BaseConfig implements ConfigInterface
         $type = $this->getKey('type');
 
         if($type === null){
-			throw new \ConfigInvalidException("Every config must have a type field. If this is a main configuration file, add type=system to the top of json file");
+			throw new ConfigInvalidException("Every config must have a type field. If this is a main configuration file, add type=system to the top of json file");
 		}
 
 		return $this->data['type'];
@@ -66,7 +69,7 @@ abstract class BaseConfig implements ConfigInterface
         $version = $this->getKey('version');
 
         if($version === null){
-            throw new \ConfigInvalidException("Every config must have a version field");
+            throw new ConfigInvalidException("Every config must have a version field");
         }
 
         return $version;
@@ -77,7 +80,7 @@ abstract class BaseConfig implements ConfigInterface
         $filename = $this->getFilename();
 
 		if(file_exists($filename) === false){
-            throw new \ConfigMissingException($filename);
+            throw new ConfigMissingException($filename);
 		}
 
 		$contents = file_get_contents($filename);
@@ -85,7 +88,7 @@ abstract class BaseConfig implements ConfigInterface
 		$json = json_decode($contents, true);
 
 		if(empty($json)){
-            throw new \ConfigInvalidException($filename);
+            throw new ConfigInvalidException($filename);
 		}
 
 		$this->data = $json;
