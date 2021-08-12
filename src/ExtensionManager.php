@@ -93,13 +93,16 @@ class ExtensionManager{
 
 	public function list(): array
 	{
-		return array_map(function($file){
-			$config = new \DDT\Config\ExtensionConfig($file);
+		// FIXME: this function is broken
+		// return array_map(function($file){
+		// 	$config = new \DDT\Config\ExtensionConfig($file);
 			
-			return [
-				'name' => $config->getName(),
-				'path' => dirname($file),
-			];
-		}, glob($this->config->getToolsPath("/extensions/*/" . \DDT\Config\ExtensionConfig::FILENAME)));
+		// 	return [
+		// 		'name' => $config->getName(),
+		// 		'path' => dirname($file),
+		// 	];
+		// }, glob($this->config->getToolsPath("/extensions/*/" . '' /* SOMEHOW HAVE TO ACCESS THE EXTENSION DEFAULT FILENAME */)));
+
+		return [];
 	}
 }
