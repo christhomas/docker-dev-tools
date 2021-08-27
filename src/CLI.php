@@ -4,11 +4,11 @@ namespace DDT;
 class CLI
 {
 	private $args = [];
-	private $name = null;
+	private $script = null;
 
 	public function __construct(array $argv)
 	{
-		$this->setName($argv[0]);
+		$this->setScript($argv[0]);
 		$this->setArgs(array_slice($argv, 1));
 	}
 
@@ -23,14 +23,14 @@ class CLI
 		}
 	}
 
-	public function setName(string $name): void
+	public function setScript(string $script): void
 	{
-		$this->name = $name;
+		$this->script = $script;
 	}
 
 	public function getScript(?bool $withPath=true): string
 	{
-		return $withPath ? $this->name : basename($this->name);
+		return $withPath ? $this->script : basename($this->script);
 	}
 
 	static public function ask(string $question, array $accept): string
@@ -94,6 +94,42 @@ class CLI
 		return true;
 	}
 
+	public function isCommand(string $command): bool
+	{
+		return \Shell::isCommand($command);
+	}
+
+	public function sudo(): CLI
+	{
+		\Shell::sudo();
+
+		return $this;
+	}
+
+	public function getStdErr(): string
+	{
+		return \Shell::$stderr;
+	}
+
+	public function exec(string $command)
+	{
+		return \Shell::exec($command);
+	}
+
+	public function passthru(string $command, bool $throw=true): int
+	{
+		return \Shell::passthru($command, $throw);
+	}
+
+	public function print($string)
+	{
+		\Text::print($string);
+	}
+
+	public function failure(?string $string=null)
+	{
+		\Script::failure($string);
+	}
 
 	// DEPRECATED FUNCTIONALITY BELOW, TRY TO NOT USE ANY OF THE FOLLOWING METHODS
 
