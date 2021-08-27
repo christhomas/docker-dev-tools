@@ -101,7 +101,7 @@ abstract class BaseConfig implements ConfigInterface
 
 		$data = json_encode($this->data, JSON_PRETTY_PRINT);
 
-		return file_put_contents($filename, $data);
+		return file_put_contents($filename, $data) !== false;
     }
 
     public function scanConfigTree(string $section, ?callable $callback=null): array
