@@ -25,3 +25,18 @@ spl_autoload_register(function ($fqcn) {
         }
     }
 });
+
+function container(?string $ref = null, ?array $args = [])
+{
+    static $container = null;
+
+    if($container === null){
+        $container = \DDT\Container::$instance ?? new \DDT\Container();
+    }
+
+    if(is_string($ref)) {
+        return $container->get($ref, $args);
+    }
+
+    return $container;
+}
