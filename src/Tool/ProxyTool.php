@@ -4,22 +4,23 @@ namespace DDT\Tool;
 
 use DDT\CLI;
 use DDT\Config\SystemConfig;
+use DDT\Docker\Docker;
+use DDT\Network\Proxy;
 
 class ProxyTool extends Tool
 {
     /** @var SystemConfig */
     private $config;
 
-    /** @var \Proxy */
+    /** @var Proxy */
     private $proxy;
 
-    public function __construct(CLI $cli, SystemConfig $config)
+    public function __construct(CLI $cli, SystemConfig $config, Proxy $proxy)
     {
         parent::__construct('proxy', $cli);
 
         $this->config = $config;
-        $docker = new \Docker($this->config);
-        $this->proxy = new \Proxy($this->config, $docker);
+        $this->proxy = $proxy;
     }
 
     public function getTitle(): string
@@ -76,70 +77,89 @@ OPTIONS;
         throw new \Exception('Proxy is not running');
     }
 
-    public function start()
+    public function startCommand()
     {
-        \Text::print("{blu}Starting the Frontend Proxy:{end} ".$this->proxy->getDockerImage()."\n");
+        $this->cli->print("{blu}Starting the Frontend Proxy:{end} ".$this->proxy->getDockerImage()."\n");
         $this->proxy->start();
 
-        \Text::print("{blu}Running Containers:{end}\n");
-        // FIXME: this should call the docker object to do this
-        \Shell::passthru('docker ps');
+        // FIXME: perhaps this should call the docker object to do this
+        $this->cli->print("{blu}Running Containers:{end}\n");
+        $this->cli->passthru('docker ps');
     }
 
-    public function stop()
+    public function stopCommand()
     {
-        \Text::print("{blu}Stopping the Frontend Proxy:{end} ".$this->proxy->getDockerImage()."\n");
+        $this->cli->print("{blu}Stopping the Frontend Proxy:{end} ".$this->proxy->getDockerImage()."\n");
         $this->proxy->stop();
 
-        \Text::print("{blu}Running Containers:{end}\n");
-        \Shell::passthru('docker ps');
+        // FIXME: perhaps this should call the docker object to do this
+        $this->cli->print("{blu}Running Containers:{end}\n");
+        $this->cli->passthru('docker ps');
     }
 
     public function restart()
     {
-        $this->stop();
-        $this->start();
+        $this->stopCommand();
+        $this->startCommand();
     }
 
-    public function logs()
+    public function logsCommand()
     {
-        $docker = new \Docker($this->config);
-        $proxy = new \Proxy($this->config, $docker);
-        $proxy->logs();
+        $this->proxy->logs();
     }
 
-    public function logsF()
+    public function logsFCommand()
     {
-        $docker = new \Docker($this->config);
-        $proxy = new \Proxy($this->config, $docker);
-        $proxy->logsFollow();
+        $this->proxy->logsFollow();
     }
 
-    public function add()
+    public function addNetworkCommand()
     {
-        \Script::failure("TODO: implement ".__METHOD__." functionality");
-        // Text::print("{blu}Connecting to a new network '$network' to the proxy{end}\n");
-        // $proxy->addNetwork($network);
+        $network = $this->cli->shiftArg();
+
+        if(empty($network)){
+            throw new \Exception('Network must be a non-empty string');
+        }
+
+        $network = $network['name'];
+
+        $this->cli->print("{blu}Connecting to a new network '$network' to the proxy{end}\n");
+
+        $this->proxy->addNetwork($network);
         // Format::networkList($proxy->getNetworks());
     }
 
-    public function remove()
+    public function removeNetworkCommand()
     {
-        \Script::failure("TODO: implement ".__METHOD__." functionality");
-        // Text::print("{blu}Disconnecting the network '$network' from the proxy{end}\n");
-        // $proxy->removeNetwork($network);
+        $network = $this->cli->shiftArg();
+
+        if(empty($network)){
+            throw new \Exception('Network must be a non-empty string');
+        }
+
+        $network = $network['name'];
+
+        $this->cli->print("{blu}Disconnecting the network '$network' from the proxy{end}\n");
+
+        $this->proxy->removeNetwork($network);
         // Format::networkList($proxy->getNetworks());
     } 
 
-    public function nginxConfig()
+    public function nginxConfigCommand()
     {
-        \Script::failure("TODO: implement ".__METHOD__." functionality");
-        //print($proxy->getConfig());
+        if($this->proxy->isRunning()){
+            $this->cli->print('{cyan}'.$this->proxy->getConfig().'{end}');
+        }else{
+            $this->cli->print('{red}Proxy is not running{end}');
+        }
     }
 
-    public function status()
+    public function statusCommand()
     {
-        \Script::failure("TODO: implement ".__METHOD__." functionality");
+        $this->cli->failure("TODO: implement ".__METHOD__." functionality");
+        // TODO: what are listning networks?
+        // TODO: perhaps I meant configured networks and active networks
+        $this->proxy->getListeningNetworks();
         // Format::networkList($proxy->getListeningNetworks());
         // Format::upstreamList($proxy->getUpstreams());
         // if($format = $cli->getArg('networks')){
@@ -147,27 +167,25 @@ OPTIONS;
         // }
     }
 
-    public function containerImage()
+    public function containerNameCommand()
     {
-        \Script::failure("TODO: implement ".__METHOD__." functionality");
-        // if($containerName = $cli->getArgWithVal('set-container-name')){
-        //     $proxy->setContainerName($containerName);
-        // }
-    
-        // if($cli->hasArg('get-container-name')){
-        //     Text::print("Container: ".$proxy->getContainerName()."\n");
-        // }                
+        $image = $this->cli->shiftArg();
+
+        if(empty($image)){
+            return $this->proxy->getContainerName();
+        }
+
+        $this->proxy->setContainerName($image['name']);
     }
 
-    public function dockerImage()
+    public function dockerImageCommand()
     {
-        \Script::failure("TODO: implement ".__METHOD__." functionality");
-        // if($dockerImage = $cli->getArgWithVal('set-docker-image')){
-        //     $proxy->setDockerImage($dockerImage);
-        // }
-    
-        // if($cli->hasArg('get-docker-image')){
-        //     Text::print("Docker Image: ".$proxy->getDockerImage()."\n");
-        // }
+        $image = $this->cli->shiftArg();
+
+        if(empty($image)){
+            return $this->proxy->getDockerImage();
+        }
+
+        $this->proxy->setDockerImage($image['name']);
     }
 }

@@ -3,7 +3,6 @@
 namespace DDT\Tool;
 
 use DDT\CLI;
-use DDT\Config\SystemConfig;
 use DDT\Exceptions\Tool\CommandInvalidException;
 use DDT\Exceptions\Tool\CommandNotFoundException;
 
@@ -18,89 +17,16 @@ abstract class Tool
     /** @var string The main entrypoint from the terminal */
     protected $entrypoint;
 
-    /** @var string The tool being requested */
-    protected $command;
-
-    /** @var value The value the command was given, if it was equalled to something */
-    protected $value = null;
-
-    /** @var array The arguments passed to the tool */
-    protected $args = [];
-
-    /** @var callable The response handler for dealing with what the tool replies with */
-    protected $responseHandler;
-
-    /** @var callable The default handler when no arguments were given, default: 'help' function */
-    protected $defaultHandler;
-
     public function __construct(string $name, CLI $cli)
 	{
 		$this->name = $name;
 		$this->cli = $cli;
-        $this->setTerminalResponse();
-        $this->setDefaultHandler([$this, 'help']);
+        $this->entrypoint = $this->cli->getScript(false);
 	}
 
-    protected function setCommand(array $command)
+    public function isTool(): bool
     {
-        if(empty($command) || !array_key_exists('name', $command) || empty($command['name'])){
-            throw new CommandInvalidException();
-        }
-
-        $this->command = strtolower($command['name']);
-        $this->command = str_replace(['-','_'], ' ', $this->command);
-        $this->command = ucwords($this->command);
-        $this->command = str_replace(' ', '', $this->command);
-        $this->command = lcfirst($this->command);
-
-        // The value of this command if it was given one
-        $this->value = $command['value'];
-
-        $entrypoint = $this->cli->getScript(false);
-
-        if(!method_exists($this, $this->command)){
-            throw new CommandNotFoundException("$entrypoint $this->name", $this->command);
-        }
-    }
-
-    protected function setArgs(array $args)
-    {
-        $this->args = $args;
-    }
-
-    public function handle()
-    {
-        if($this->cli->countArgs() < 1){
-            $response = call_user_func($this->defaultHandler);
-        }else{
-            $this->setCommand($this->cli->shiftArg());
-            $this->setArgs($this->cli->getArgList());
-
-            $response = call_user_func_array([$this, $this->command], array_merge([$this->value], $this->args));
-        }
-
-        return call_user_func($this->responseHandler, $response ?? '');
-    }
-
-    public function setDefaultHandler(callable $defaultHandler)
-    {
-        $this->defaultHandler = $defaultHandler;
-    }
-
-    public function setTerminalResponse()
-    {
-        $this->responseHandler = function(string $output): string {
-            $output = \Text::write($output);
-            print($output."\n");
-            return $output;
-        };
-    }
-
-    public function setReturnResponse()
-    {
-        $this->responseHandler = function(string $output): string {
-            return $output;
-        };
+        return true;
     }
 
     public function getName(): string
@@ -108,10 +34,77 @@ abstract class Tool
         return $this->name;
     }
 
-    // The next three methods are required for basic help functionality
+    protected function getCommandMethod(array $command)
+    {
+        if(empty($command) || !array_key_exists('name', $command) || empty($command['name'])){
+            throw new CommandInvalidException();
+        }
+
+        $name = strtolower($command['name']);
+
+        $command = $name;
+        $command = str_replace(['-', '_'], ' ', $command);
+        $command = ucwords($command);
+        $command = str_replace(' ', '', $command);
+        $command = lcfirst($command);
+        $command = $command . "Command";
+
+        if(!method_exists($this, $command)){
+            throw new CommandNotFoundException("$this->entrypoint $this->name", $name);
+        }
+
+        return $command;
+    }
+
+    /**
+     * Handle the command line parameters
+     * 
+     * This is generic since it delegates it's work to handleArg/handleCommand to do the specifics
+     */
+    public function handle()
+    {
+        while($this->cli->countArgs() > 0){
+            $arg = $this->cli->shiftArg();
+
+            if(strpos($arg['name'], '--') === 0){
+                $this->handleArg($arg);
+            }else{
+                return $this->handleCommand($arg);
+            }
+        }
+
+        return $this->help();
+    }
+
+    /**
+     * Handle what to do with the current argument being processed
+     * 
+     * The tool must overload this method with it's own custom implementation based on how it processed arguments
+     * into a meaningful way inside the tool
+     */
+    public function handleArg(array $arg): void
+    {
+        \Text::print("{debug}Unhandled argument named '{$arg['name']}' with value '{$arg['value']}'\n{/debug}");
+    }
+    
+    /**
+     * Handle what to do with the current command being processed
+     * 
+     * All tools do the same thing, they search for a method called cmdCommand where cmd is what was on the command line
+     * and if found, it's executed and
+     */
+    public function handleCommand(array $command)
+    {
+        $command = $this->getCommandMethod($command);
+
+        return call_user_func([$this, $command]);
+    }
+
+    // The next three methods are required for basic help functionality, they can't be provided generically
     abstract public function getTitle(): string;
     abstract public function getDescription(): string;
     abstract public function getShortDescription(): string;
+
     // It's reasonable that these three methods don't exist in every tool, so we let them return empty by default so they can be safely skipped
     public function getOptions(): string{ return ''; }
     public function getExamples(): string{ return ''; }
@@ -145,16 +138,7 @@ abstract class Tool
         if(!empty($notes)) {
             $section[] = "{blu}Notes:{end}\n$notes";
         }
-        
-        return implode("\n\n", $section) . "\n";
-    }
 
-    static public function instance(string $name): Tool
-    {
-        try{
-            return container('DDT\\Tool\\'.ucwords($name).'Tool');
-        }catch(\Exception $e){
-            throw new \DDT\Exceptions\Tool\ToolNotFoundException($name);
-        }
+        return implode("\n\n", $section) . "\n";
     }
 }

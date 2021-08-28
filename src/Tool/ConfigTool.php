@@ -3,24 +3,13 @@
 namespace DDT\Tool;
 
 use DDT\CLI;
-use DDT\Distro\DistroDetect;
 use DDT\Config\SystemConfig;
 use DDT\Exceptions\Config\ConfigMissingException;
-use DDT\Network\Network;
 class ConfigTool extends Tool
 {
-    /** @var SystemConfig  */
-    private $config;
-
-    /** @var Network  */
-    private $network;
-
     public function __construct(CLI $cli)
     {
     	parent::__construct('config', $cli);
-
-        //$this->config = container(SystemConfig::class);
-		$this->network = new Network(DistroDetect::get());
     }
 
     public function getTitle(): string
@@ -53,7 +42,7 @@ class ConfigTool extends Tool
 
 	public function getExamples(): string
 	{
-		$entrypoint = $this->cli->getScript(false) . " " . $this->getName();
+		$entrypoint = $this->entrypoint . " " . $this->getName();
 
 		return<<<EXAMPLES
 Basic commands are simple to understand:
@@ -165,7 +154,7 @@ EXAMPLES;
 		\Script::failure("implement: " . __METHOD__);
 		/*
 		if($exists && $removeKey = $cli->getArgWithVal('remove-key')){
-			$config = \DDT\Config\SystemConfig::instance();
+			$config = container(\DDT\Config\SystemConfig::class);
 			$config->deleteKey($removeKey);
 			$config->write();
 			exit(0);

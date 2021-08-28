@@ -3,23 +3,18 @@
 namespace DDT\Tool;
 
 use DDT\CLI;
-use DDT\Config\DockerConfig;
 use DDT\Docker\Docker;
 
 class DockerTool extends Tool
 {
-    /** @var DockerConfig $config */
-    private $config;
+    /** @var Docker $docker */
+    private $docker;
     
-    public function __construct(CLI $cli, \DDT\Config\SystemConfig $systemConfig)
+    public function __construct(CLI $cli, Docker $docker)
     {
         parent::__construct('docker', $cli);
-        
-        $systemConfig = $systemConfig;
-        $dockerConfig = new DockerConfig($systemConfig);
 
-        $this->setDocker(new Docker($dockerConfig));
-        $this->setDockerConfig($dockerConfig);
+        $this->docker = $docker;
     }
 
     public function getTitle(): string
@@ -91,25 +86,15 @@ NOTES;
 EXAMPLES;
     }
 
-    public function setDocker(Docker $docker)
+    public function statusCommand()
     {
-        $this->docker = $docker;
-    }
-
-    public function setDockerConfig(DockerConfig $config)
-    {
-        $this->config = $config;
-        $this->docker->setConfig($config);
-    }
-
-    public function state()
-    {
-        var_dump($this->config->listProfile());
+        var_dump($this->docker->listProfile());
         \Script::failure("showing state");
     }
 
     public function addProfile()
     {
+        $this->cli->failure("{red}TODO: Implement: ".__METHOD__."\n");
 
         /*if(($profile = $cli->getArgWithVal('add-profile')) !== null){
             $host       = $cli->getArgWithVal('host');
@@ -128,6 +113,8 @@ EXAMPLES;
 
     public function removeProfile()
     {
+        $this->cli->failure("{red}TODO: Implement: ".__METHOD__."\n");
+
         /*if(($profile = $cli->getArgWithVal('remove-profile')) !== null){
             if($docker->removeProfile($profile)){
                 Script::success("Profile '$profile' was removed successfully");
@@ -139,6 +126,8 @@ EXAMPLES;
 
     public function listProfile()
     {
+        $this->cli->failure("{red}TODO: Implement: ".__METHOD__."\n");
+        
         /*if($cli->hasArg(['list-profile', 'list-profiles'])){
             $profileList = $docker->listProfiles();
         
@@ -156,6 +145,8 @@ EXAMPLES;
 
     public function getJson(string $profile)
     {
+        $this->cli->failure("{red}TODO: Implement: ".__METHOD__."\n");
+
         /*if(($profile = $cli->getArgWithVal('get-json')) !== null){
             $json = (string)$docker->getProfile($profile);
             if($json !== null){
@@ -168,6 +159,8 @@ EXAMPLES;
 
     public function useProfile()
     {
+        $this->cli->failure("{red}TODO: Implement: ".__METHOD__."\n");
+
         /*if(($profile = $cli->getArgWithVal('profile')) !== null){
             if($docker->useProfile($profile) === false){
                 Script::failure("Profile '$profile' did not exist");
@@ -177,6 +170,8 @@ EXAMPLES;
 
     public function runDocker()
     {
+        $this->cli->failure("{red}TODO: Implement: ".__METHOD__."\n");
+
         /*$args = $cli->getArgList(true);
         unset($args['--profile']);
         

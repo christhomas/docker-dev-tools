@@ -3,24 +3,24 @@
 namespace DDT\Tool;
 
 use DDT\CLI;
-use DDT\Distro\DistroDetect;
 use DDT\Config\SystemConfig;
-use DDT\Network\Network;
+use DDT\Contract\IpServiceInterface;
+
 class IpTool extends Tool
 {
     /** @var \DDT\Config\SystemConfig  */
     private $config;
 
-    /** @var Network  */
-    private $network;
+	/** @var IpServiceInterface */
+	private $ipService;
 
-    public function __construct(CLI $cli, SystemConfig $config)
+    public function __construct(CLI $cli, SystemConfig $config, IpServiceInterface $ipService)
     {
     	parent::__construct('ip', $cli);
 
         $this->cli = $cli;
         $this->config = $config;
-		$this->network = new Network(DistroDetect::get());
+		$this->ipService = $ipService;
     }
 
     public function getTitle(): string
@@ -46,7 +46,7 @@ IDE Is listening for incoming connections";
 		$alias = $this->config->getKey('.ip_address') ?? 'unknown';
 
 		return "\t" . implode("\n\t", [
-			"set=xxx: Add an IP Address to your configuration stack, this value will be remembered and used in the future",
+			"set <ip-address>: Add an IP Address to your configuration stack, this value will be remembered and used in the future",
 			"get: Get the Currently configured IP Address.",
 			"add: Add '{yel}$alias{end}' as an ip alias for '{yel}127.0.0.1{end}'",
 			"remove: Remove '{yel}$alias{end}' from your computer",
@@ -65,83 +65,127 @@ This means you have no ip address which is addressable from your local machine, 
 NOTES;
 	}
 
-	protected function set(): void
+	public function setCommand(): void
 	{
-		\Script::failure("TODO: implement set functionality");
-// 		$this->network->createIpAddressAlias();
-//		if($newIpAddress = $cli->getArgWithVal('set')){
-//			Text::print("Writing IP Address '{yel}$newIpAddress{end}': ");
-//
-//			if($ipAddress->set($newIpAddress)){
-//				Text::print("{grn}SUCCESS{end}\n");
-//			}else{
-//				Text::print("{red}FAILURE{end}\n");
-//				Script::failure();
-//			}
-//		}else{
-//			Script::failure("{red}You must pass an ip address to the --set=xxx parameter{end}");
-//		}
+		$ipAddress = $this->cli->shiftArg();
+
+		if(empty($ipAddress)){
+			throw new \Exception("You must provide an ip address to this command, one was not found in the config, nor the command line");
+		}else{
+			$ipAddress = $ipAddress['name'];
+			$this->cli->print("Writing IP Address '{yel}$ipAddress{end}': ");
+
+			$this->config->setKey('.ip_address', $ipAddress);
+			if($this->config->write()){
+				$this->cli->print("{grn}SUCCESS{end}\n");
+			}else{
+				$this->cli->print("{red}FAILURE{end}\n");
+				$this->cli->failure();
+			}
+		}
 	}
 
-	protected function get(): void
+	protected function getCommand(): string
 	{
-		\Script::failure("TODO: implement get functionality");
-		/*$ipAddress = new IPAddress($config);
-		$alias = $ipAddress->get();
-
-		if($cli->hasArg('get')){
-			Text::print("IP Address: '{yel}$alias{end}'\n");
-		}*/
+		return $this->config->getKey('.ip_address');
 	}
 
-	protected function add(): void
+	protected function addCommand(): void
 	{
-		\Script::failure("TODO: implement add functionality");
-//		Shell::sudo();
-//		Text::print("Installing IP Address '{yel}$alias{end}': ");
-//		$status = $ipAddress->install();
-//
-//		if($status === true){
-//			Text::print("{grn}SUCCESS{end}\n");
-//			Format::ping($ipAddress->ping());
-//		}else{
-//			Text::print("{red}FAILURE{end}\n");
-//			Script::failure();
-//		}
+		$ipAddress = $this->config->getKey('.ip_address');
+
+		if(empty($ipAddress)){
+			throw new \Exception('There is no ip address configured, you must use the \'set\' command to configure one');
+		}
+
+		$this->cli->sudo();
+		$this->cli->print("Installing IP Address '{yel}$ipAddress{end}': ");
+		
+		if($this->ipService->set($ipAddress)){
+			$this->cli->print("{grn}SUCCESS{end}\n");
+		}else{
+			$this->cli->print("{red}FAILURE{end}\n");
+		}
 	}
 
-	protected function remove(): void
+	protected function removeCommand(): void
 	{
-		\Script::failure("TODO: implement remove functionality");
-//		Text::print("Uninstalling IP Address '{yel}$alias{end}': ");
-//		$status = $ipAddress->uninstall();
-//		$cli->setArg('ping', false);
-//
-//		if($status === true){
-//			Text::print("{grn}SUCCESS{end}\n");
-//		}else{
-//			Text::print("{red}FAILURE{end}\n");
-//			Script::failure();
-//		}
+		$ipAddress = $this->config->getKey('.ip_address');
+
+		if(empty($ipAddress)){
+			throw new \Exception('There is no ip address configured, you must use the \'set\' command to configure one');
+		}
+
+		$this->cli->sudo();
+		$this->cli->print("Uninstalling IP Address '{yel}$ipAddress{end}': ");
+
+		if($this->ipService->remove($ipAddress)){
+			$this->cli->print("{grn}SUCCESS{end}\n");
+		}else{
+			$this->cli->print("{red}FAILURE{end}\n");
+		}
 	}
 
-	protected function reset(): void
+	protected function resetCommand(): void
 	{
-		\Script::failure("TODO: implement reset functionality");
-//		Text::print("{blu}Resetting IP Address:{end}\n");
-//
-//		Text::print("\t{blu}Uninstalling:{end} ");
-//		$result = $ipAddress->uninstall() ? "{grn}success{end}" : "{red}failure{end}";
-//		Text::print("$result\n");
-//
-//		Text::print("\t{blu}Installing:{end} ");
-//		$result = $ipAddress->install() ? "{grn}success{end}" : "{red}failure{end}";
-//		Text::print("$result\n");
+		$this->cli->print("{blu}Resetting IP Address:{end}\n");
+		$this->removeCommand();
+		$this->addCommand();
 	}
 
-	protected function ping(): void
+	protected function pingCommand(): void
 	{
-		\Script::failure("TODO: implement ping functionality");
+		$this->cli->failure("TODO: implement ping functionality");
+		/*
+		$ipAddress = $ipAddress ?: $this->get();
+
+		try{
+			$result = Shell::exec("ping -c 1 -W 1 $ipAddress 2>&1");
+		}catch(Exception $e){
+			$result = explode("\n",$e->getMessage());
+		}
+
+		$data = [
+			'hostname'		=> null,
+			'ip_address'	=> null,
+			'packet_loss'	=> 0.0,
+			'can_resolve'	=> true,
+			'matched'		=> true,
+		];
+
+		foreach($result as $line){
+			if(preg_match("/^PING\s+([^\s]+)\s\(([^\)]+)\)/", $line, $matches)){
+				$data['hostname'] = $matches[1];
+				// We do this because pinging a hostname will return the ip address
+				$data['ip_address'] = $matches[2];
+			}
+
+			// Check DNS resolution resolved to the expected domain name
+			if($compare && $compare !== $data['ip_address']){
+				$data['matched'] = $compare;
+			}
+
+			if(preg_match("/cannot resolve ([^\s]+): unknown host/i", $line, $matches)){
+				$data['ip_address'] = $matches[1];
+			}
+
+			if(preg_match("/((?:[0-9]{1,3})(?:\.[0-9]+)?)[\s]?% packet loss/", $line, $matches)){
+				$data['packet_loss'] = (float)$matches[1];
+			}
+
+			if(preg_match("/(cannot resolve|Time to live exceeded|0 packets received)/", $line, $matches)){
+				$data['can_resolve'] = false;
+			}
+		}
+
+		if($data['ip_address'] && $data['packet_loss'] === 0.0 && $data['can_resolve'] === true){
+			$data['status'] = true;
+		}else{
+			$data['status'] = false;
+		}
+
+		return $data;
+		*/
 //		Format::ping($ipAddress->ping());
 	}
 }
