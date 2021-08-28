@@ -6,7 +6,7 @@ use DDT\Contract\DnsServiceInterface;
 
 class DnsService implements DnsServiceInterface
 {
-    public function enable(): bool
+    public function enable(string $dnsIpAddress): bool
     {
         throw new \Exception("Implement method: " . __METHOD__);
     }
