@@ -2,13 +2,14 @@
 class Shell
 {
 	protected static $debug = false;
-	protected static $exitCode = 0;
-	protected static $stdout = "";
-	protected static $stderr = "";
+	
+	public static $exitCode = 0;
+	public static $stdout = "";
+	public static $stderr = "";
 
-	static public function setDebug($state)
+	static public function setDebug(bool $state)
 	{
-		self::$debug = !!$state;
+		self::$debug = $state;
 	}
 
 	static public function getExitCode()
@@ -26,11 +27,6 @@ class Shell
 		}
 	}
 
-	static public function printDebug($prefix, $content)
-    {
-		print(Text::blue("[DEBUG] $prefix: ").$content."\n");
-    }
-
 	static public function sudo()
 	{
 		return self::exec("sudo echo");
@@ -38,7 +34,7 @@ class Shell
 
 	static public function exec(string $command, bool $firstLine=false, bool $throw=true)
 	{
-		$debug = "{blu}[DEBUG] Run command:{end} $command";
+		$debug = "{red}[EXEC]:{end} $command";
 
 		unset($pipes);
 		$pipes = [];
@@ -61,9 +57,7 @@ class Shell
 		$debug = "$debug, {blu}Return Code:{end} $code";
 		$debug = "$debug, {blu}Error Output:{end} '".self::$stderr."'";
 
-		if(self::$debug){
-			Text::print($debug."\n");
-		}
+		\Text::print("{debug}$debug\n{/debug}");
 
 		if($code !== 0 && $throw === true){
 			throw new Exception(self::$stdout." ".self::$stderr, $code);
@@ -76,9 +70,7 @@ class Shell
 
 	static public function passthru(string $command, bool $throw=true): int
 	{
-		if(self::$debug){
-			print(Text::blue("[DEBUG] Passthru command: ").$command."\n");
-		}
+		\Text::print("{debug}{red}[EXEC]:{end} Passthru command: $command\n{/debug}");
 
 		$redirect = self::$debug ? "" : "2>&1";
 
