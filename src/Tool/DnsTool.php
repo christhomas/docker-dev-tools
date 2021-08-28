@@ -3,31 +3,29 @@
 namespace DDT\Tool;
 
 use DDT\CLI;
-use DDT\Distro\DistroDetect;
+use DDT\Config\DnsConfig;
+use DDT\Config\IpConfig;
+use DDT\Config\SystemConfig;
+use DDT\Contract\DnsServiceInterface;
 use DDT\Network\DNSMasq;
-use DDT\Network\Network;
-
-/**
- * Other useful DNS commands I found online that might be useful
- * MacOS:
- * - arp -ad = flush the arp (address resolution protocol) cache
- * - arp eu-west-1.s3.aws.develop = show information about a specific hostname
- */
 
 class DnsTool extends Tool
 {
-    private $config;
-    private $network;
-    private $dns;
+    private $dnsConfig;
+    private $ipConfig;
 
-    public function __construct(CLI $cli, \DDT\Config\SystemConfig $config)
+    private $dnsMasq;
+    private $dnsService;
+
+    public function __construct(CLI $cli, DnsConfig $dnsConfig, IpConfig $ipConfig, DNSMasq $dnsMasq, DnsServiceInterface $dnsService)
     {
     	parent::__construct('dns', $cli);
 
-        $this->config = $config;
-        $distro = DistroDetect::get();
-        $this->network = new Network($distro);
-        $this->dns = new DNSMasq($this->network);
+        $this->dnsConfig = $dnsConfig;
+        $this->ipConfig = $ipConfig;
+
+        $this->dnsMasq = $dnsMasq;
+        $this->dnsService = $dnsService;
     }
 
     public function getTitle(): string
@@ -58,7 +56,7 @@ class DnsTool extends Tool
 {cyn}Toggling the DNS Server:{end}
     enable: Enable the DNS Server
     disable: Disable the DNS Server
-    reset: Toggles the DNS Server as disabled then enabled as well as refreshing the dns cache
+    refresh: Toggles the DNS Server as disabled then enabled as well as refreshing the dns cache
 
 {cyn}Running of the DNS Server Container:{end}
     start: Setup the DNS servers and start the DNS container
@@ -93,34 +91,39 @@ docker container as well. So it's more like a hard reset.
 NOTES;
     }
 
-    public function enable(): void
+    public function enableCommand()
     {
-        \Text::print("{grn}Enabling:{end} DNS...\n");
-        $this->dns->enable();
+        $this->cli->print("{grn}Enabling:{end} DNS...\n");
+
+        $dnsIpAddress = $this->ipConfig->get();
+
+        if(empty($dnsIpAddress)){
+            throw new \Exception('The system configuration had no usable ip address for this system configured');
+        }
+
+        $this->dnsService->enable($dnsIpAddress);
     }
 
-    public function disable(): void
+    public function disableCommand()
     {
-        \Text::print("{red}Disabling:{end} DNS...\n");
-        $this->dns->disable();
+        $this->cli->print("{red}Disabling:{end} DNS...\n");
+        $this->dnsService->disable();
     }
 
-    public function refresh(): void
+    public function refreshCommand()
     {
-        \Text::print("{yel}Refreshing:{end} DNS...\n");
-        $this->dns->refresh();
+        $this->cli->print("{yel}Refreshing:{end} DNS...\n");
+        
+        $this->disableCommand();
+        $this->enableCommand();
     }
 
-    public function start(): bool
+    public function startCommand()
     {
-        \Text::print("{blu}Starting:{end} DNS...\n");
+        $this->cli->print("{blu}Starting:{end} DNS...\n");
 
-        $this->dns->start();
-
-        return true;
-
-        // $dns->start();
-        // $network->enableDNS();
+        $this->dnsMasq->start();
+        $this->enableCommand();
 
         // Format::ping($alias->ping('127.0.0.1'));
         // Format::ping($alias->ping('google.com'));
@@ -133,15 +136,12 @@ NOTES;
         // }
     }
 
-    public function stop(): bool
+    public function stopCommand()
     {
-        \Text::print("{red}Stopping:{end} DNS...\n");
+        $this->cli->print("{red}Stopping:{end} DNS...\n");
 
-        $this->dns->stop();
-
-        return false;
-
-        // $network->disableDNS();
+        $this->disableCommand();
+        $this->dnsMasq->stop();
 
         // Format::ping($alias->ping('127.0.0.1'));
         // Format::ping($alias->ping('google.com'));
@@ -156,31 +156,29 @@ NOTES;
 
     public function restart(): void
     {
-        \Text::print("{yel}Restarting:{end} DNS...\n");
+        $this->cli->print("{yel}Restarting:{end} DNS...\n");
 
-        if($this->dns->isRunning()){
-            $this->stop();
-            $this->start();
+        if($this->dnsMasq->isRunning()){
+            $this->stopCommand();
+            $this->startCommand();
         }else{
-            $this->start();
+            $this->startCommand();
         }
     }
 
-    public function logs(): void
+    public function logsCommand(): void
     {
-        \Text::print("{yel}TODO: logs{end}\n");
-        $this->dns->logs();
+        $this->dnsMasq->logs();
     }
 
-    public function logsF(): void
+    public function logsFCommand(): void
     {
-        \Text::print("{yel}TODO: logs follow{end}\n");
-        $this->dns->logs(true);
+        $this->dnsMasq->logs(true);
     }
 
-    public function addDomain(): void
+    public function addDomainCommand(): void
     {
-        \Text::print("{yel}TODO: addDomain{end}\n");
+        $this->cli->print("{yel}TODO: addDomain{end}\n");
         // $ipAddress = $cli->getArgWithVal('ip-address', $alias->get());
 
         // if($ipAddress !== $alias->get()){
@@ -193,9 +191,9 @@ NOTES;
         // Format::ping($alias->ping($domain, $ipAddress));
     }
 
-    public function removeDomain(): void
+    public function removeDomainCommand(): void
     {
-        \Text::print("{yel}TODO: removeDomain{end}\n");
+        $this->cli->print("{yel}TODO: removeDomain{end}\n");
         // $dns->removeDomain($domain);
 
         // Format::ping($alias->ping('google.com'));
@@ -204,26 +202,40 @@ NOTES;
 
     public function setIp(): void
     {
-        \Text::print("{yel}TODO: setIp{end}\n");
+        $this->cli->print("{yel}TODO: setIp{end}\n");
     }
 
-    public function containerName(): void
+    public function containerNameCommand(): string
     {
-        \Text::print("{yel}TODO: containerName{end}\n");
-        // set: $dns->setContainerName($containerName);
-        // get: Text::print("Container: ".$dns->getContainerName()."\n");
+        $containerName = $this->cli->shiftArg();
+
+        if(empty($containerName)){
+            return $this->dnsConfig->getContainerName();
+        }else{
+            $containerName = $containerName['name'];
+            return $this->dnsConfig->setContainerName($containerName);
+        }
     }
 
-    public function dockerImage(): void
+    public function dockerImageCommand(): string
     {
-        \Text::print("{yel}TODO: dockerImage{end}\n");
-        // set: $dns->setDockerImage($dockerImage);
-        // get: Text::print("Docker Image: ".$dns->getDockerImage()."\n");
+        $dockerImage = $this->cli->shiftArg();
+
+        if(empty($dockerImage)){
+            return $this->dnsConfig->getDockerImage();
+        }else{
+            $dockerImage = $dockerImage['name'];
+            return $this->dnsConfig->setDockerImage($dockerImage);
+        }
     }
 
-    public function status(): void
+    public function statusCommand(): void
     {
-        \Text::print("{yel}TODO: Show status information here{end}\n");
+        $this->cli->print("{yel}TODO: Show status information here{end}\n");
+
+        $domainList = $this->dnsMasq->listDomains();
+        var_dump($domainList);
+
         // Text::print("{blu}Domains that are registered in the dns container:{end}\n");
 
         // $domainList = $dns->listDomains(true);
