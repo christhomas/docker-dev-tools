@@ -121,9 +121,14 @@ class CLI
 		return \Shell::passthru($command, $throw);
 	}
 
-	public function print($string)
+	public function print(string $string)
 	{
 		\Text::print($string);
+	}
+
+	public function printDebug(string $string)
+	{
+		$this->print("{debug}$string{/debug}");
 	}
 
 	public function failure(?string $string=null)
