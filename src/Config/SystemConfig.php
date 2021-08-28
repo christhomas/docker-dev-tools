@@ -18,17 +18,6 @@ class SystemConfig extends BaseConfig
         }
     }
 
-	static public function instance(): self
-	{
-		static $instance = null;
-
-		if($instance === null){
-			$instance = new self($_SERVER['HOME']);
-		}
-
-		return $instance;
-	}
-
 	public function getDescription(): string
 	{
 		return $this->getKey('description');
