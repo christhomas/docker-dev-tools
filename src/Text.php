@@ -9,9 +9,16 @@ class Text
 
 	static private $quiet = false;
 
-	static public function setQuiet(bool $active): void
+	static private $debug = 'false';
+
+	static public function setQuiet(bool $state): void
 	{
-		self::$quiet = $active;
+		self::$quiet = $state;
+	}
+
+	static public function setDebug(string $mode='true'): void
+	{
+		self::$debug = $mode;
 	}
 
 	static public function addCode($key, $value): void
@@ -41,13 +48,28 @@ class Text
 		return $input;
 	}
 
-	static public function stripQuiet(string $input, bool $ignore=false): string
+	// TODO: future plan is to allow a generic way to 'strip tags' from output instead of just quiet or debug 
+	static public function stripQuiet(string $input, ?bool $strip=true, ?bool $ignore=false): string
 	{
-		if(preg_match_all("/({quiet}((?:.|\n)*?){\/quiet})/", $input, $matches) !== false){
-			if(self::$quiet === true && $ignore === false){
-				$input = str_replace($matches[0], "", $input);
-			}else{
-				$input = str_replace($matches[0], $matches[2], $input);
+		$tag = 'quiet';
+
+		if(preg_match_all("/({".$tag."}((?:.|\n)*?){\/".$tag."})/", $input, $matches) !== false){
+			$result = $strip === true && $ignore === false ? "" : $matches[2];
+			$input = str_replace($matches[0], $result, $input);
+		}
+
+		return $input;
+	}
+
+	static public function stripDebug(string $input, ?string $mode='true'): string
+	{
+		// TODO: future plan is to allow this to accept optional states, like 'verbose'
+		$tag = 'debug';
+		
+		if(preg_match_all("/(\{".$tag."\}((?:.|\n)*?){\/".$tag."})/", $input, $matches) !== false){
+			foreach($matches[0] as $k => $v){
+				$result = $mode === 'false' ? "" : "{blu}[DEBUG]:{end} " . $matches[2][$k];
+				$input = str_replace($v, $result, $input);
 			}
 		}
 
@@ -107,11 +129,17 @@ class Text
 
 	static public function write(string $string, bool $ignoreQuiet = false): string
 	{
+		$string = self::stripDebug($string, self::$debug);
+		$string = self::stripQuiet($string, self::$quiet, $ignoreQuiet);
+
 		foreach(self::$codes as $key => $code){
 			$string = str_replace('{'.strtolower($key).'}',$code['value'],$string);
 		}
+		
+		// TODO: future idea to allow a variable mode of output to the terminal
+		// $string = self::stripTag(['debug=verbose', 'debug'], $string, self::$debug);
 
-		return self::stripQuiet($string, $ignoreQuiet);
+		return $string;
 	}
 
 	static public function white(string $string): string
