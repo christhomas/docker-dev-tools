@@ -59,6 +59,18 @@ class CLI
 		return array_shift($this->args);
 	}
 
+	public function removeArg(string $name): ?array
+	{
+		foreach($this->args as $k => $v){
+			if($name === $v['name']){
+				unset($this->args[$k]);
+				return $v;
+			}
+		}
+
+		return null;
+	}
+
 	public function countArgs(): int
 	{
 		return count($this->args);
