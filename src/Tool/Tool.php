@@ -98,30 +98,36 @@ abstract class Tool
     {
         $command = $this->getCommandMethod($command);
 
+        // obtain using reflect all the method parameters
         $method = new ReflectionMethod($this, $command);
+        // the method might not have any arguments, default to empty list
         $parameters = $method->getParameters() ?? [];
 
         $args = [];
 
+        // loop through them to pull out the information from the cli
         foreach($parameters as $p){
             $name = $p->getName();
             $type = (string)$p->getType();
 
+            // all named arguments are prefixed with double dash
             $a = $this->cli->removeArg("--".$name);
 
+            // named arguments can't be found, then this is an error
             if(empty($a)){
                 throw new \Exception("This command required a parameter --{$name}, see help for more information");
             }
 
+            // cast the value to the correct type according to reflection
             $v = null;
             $v = $a['value'];
-
             settype($v, $type);
 
             if(empty($v)){
                 if($p->isOptional()){
-                    $v = $p->getDefaultValue();
+                    // if empty, and optional, use defaultValue();
                 }else{
+                    // if empty, but not optional, throw exception, this is an error
                     throw new \Exception("The parameter --{$name} is not optional, has no default value, and must be provided");
                 }
             }
