@@ -5,6 +5,7 @@ namespace DDT\Tool;
 use DDT\CLI;
 use DDT\Exceptions\Tool\CommandInvalidException;
 use DDT\Exceptions\Tool\CommandNotFoundException;
+use ReflectionMethod;
 
 abstract class Tool
 {
@@ -97,7 +98,38 @@ abstract class Tool
     {
         $command = $this->getCommandMethod($command);
 
-        return call_user_func([$this, $command]);
+        $method = new ReflectionMethod($this, $command);
+        $parameters = $method->getParameters() ?? [];
+
+        $args = [];
+
+        foreach($parameters as $p){
+            $name = $p->getName();
+            $type = (string)$p->getType();
+
+            $a = $this->cli->removeArg("--".$name);
+
+            if(empty($a)){
+                throw new \Exception("This command required a parameter --{$name}, see help for more information");
+            }
+
+            $v = null;
+            $v = $a['value'];
+
+            settype($v, $type);
+
+            if(empty($v)){
+                if($p->isOptional()){
+                    $v = $p->getDefaultValue();
+                }else{
+                    throw new \Exception("The parameter --{$name} is not optional, has no default value, and must be provided");
+                }
+            }
+
+            $args[] = $v;
+        }
+
+        return call_user_func_array([$this, $command], $args);
     }
 
     // The next three methods are required for basic help functionality, they can't be provided generically
