@@ -82,7 +82,7 @@ class DockerNetwork
 	public function detach(string $containerId): bool
 	{
 		try{
-            $this->docker->networkDetact($this->name, $containerId);
+            $this->docker->networkDetach($this->name, $containerId);
 
             $containers = $this->listContainers();
 
