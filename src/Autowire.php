@@ -18,7 +18,7 @@ class Autowire
     {
         $reflectionClass = new \ReflectionClass($ref);
         $constructor = $reflectionClass->getConstructor();
-        $finalArgs = $this->getMethodArgs($constructor, $args);
+        $finalArgs = $this->getMethodArgsFromAssocArray($constructor, $args);
 
         //  This is too much output to leave in by default, we need to support debug=verbose or something 
         //  cause this just overloads the programmer with far too much information to be useful in the general case
@@ -27,7 +27,17 @@ class Autowire
         return $reflectionClass->newInstanceArgs($finalArgs);
     }
 
-    public function getMethodArgs(?\ReflectionFunctionAbstract $method = null, array $input): array
+    public function callMethod(object $class, string $method, ?array $args=[])
+    {
+        // obtain using reflect all the method parameters
+        $reflectionMethod = new \ReflectionMethod($class, $method);
+
+        $finalArgs = $this->getMethodArgsFromCLI($reflectionMethod, $args);
+
+        return $reflectionMethod->invoke($class, ...$finalArgs);
+    }
+
+    public function getMethodArgsFromAssocArray(?\ReflectionFunctionAbstract $method = null, array $input): array
     {
         $parameters = $method ? $method->getParameters() : [];
     
@@ -55,14 +65,12 @@ class Autowire
         return $output;
     }
 
-    public function callMethod(object $class, string $method, ?array $args=[])
+    public function getMethodArgsFromCLI(?\ReflectionFunctionAbstract $method = null, array $input): array
     {
-        // obtain using reflect all the method parameters
-        $reflectionMethod = new \ReflectionMethod($class, $method);
         // the method might not have any arguments, default to empty list
-        $parameters = $reflectionMethod->getParameters() ?? [];
+        $parameters = $method->getParameters() ?? [];
 
-        $finalArgs = [];
+        $output = [];
 
         // loop through them to pull out the information from the cli
         foreach($parameters as $p){
@@ -71,7 +79,7 @@ class Autowire
 
             // all named arguments are prefixed with double dash
             $a = null;
-            foreach($args as $key => $item){
+            foreach($input as $key => $item){
                 if($item['name'] === "--{$name}"){
                     unset($args[$key]);
                     $a = $item;
@@ -91,15 +99,16 @@ class Autowire
             if(empty($v)){
                 if($p->isOptional()){
                     // if empty, and optional, use defaultValue();
+                    $v = $p->getDefaultValue();
                 }else{
                     // if empty, but not optional, throw exception, this is an error
                     throw new \Exception("The parameter --{$name} is not optional, has no default value, and must be provided");
                 }
             }
 
-            $finalArgs[] = $v;
+            $output[] = $v;
         }
 
-        return $reflectionMethod->invoke($class, ...$finalArgs);
+        return $output;
     }
 }
