@@ -77,34 +77,6 @@ class Container {
         return $this->singletonCache[$ref];
     }
 
-    private function autowireMethod(?ReflectionFunctionAbstract $method = null, array $input): array
-    {
-        $parameters = $method ? $method->getParameters() : [];
-    
-        $output = [];
-        
-        foreach($parameters as $p){
-            $name = $p->getName();
-            $type = (string)$p->getType();
-            // var_dump(['param' => $name, 'type' => $type]);
-
-            if(array_key_exists($name, $input)){
-                $output[] = $input[$name];
-            }else{
-                // var_dump(['class-exists' => [$type, class_exists($type)]]);
-                if($this->has($type)){
-                    $output[] = $this->get($type);
-                }else if ($p->isOptional()) {
-                    $output[] = $p->getDefaultValue();
-                }else{
-                    throw new CannotAutowireParameterException($name, $type);
-                }
-            }
-        }
-
-        return $output;
-    }
-
     private function createClass(string $ref, array $args = []) {
         \Text::print("{debug}{red}[CONTAINER]:{end} '$ref' was bound as class\n{/debug}");
         
