@@ -3,7 +3,9 @@
 namespace DDT;
 
 use DDT\Exceptions\Container\CannotAutowireException;
+use DDT\Exceptions\Container\CannotAutowireParameterException;
 use DDT\Exceptions\Container\NotClassReferenceException;
+use ReflectionFunctionAbstract;
 
 class Container {
     static public $instance = null;
@@ -75,39 +77,41 @@ class Container {
         return $this->singletonCache[$ref];
     }
 
-    private function createClass(string $ref, array $args = []) {
-        \Text::print("{debug}{red}[CONTAINER]:{end} '$ref' was bound as class\n{/debug}");
-
-        $reflection = new \ReflectionClass($ref);
-        $constructor = $reflection->getConstructor();        
-        $parameters = $constructor ? $constructor->getParameters() : [];
+    private function autowireMethod(?ReflectionFunctionAbstract $method = null, array $input): array
+    {
+        $parameters = $method ? $method->getParameters() : [];
     
-        $finalArgs = [];
+        $output = [];
         
         foreach($parameters as $p){
             $name = $p->getName();
             $type = (string)$p->getType();
-            // var_dump(['ref' => $ref, 'param' => $name, 'type' => $type]);
+            // var_dump(['param' => $name, 'type' => $type]);
 
-            if(array_key_exists($name, $args)){
-                $finalArgs[] = $args[$name];
+            if(array_key_exists($name, $input)){
+                $output[] = $input[$name];
             }else{
                 // var_dump(['class-exists' => [$type, class_exists($type)]]);
                 if($this->has($type)){
-                    $finalArgs[] = $this->get($type);
+                    $output[] = $this->get($type);
                 }else if ($p->isOptional()) {
-                    $finalArgs[] = $p->getDefaultValue();
+                    $output[] = $p->getDefaultValue();
                 }else{
-                    throw new CannotAutowireException($name, $ref, $type);
+                    throw new CannotAutowireParameterException($name, $type);
                 }
             }
         }
 
-        //  This is too much output to leave in by default, we need to support debug=verbose or something 
-        //  cause this just overloads the programmer with far too much information to be useful in the general case
-        //\Text::print("{debug}{red}[CONTAINER]:{end} final-args: ".serialize($finalArgs)."\n{/debug}");
-    
-        return $reflection->newInstanceArgs($finalArgs);
+        return $output;
+    }
+
+    private function createClass(string $ref, array $args = []) {
+        \Text::print("{debug}{red}[CONTAINER]:{end} '$ref' was bound as class\n{/debug}");
+        
+        // NOTE: You can't use the container to get this class, infinite loop!
+        $autowire = new Autowire($this);
+        
+        return $autowire->getInstance($ref, $args);
     }
 
     public function isSingleton(string $ref): bool {
