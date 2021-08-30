@@ -121,25 +121,25 @@ OPTIONS;
 
         $network = $network;
 
-        $this->cli->print("{blu}Connecting to a new network '$network' to the proxy{end}\n");
+        $this->cli->print("{blu}Connecting to a new network '$network' to the proxy container '{$this->proxy->getContainerName()}'{end}\n");
 
         $this->proxy->addNetwork($network);
+        $this->statusCommand();
         // Format::networkList($proxy->getNetworks());
     }
 
-    public function removeNetworkCommand()
+    public function removeNetworkCommand(string $network)
     {
-        $network = $this->cli->shiftArg();
-
         if(empty($network)){
             throw new \Exception('Network must be a non-empty string');
         }
 
-        $network = $network['name'];
+        $network = $network;
 
-        $this->cli->print("{blu}Disconnecting the network '$network' from the proxy{end}\n");
+        $this->cli->print("{blu}Disconnecting the network '$network' from the proxy container '{$this->proxy->getContainerName()}'{end}\n");
 
         $this->proxy->removeNetwork($network);
+        $this->statusCommand();
         // Format::networkList($proxy->getNetworks());
     } 
 
@@ -154,10 +154,17 @@ OPTIONS;
 
     public function statusCommand()
     {
-        $this->cli->failure("TODO: implement ".__METHOD__." functionality");
+        // Just for now, dump this list like this
         // TODO: what are listning networks?
         // TODO: perhaps I meant configured networks and active networks
-        $this->proxy->getListeningNetworks();
+        var_dump($this->proxy->getListeningNetworks());
+
+        // 1. get a list of configured networks
+        // 2. get the list of active networks 
+        // 3. show a list of both configured and active networks, with their configured and active statuses
+        // 4. show a list of upstreams the proxy has configured
+
+        // old code, should delete it and do the above instead
         // Format::networkList($proxy->getListeningNetworks());
         // Format::upstreamList($proxy->getUpstreams());
         // if($format = $cli->getArg('networks')){
@@ -165,25 +172,21 @@ OPTIONS;
         // }
     }
 
-    public function containerNameCommand()
+    public function containerNameCommand(?string $name=null)
     {
-        $image = $this->cli->shiftArg();
-
-        if(empty($image)){
+        if(empty($name)){
             return $this->proxy->getContainerName();
         }
 
-        $this->proxy->setContainerName($image['name']);
+        $this->proxy->setContainerName($name);
     }
 
-    public function dockerImageCommand()
+    public function dockerImageCommand(?string $image=null)
     {
-        $image = $this->cli->shiftArg();
-
         if(empty($image)){
             return $this->proxy->getDockerImage();
         }
 
-        $this->proxy->setDockerImage($image['name']);
+        $this->proxy->setDockerImage($image);
     }
 }
