@@ -143,14 +143,31 @@ class CLI
 		\Text::print($string);
 	}
 
-	public function printDebug(string $string)
+	public function debug(string $string)
 	{
 		$this->print("{debug}".trim($string)."\n{/debug}");
 	}
 
+	public function success(?string $string=null)
+	{
+		$this->die($string, 0);
+	}
+
 	public function failure(?string $string=null)
 	{
-		\Script::failure($string);
+		$this->die($string, 1);
+	}
+
+	public function die(?string $string=null, int $exitCode=0)
+	{
+		$colour	= $exitCode === 0 ? "{grn}" : "{red}";
+		$where	= $exitCode === 0 ? STDOUT : STDERR;
+
+		if($string !== null){
+			fwrite($where, \Text::write($colour.rtrim($string, "\n")."{end}\n"));
+		}
+
+		exit($exitCode);
 	}
 
 	// DEPRECATED FUNCTIONALITY BELOW, TRY TO NOT USE ANY OF THE FOLLOWING METHODS

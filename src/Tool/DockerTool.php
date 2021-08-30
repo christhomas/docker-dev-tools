@@ -89,7 +89,7 @@ EXAMPLES;
     public function statusCommand()
     {
         var_dump($this->docker->listProfile());
-        \Script::failure("showing state");
+        $this->cli->failure("showing state");
     }
 
     public function addProfile()
@@ -104,9 +104,9 @@ EXAMPLES;
             $tlskey     = $cli->getArgWithVal('tlskey');
         
             if($docker->addProfile($profile, $host, (int)$port, $tlscacert, $tlscert, $tlskey)){
-                Script::success("Profile '$profile' written successfully");
+                $this->cli->success("Profile '$profile' written successfully");
             }else{
-                Script::failure("Profile '$profile' did not write successfully");
+                $this->cli->failure("Profile '$profile' did not write successfully");
             }
         }*/
     }
@@ -117,9 +117,9 @@ EXAMPLES;
 
         /*if(($profile = $cli->getArgWithVal('remove-profile')) !== null){
             if($docker->removeProfile($profile)){
-                Script::success("Profile '$profile' was removed successfully");
+                $this->cli->success("Profile '$profile' was removed successfully");
             }else{
-                Script::failure("Profile '$profile' did not remove successfully");
+                $this->cli->failure("Profile '$profile' did not remove successfully");
             }
         }*/        
     }
@@ -152,7 +152,7 @@ EXAMPLES;
             if($json !== null){
                 die($json."\n");
             }else{
-                Script::failure("Profile '$profile' was not found or could not be decoded");
+                $this->cli->failure("Profile '$profile' was not found or could not be decoded");
             }
         }*/
     }
@@ -163,7 +163,7 @@ EXAMPLES;
 
         /*if(($profile = $cli->getArgWithVal('profile')) !== null){
             if($docker->useProfile($profile) === false){
-                Script::failure("Profile '$profile' did not exist");
+                $this->cli->failure("Profile '$profile' did not exist");
             }
         }*/       
     }

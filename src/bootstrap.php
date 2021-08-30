@@ -12,5 +12,5 @@ try{
 	$tool = container(EntrypointTool::class);
 	$tool->handle();
 }catch(\Exception $e){
-	\Script::failure('The tool has a non-specified exception: ' . $e->getMessage());
+	$cli->failure('The tool has a non-specified exception: ' . $e->getMessage());
 }

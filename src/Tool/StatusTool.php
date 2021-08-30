@@ -15,7 +15,6 @@ class StatusTool extends Tool
     	parent::__construct('status', $cli);
 
         $this->config = $config;
-        $this->setDefaultHandler([$this, 'main']);
     }
 
     public function getTitle(): string
@@ -45,7 +44,7 @@ class StatusTool extends Tool
 
     public function main()
     {
-        \Script::failure('TODO: please implement me');
+        $this->cli->failure('TODO: please implement me');
     }
 }
 
@@ -54,7 +53,7 @@ class StatusTool extends Tool
 
 // $config = $projectConfig; //new \DDT\Config\ProjectConfig();
 
-// Script::title("Healthchecks", "Hopefully nobody died.....");
+// $this->cli->title("Healthchecks", "Hopefully nobody died.....");
 
 // $debug = $cli->hasArg("debug");
 

@@ -129,7 +129,7 @@ EXAMPLES;
 		// }
 		
 
-		\Script::failure("implement: " . __METHOD__);
+		$this->cli->failure("implement: " . __METHOD__);
 		/*
 		$reset = $cli->hasArg('reset');
 
@@ -151,7 +151,7 @@ EXAMPLES;
 
 	public function delete($value): string
 	{
-		\Script::failure("implement: " . __METHOD__);
+		$this->cli->failure("implement: " . __METHOD__);
 		/*
 		if($exists && $removeKey = $cli->getArgWithVal('remove-key')){
 			$config = container(\DDT\Config\SystemConfig::class);

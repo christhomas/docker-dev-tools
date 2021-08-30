@@ -81,13 +81,13 @@ class SyncTool extends Tool
 
 /*
 try{
-    $config = \DDT\Config\SystemConfig::instance();
+    $config = container(\DDT\Config\SystemConfig::class);
     $docker = new Docker($config);
     $watcher = new Watcher($cli->getScript(false), $config, $docker);
 }catch(DockerNotRunningException $e){
-    Script::failure($e->getMessage());
+    $this->cli->failure($e->getMessage());
 }catch(DockerMissingException $e){
-    Script::failure($e->getMessage());
+    $this->cli->failure($e->getMessage());
 }catch(Exception $e){
     if(!Shell::isCommand('fswatch')){
         $answer = DDT\CLI::ask("fswatch is not installed, install it?", ['yes', 'no']);
@@ -161,19 +161,19 @@ if($name !== null){
 	$dockerProfile = $docker->getProfile($name);
 
 	if($dockerProfile === null){
-		Script::failure("Docker profile '$name' did not exist");
+		$this->cli->failure("Docker profile '$name' did not exist");
 	}
 
 	$docker->setProfile($dockerProfile);
 }else{
-    Script::failure("No valid docker profile given");
+    $this->cli->failure("No valid docker profile given");
 }
 
 if($cli->hasArg(['list-profile', 'list-profiles'])){
     try{
 		$profileList = $watcher->listProfiles($dockerProfile);
     }catch(Exception $e){
-        Script::failure($e->getMessage());
+        $this->cli->failure($e->getMessage());
     }
 
     Text::print("{blu}Profile List{end}:\n");
@@ -192,22 +192,22 @@ if(($syncProfile = $cli->getArgWithVal('add-profile')) !== null){
     $localDir = $cli->getArgWithVal('local-dir');
     $remoteDir = $cli->getArgWithVal('remote-dir');
 
-    if($container === null) Script::failure("--container parameter was not valid");
-    if($localDir === null) Script::failure("--local-dir parameter was not valid");
-    if($remoteDir === null) Script::failure("--remote-dir parameter was not valid");
+    if($container === null) $this->cli->failure("--container parameter was not valid");
+    if($localDir === null) $this->cli->failure("--local-dir parameter was not valid");
+    if($remoteDir === null) $this->cli->failure("--remote-dir parameter was not valid");
 
     if($watcher->addProfile($dockerProfile, $syncProfile, $container, $localDir, $remoteDir)){
-		Script::success("Docker Sync Profile '$syncProfile' using docker '{$dockerProfile->getName()}' and target container '$container' between '$localDir' to '$remoteDir' was written successfully");
+		$this->cli->success("Docker Sync Profile '$syncProfile' using docker '{$dockerProfile->getName()}' and target container '$container' between '$localDir' to '$remoteDir' was written successfully");
 	}else{
-		Script::failure("Docker Sync Profile '$syncProfile' using docker '{$dockerProfile->getName()}' did not write successfully");
+		$this->cli->failure("Docker Sync Profile '$syncProfile' using docker '{$dockerProfile->getName()}' did not write successfully");
     }
 }
 
 if(($syncProfile = $cli->getArgWithVal('remove-profile')) !== null){
     if($watcher->removeProfile($dockerProfile, $syncProfile)){
-		Script::success("Docker Sync Profile '$syncProfile' using docker '{$dockerProfile->getName()}' was removed successfully");
+		$this->cli->success("Docker Sync Profile '$syncProfile' using docker '{$dockerProfile->getName()}' was removed successfully");
 	}else{
-		Script::failure("Docker Sync Profile '$syncProfile' using docker '{$dockerProfile->getName()}' did not remove successfully");
+		$this->cli->failure("Docker Sync Profile '$syncProfile' using docker '{$dockerProfile->getName()}' did not remove successfully");
     }
 }
 
@@ -220,22 +220,22 @@ if($name !== null){
 	$syncProfile = $watcher->getProfile($dockerProfile, $name);
 
 	if($syncProfile === null){
-		Script::failure("Docker profile '$name' did not exist");
+		$this->cli->failure("Docker profile '$name' did not exist");
 	}
 }else{
-	Script::failure("No valid sync profile given");
+	$this->cli->failure("No valid sync profile given");
 }
 
 if($cli->hasArg('watch')){
     try{
         Text::print("{blu}Starting watcher process using docker '{$dockerProfile->getName()}' and container '{$syncProfile->getContainer()}'...{end}\n");
         if($watcher->watch($dockerProfile, $syncProfile)){
-            Script::success("Terminated successfully");
+            $this->cli->success("Terminated successfully");
         }else{
-            Script::failure("Error: fswatch failed with an unknown error");
+            $this->cli->failure("Error: fswatch failed with an unknown error");
         }
     }catch(Exception $e){
-        Script::failure("The watcher process has exited abnormally");
+        $this->cli->failure("The watcher process has exited abnormally");
     }
 }
 
@@ -247,20 +247,20 @@ if(($localFilename = $cli->getArgWithVal('write')) !== null){
 		Text::print("$now - $relativeFilename => $remoteFilename ");
 
 		if(is_dir($localFilename)){
-			Script::success("{yel}IGNORED (WAS DIRECTORY){end}");
+			$this->cli->success("{yel}IGNORED (WAS DIRECTORY){end}");
         }else if(!file_exists($localFilename)){
-			Script::success("{yel}IGNORED (FILE NOT FOUND){end}");
+			$this->cli->success("{yel}IGNORED (FILE NOT FOUND){end}");
 		}else if($watcher->shouldIgnore($syncProfile, $localFilename)){
-			Script::success("{yel}IGNORED (DUE TO RULES){end}");
+			$this->cli->success("{yel}IGNORED (DUE TO RULES){end}");
         }else if($watcher->write($syncProfile, $localFilename)){
-			Script::success("SUCCESS");
+			$this->cli->success("SUCCESS");
         }else{
-			Script::failure("FAILURE");
+			$this->cli->failure("FAILURE");
         }
     }catch(Exception $e){
-        Script::failure("EXCEPTION: ".$e->getMessage());
+        $this->cli->failure("EXCEPTION: ".$e->getMessage());
     }
 }
 
-Script::failure('no action taken');
+$this->cli->failure('no action taken');
 */

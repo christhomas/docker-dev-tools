@@ -58,9 +58,9 @@ class ProjectTool extends Tool
 }
 
 /*
-Script::title("DDT PROJECT", "Quickly manage your projects, push or pull them with various filters, etc");
+$this->cli->title("DDT PROJECT", "Quickly manage your projects, push or pull them with various filters, etc");
 
-$config = \DDT\Config\SystemConfig::instance();
+$config = container(\DDT\Config\SystemConfig::class);
 
 function help(CLI $cli)
 {
@@ -158,14 +158,14 @@ if(($name = $cli->getArgWithVal("add-hook")) !== null){
     $script = $cli->getArgWithVal("script");
 
     if(empty($script)){
-        Script::failure("You can't add a hook without a script, it makes no sense\n");
+        $this->cli->failure("You can't add a hook without a script, it makes no sense\n");
     }
 
 	$repoSync = new RepositorySync($config);
     if($repoSync->addHook($name, $script)){
-        Script::success("Project Sync Hook '$name' using script '$script' was added successfully");
+        $this->cli->success("Project Sync Hook '$name' using script '$script' was added successfully");
     }else{
-        Script::failure("Project Sync Hook '$name' has failed to add script '$script'");
+        $this->cli->failure("Project Sync Hook '$name' has failed to add script '$script'");
     }
 }
 
@@ -194,9 +194,9 @@ if(($name = $cli->getArgWithVal("remove-hook")) !== null){
     }
 
     if($removed){
-        Script::success("Project Sync Hook '$name' has successfully removed the script(s)");
+        $this->cli->success("Project Sync Hook '$name' has successfully removed the script(s)");
     }else{
-        Script::failure("Project Sync Hook '$name' has failed to remove the script(s)");
+        $this->cli->failure("Project Sync Hook '$name' has failed to remove the script(s)");
     }
 }
 
@@ -212,12 +212,12 @@ if($add !== null){
 
     try{
 		$projectManager->add($git, $branch, $dir);
-        Script::success("Project '$add' from repository '$git' using branch '$branch' into directory '$dir' was successfully cloned");
+        $this->cli->success("Project '$add' from repository '$git' using branch '$branch' into directory '$dir' was successfully cloned");
     }catch(DirectoryExistsException $e){
-        Script::failure($e->getMessage());
+        $this->cli->failure($e->getMessage());
     }catch(Exception $e){
         var_dump($e);
-        Script::failure("Project '$add' has failed to clone for unspecified reasons");
+        $this->cli->failure("Project '$add' has failed to clone for unspecified reasons");
     }
 }
 
@@ -231,9 +231,9 @@ if($remove !== null){
 
     try{
 		$project->remove($delete);
-        Script::success("Project '$remove' has successfully deleted");
+        $this->cli->success("Project '$remove' has successfully deleted");
     }catch(Exception $e){
-		Script::failure("Project '$remove' has failed to delete for unspecified reasons");
+		$this->cli->failure("Project '$remove' has failed to delete for unspecified reasons");
     }
 }
 
@@ -246,9 +246,9 @@ if($import !== null){
 
     try{
         $projectManager->import();
-        Script::success("Project '$import' has been imported successfully");
+        $this->cli->success("Project '$import' has been imported successfully");
     }catch(Exception $e){
-        Script::failure("Project could not be imported for unspecified reasons");
+        $this->cli->failure("Project could not be imported for unspecified reasons");
     }
 }
 
@@ -268,7 +268,7 @@ if($cli->hasArg('import-scan')){
 		}
     }
 
-    Script::success("Finished");
+    $this->cli->success("Finished");
 }
 
 //*************************************************************
@@ -280,7 +280,7 @@ if($showBranch !== null){
     $projects = $repoSync->listBranches($showBranch);
     Format::projectBranchList($projects, false);
 
-    Script::success("Finished");
+    $this->cli->success("Finished");
 }
 
 //*************************************************************

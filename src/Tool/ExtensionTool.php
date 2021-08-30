@@ -4,17 +4,22 @@ namespace DDT\Tool;
 
 use DDT\CLI;
 use DDT\Config\SystemConfig;
+use DDT\Extension\ExtensionManager;
 
 class ExtensionTool extends Tool
 {
-    /** @var \DDT\Config\SystemConfig  */
+    /** @var ExtensionManager */
+    private $extensionManager;
+
+    /** @var SystemConfig  */
     private $config;
 
-    public function __construct(CLI $cli, SystemConfig $config)
+    public function __construct(CLI $cli, ExtensionManager $extensionManager, SystemConfig $config)
     {
     	parent::__construct('extension', $cli);
 
         $this->config = $config;
+        $this->extensionManager = $extensionManager;
     }
 
     public function getTitle(): string
@@ -56,33 +61,34 @@ class ExtensionTool extends Tool
 		]);
 	}
 
-    public function install(string $name, string $url)
+    public function installCommand(string $name, string $url)
     {
-        \Script::failure('TODO: tool command: '.__METHOD__." is not implemented");
+        $this->cli->print("Installing new ExtensionManager '{yel}$name{end}' from url '{yel}$url{end}'\n");
+
         /*
         $name   = $cli->getArgWithVal('install');
         $url    = $cli->getArgWithVal('url');
 
-        $config = \DDT\Config\SystemConfig::instance();
+        $config = container(\DDT\Config\SystemConfig::class);
 
         if($name && $url){
             Text::print("Installing new ExtensionManager '{yel}$name{end}' from url '{yel}$url{end}'\n");
             try{
                 $extension = new ExtensionManager($config);
                 if($extension->install($name, $url)){
-                    Script::success("Extension '$name' was installed");
+                    $this->cli->success("Extension '$name' was installed");
                 }else{
-                    Script::failure("Extension '$name' failed to install");
+                    $this->cli->failure("Extension '$name' failed to install");
                 }
             }catch(DirectoryExistsException $e){
-                Script::failure("Can't install extension '$name' because there is already an extension installed with that name");
+                $this->cli->failure("Can't install extension '$name' because there is already an extension installed with that name");
             }
         }*/
     }
 
-    public function uninstall(string $name)
+    public function uninstallCommand(string $name)
     {
-        \Script::failure('TODO: tool command: '.__METHOD__." is not implemented");
+        $this->cli->failure('TODO: tool command: '.__METHOD__." is not implemented");
         /*
         if($name = $cli->getArgWithVal("uninstall")){
             Text::print("Uninstalling extension '$name'\n");
@@ -90,19 +96,19 @@ class ExtensionTool extends Tool
             try{
                 $extension = new ExtensionManager($config);
                 if($extension->uninstall($name)){
-                    Script::success("Extension '$name' was uninstalled");
+                    $this->cli->success("Extension '$name' was uninstalled");
                 }else{
-                    Script::failure("Extension '$name' has failed to uninstall");
+                    $this->cli->failure("Extension '$name' has failed to uninstall");
                 }
             }catch(DirectoryNotExistException $e){
-                Script::failure("Can't uninstall extension '$name' as the directory that it was expected to be in was missing");
+                $this->cli->failure("Can't uninstall extension '$name' as the directory that it was expected to be in was missing");
             }
         }*/        
     }
 
-    public function update(string $name)
+    public function updateCommand(string $name)
     {
-        \Script::failure('TODO: tool command: '.__METHOD__." is not implemented");
+        $this->cli->failure('TODO: tool command: '.__METHOD__." is not implemented");
         /*
         if($name = $cli->getArg("update")){
             try{
@@ -121,28 +127,30 @@ class ExtensionTool extends Tool
                 foreach($list as $name){
                     Text::print("Updating extension '$name'\n");
                     if($extension->update($name)){
-                        Script::success("Extension '$name' was updated");
+                        $this->cli->success("Extension '$name' was updated");
                     }else{
-                        Script::failure("Extension '$name' has failed to update");
+                        $this->cli->failure("Extension '$name' has failed to update");
                     }
                 }
             }catch(DirectoryNotExistException $e){
-                Script::failure("Can't update extension '$name' as the directory that it was expected to be in was missing");
+                $this->cli->failure("Can't update extension '$name' as the directory that it was expected to be in was missing");
             }
         }*/
     }
 
-    public function list()
+    public function listCommand()
     {
-        \Script::failure('TODO: tool command: '.__METHOD__." is not implemented");
-        /*
-        if($cli->hasArg("list")){
-            try{
-                $extension = new ExtensionManager($config);
-                var_dump($extension->list());
-            }catch(\DDT\Exceptions\Config\ConfigWrongTypeException $e){
-                Script::failure($e->getMessage());
-            }
-        }*/        
+        // get list of configured extensions
+        // get list of extensions from the filesystem
+        // foreach configured extension, test whether things work
+        // when an extension is found, remove it from the list of extensions in the filesystem
+        // the remaining extensions from the filesystem, are they executable?
+        // we should show a table of information about the state of each extension found
+        // we do like a venn diagram of configured and installed extensions regarding their status
+        try{
+            var_dump($this->extensionManager->list());
+        }catch(\DDT\Exceptions\Config\ConfigWrongTypeException $e){
+            $this->cli->failure($e->getMessage());
+        }
     }
 }
