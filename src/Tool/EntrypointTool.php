@@ -3,6 +3,10 @@
 namespace DDT\Tool;
 
 use DDT\CLI;
+use DDT\Exceptions\Tool\ToolNotFoundException;
+use DDT\Exceptions\Tool\ToolNotSpecifiedException;
+use DDT\Exceptions\Tool\CommandNotFoundException;
+use DDT\Exceptions\Config\ConfigMissingException;
 
 class EntrypointTool extends Tool
 {
@@ -38,7 +42,17 @@ class EntrypointTool extends Tool
 
     public function handle()
     {
-        return call_user_func($this->responseHandler, parent::handle() ?? '');
+        try{
+            return call_user_func($this->responseHandler, parent::handle() ?? '');
+        }catch(ConfigMissingException $e){
+            $this->cli->failure(\Text::box($e->getMessage(), "white", "red"));
+        }catch(ToolNotFoundException $e){
+            $this->cli->failure($e->getMessage());
+        }catch(ToolNotSpecifiedException $e){
+            $this->cli->failure($e->getMessage());
+        }catch(CommandNotFoundException $e){
+            $this->cli->failure($e->getMessage());
+        }
     }
 
     public function handleArg(array $arg): void
