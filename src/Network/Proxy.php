@@ -53,12 +53,8 @@ class Proxy
 	{
 		try{
 			$container = container(DockerContainer::class, ['name' => $this->getContainerName()]);
-			var_dump(['running' => $container->getId()]);
-			die('stop 1');
 			return true;
 		}catch(\Exception $e){
-			var_dump(['not-running' => true]);
-			die('stop 2');
 			return false;
 		}
 	}
@@ -113,7 +109,7 @@ class Proxy
 			// Remove the container that was previously built
 			// cause otherwise it'll crash with "The container name /xxx" is already in use by container "xxxx"
 			$container = container(DockerContainer::class, ['name' => $name]);
-			$this->cli->print("Deleting Containers\n");
+			$this->cli->print("Deleting Container with name '$name'\n");
 			$this->docker->deleteContainer($name);
 		}catch(DockerContainerNotFoundException $e){
 			// It's already not started or not found, so we have nothing to do
@@ -139,12 +135,16 @@ class Proxy
 			}
 	
 			foreach($networkList as $network){
-				$this->cli->print("Connecting container '$id' to network '$network'\n");
-				$this->docker->createNetwork($network);
+				$this->cli->print("Connecting container '$name' to network '$network'\n");
+				try{
+					$this->docker->createNetwork($network);
+				}catch(DockerNetworkExistsException $e){
+					$this->cli->printDebug("Network '$network' already exists");
+				}
 				$this->docker->networkAttach($network, $id);
 			}
 
-			$this->cli->print("Running '$name', container id: '$id'\n");
+			$this->cli->print("Running image '$image' as '$name' using container id '$id'\n");
 		}catch(DockerContainerNotFoundException $e){
 			$this->cli->failure("The container '$name' did not start correctly\n");
 		}

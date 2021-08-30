@@ -97,7 +97,7 @@ OPTIONS;
         $this->cli->passthru('docker ps');
     }
 
-    public function restart()
+    public function restartCommand()
     {
         $this->stopCommand();
         $this->startCommand();
@@ -113,15 +113,13 @@ OPTIONS;
         $this->proxy->logsFollow();
     }
 
-    public function addNetworkCommand()
+    public function addNetworkCommand(string $network)
     {
-        $network = $this->cli->shiftArg();
-
         if(empty($network)){
             throw new \Exception('Network must be a non-empty string');
         }
 
-        $network = $network['name'];
+        $network = $network;
 
         $this->cli->print("{blu}Connecting to a new network '$network' to the proxy{end}\n");
 
