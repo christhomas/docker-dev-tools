@@ -25,9 +25,11 @@ class Docker
 
     const DOCKER_NOT_RUNNING = "The docker daemon is not running";
 	const DOCKER_PORT_ALREADY_IN_USE = "Something is already using port '{port}' on this machine, please stop that service and try again";
+	const DOCKER_NETWORK_ALREADY_ATTACHED = "/endpoint with name (?<container>[^\s].*) already exists in network (?<network>[^\s].*)/";
 
 	private function parseErrors(string $message, array $tokens = []): string
 	{
+
 		if(strpos($message, "Got permission denied while trying to connect to the Docker daemon socket") !== false){
 			$message = self::DOCKER_NOT_RUNNING;
 		}
@@ -44,6 +46,11 @@ class Docker
 		}
 
 		return $message;
+	}
+
+	private function isError(string $message, string $pattern): bool
+	{
+		return !!preg_match($pattern, $message, $matches);
 	}
 
     public function __construct(CLI $cli, DockerConfig $config)
@@ -186,9 +193,19 @@ class Docker
 
 	public function networkAttach(string $network, string $containerId)
 	{
-		// TODO: how can I detect whether the network already has this container before doing this?
-		// TODO: It throws exceptions when this fails for various reasons
-		$this->cli->exec("$this->command network connect $network $containerId");
+		try{
+			// TODO: how can I detect whether the network already has this container before doing this?
+			// TODO: It throws exceptions when this fails for various reasons
+			$this->cli->exec("$this->command network connect $network $containerId");
+
+			return true;
+		}catch(\Exception $e){
+			if($this->isError($e->getMessage(), self::DOCKER_NETWORK_ALREADY_ATTACHED)){
+				return true;
+			}
+
+			return false;
+		}
 	}
 
 	public function networkDetach(string $network, string $containerId)

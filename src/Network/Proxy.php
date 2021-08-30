@@ -7,6 +7,7 @@ use DDT\Config\ProxyConfig;
 use DDT\Docker\Docker;
 use DDT\Docker\DockerContainer;
 use DDT\Exceptions\Docker\DockerContainerNotFoundException;
+use DDT\Exceptions\Docker\DockerNetworkExistsException;
 
 class Proxy
 {
@@ -182,15 +183,21 @@ class Proxy
 
 	public function addNetwork(string $network)
 	{
-		$this->docker->createNetwork($network);
+		try{
+			$this->docker->createNetwork($network);
+		}catch(DockerNetworkExistsException $e){
+			$this->cli->print("{blu}Network:{end} '{yel}$network{end}' already exists\n");
+		}
 
 		$containerId = $this->getContainerId();
 
 		if($this->docker->networkAttach($network, $containerId))
 		{
+			$this->cli->print("{blu}Attaching:{end} '{yel}$network{end}' to proxy so it can listen for containers\n");
 			return $this->config->addNetwork($network);
 		}else{
 			// TODO: should we do anything different here?
+			$this->cli->printDebug("We have a general failure attaching the proxy to network '$network'");
 			return false;
 		}
 	}

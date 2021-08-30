@@ -123,6 +123,11 @@ class CLI
 		return \Shell::$stderr;
 	}
 
+	public function getErrorCode(): int
+	{
+		return \Shell::$exitCode;
+	}
+
 	public function exec(string $command)
 	{
 		return \Shell::exec($command);
@@ -140,7 +145,7 @@ class CLI
 
 	public function printDebug(string $string)
 	{
-		$this->print("{debug}$string{/debug}");
+		$this->print("{debug}".trim($string)."\n{/debug}");
 	}
 
 	public function failure(?string $string=null)
