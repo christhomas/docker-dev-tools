@@ -6,17 +6,6 @@ class SystemConfig extends BaseConfig
 {
     private $extensions;
 	private $projects;
-	
-    public function __construct(string $path)
-    {
-        try{
-            parent::__construct($path);
-        }catch(\DDT\Exceptions\Config\ConfigInvalidException $e){
-			// FIXME: I don't think this should die here, throwing the exception is enough
-			// do this instead: $e->setPath($path); and let the calling tool handle displaying the error
-            die(\DDT\Text::box("The config file was invalid, it could not be decoded: '$path'", "white", "red"));
-        }
-    }
 
 	public function getDescription(): string
 	{

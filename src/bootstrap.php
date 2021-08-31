@@ -9,6 +9,8 @@ use DDT\Config\SystemConfig;
 use DDT\Contract\IpServiceInterface;
 use DDT\Contract\DnsServiceInterface;
 use DDT\Exceptions\AutoloadException;
+use DDT\Exceptions\Config\ConfigInvalidException;
+use DDT\Exceptions\Config\ConfigMissingException;
 
 try{
 	if (version_compare(phpversion(), '7.2', '<')) {
@@ -38,7 +40,8 @@ try{
 			: Container::$instance;
 	}
 
-	$cli = new CLI($argv, new Text());
+	$text = new Text();
+	$cli = new CLI($argv, $text);
 
 	$container = new Container($cli);
 
@@ -70,6 +73,9 @@ try{
 	$tool = container(EntrypointTool::class);
 	$tool->handle();
 }catch(\Exception $e){
-	$cli = container(CLI::class);
-	$cli->failure('The tool has a non-specified exception: ' . $e->getMessage());
+	$cli->failure($text->box('The tool has a non-specified exception: ' . $e->getMessage(), "white", "red"));
+}catch(ConfigMissingException $e){
+	$cli->failure($text->box($e->getMessage(), "white", "red"));
+}catch(ConfigInvalidException $e){
+	$cli->failure($text->box($e->getMessage(), "white", "red"));
 }
