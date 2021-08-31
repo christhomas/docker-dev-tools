@@ -230,7 +230,7 @@ class Docker
 			// attempt to decode the result, it might fail cause some return values are not valid json
 			$r = json_decode($result, true);
 			// if empty, then assume decoding it failed, revert back to original value
-			if(empty($r)) $r = $result;
+			if(empty($r) && !is_array($r)) $r = $result;
 			// if 'r' is scalar, wrap it in an array, so this function has a predictable return value
 			if(is_scalar($r)) $r = [$r];
 
