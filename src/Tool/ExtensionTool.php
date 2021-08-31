@@ -72,7 +72,7 @@ class ExtensionTool extends Tool
         $config = container(\DDT\Config\SystemConfig::class);
 
         if($name && $url){
-            Text::print("Installing new ExtensionManager '{yel}$name{end}' from url '{yel}$url{end}'\n");
+            $this->cli->print("Installing new ExtensionManager '{yel}$name{end}' from url '{yel}$url{end}'\n");
             try{
                 $extension = new ExtensionManager($config);
                 if($extension->install($name, $url)){
@@ -91,7 +91,7 @@ class ExtensionTool extends Tool
         $this->cli->failure('TODO: tool command: '.__METHOD__." is not implemented");
         /*
         if($name = $cli->getArgWithVal("uninstall")){
-            Text::print("Uninstalling extension '$name'\n");
+            $this->cli->print("Uninstalling extension '$name'\n");
         
             try{
                 $extension = new ExtensionManager($config);
@@ -125,7 +125,7 @@ class ExtensionTool extends Tool
                 }
         
                 foreach($list as $name){
-                    Text::print("Updating extension '$name'\n");
+                    $this->cli->print("Updating extension '$name'\n");
                     if($extension->update($name)){
                         $this->cli->success("Extension '$name' was updated");
                     }else{

@@ -108,7 +108,7 @@ EXAMPLES;
 
 	public function reset(): string
 	{
-		$reply = \DDT\CLI::ask('Are you sure you want to reset your configuration?', ['yes', 'no']);
+		$reply = $this->cli->ask('Are you sure you want to reset your configuration?', ['yes', 'no']);
 
 		if($reply === 'yes'){
 			return \Text::box("The request to reset was refused", "black", "green");
@@ -119,10 +119,10 @@ EXAMPLES;
 
 		// if(!$cli->hasArg('validate')){
 		// 	if($exists === true && $write === false){
-		// 		print(Text::write("The configuration file '{yel}$filename{end}' already exists\n"));
+		// 		$this->cli->print("The configuration file '{yel}$filename{end}' already exists\n"));
 		// 		if($cli->hasArg('break-me')) file_put_contents($filename, file_get_contents($filename)."!@#@#^#$!@#");
 		// 	}else{
-		// 		print(Text::box("Writing the configuration file: $filename", 'black', 'yellow'));
+		// 		$this->cli->print(Text::box("Writing the configuration file: $filename", 'black', 'yellow'));
 		// 		$config = new \DDT\Config\SystemConfig(DDT\CLI::getToolPath("/defaults.json"));
 		// 		$config->write($filename);
 		// 	}
@@ -134,7 +134,7 @@ EXAMPLES;
 		$reset = $cli->hasArg('reset');
 
 		if($exists === true && $reset === true) {
-		$reply = \DDT\CLI::ask('Are you sure you want to reset your configuration?', ['yes', 'no']);
+		$reply = $this->cli->ask('Are you sure you want to reset your configuration?', ['yes', 'no']);
 
 		if($reply !== 'yes'){
 			exit(0);

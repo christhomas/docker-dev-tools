@@ -165,7 +165,7 @@ class Docker
 
 			return true;
 		}catch(\Exception $e){
-			\Text::print("{red}".$this->parseErrors($e->getMessage())."{end}\n");
+			$this->cli->print("{red}".$this->parseErrors($e->getMessage())."{end}\n");
 			return false;
 		}
 	}

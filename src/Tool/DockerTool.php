@@ -131,12 +131,12 @@ EXAMPLES;
         /*if($cli->hasArg(['list-profile', 'list-profiles'])){
             $profileList = $docker->listProfiles();
         
-            Text::print("{blu}Docker Profiles:{end}\n");
+            $this->cli->print("{blu}Docker Profiles:{end}\n");
             foreach(array_keys($profileList) as $name){
-                Text::print(" - $name\n");
+                $this->cli->print(" - $name\n");
             }
             if(empty($profileList)){
-                Text::print("There are no registered docker profiles\n");
+                $this->cli->print("There are no registered docker profiles\n");
             }
         
             exit(0);

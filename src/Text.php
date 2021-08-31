@@ -1,11 +1,46 @@
 <?php
-require_once(__DIR__.'/../lib/colours.php');
-
 class Text
 {
 	const TERMINATE_CONTROL_CHAR = "\033[0m";
 
 	static private $codes = [];
+
+	public function __construct()
+	{
+		$colours = parse_ini_file(__DIR__ . '/../lib/colours.ini');
+
+		foreach($colours as $key => $val){
+			if(strpos($val, '\033') === 0){
+				$val = "\e".str_replace('\033', '', $val);
+			}
+
+			if(strpos($val, "\x") === 0){
+				$val = array_filter(explode("\x", $val));
+				$val = hex2bin(implode("", $val));
+			}
+
+			$key = strtoupper($key);
+			define($key, $val);
+
+			if(!in_array($key, ['chk', 'mss', 'wrn'])){
+				self::addCode($key, $val);
+
+				$map = [
+					"BLK"=>"BLACK",
+					"RED"=>"RED",
+					"GRN"=>"GREEN",
+					"YEL"=>"YELLOW",
+					"BLU"=>"BLUE",
+					"MAG"=>"MAGENTA",
+					"CYN"=>"CYAN",
+					"WHT"=>"WHITE"
+				];
+
+				$key = str_replace(array_keys($map), array_values($map), $key);
+				self::addCode($key, $val);
+			}
+		}
+	}
 
 	static public function addCode($key, $value): void
 	{
@@ -122,14 +157,5 @@ class Text
 	static public function box(string $string, string $foreground, string $background): string
 	{
 		return self::write("{" . $foreground . "}{" . $background . "_b}\n\t\n\t" . trim($string) . "\n{end}\n");
-	}
-
-	static public function print(string $string, ?string $foreground=null, ?string $background=null): void
-	{
-		if($background) $string = "{" . $background . "}$string";
-		if($foreground) $string = "{" . $foreground . "}$string";
-		if($foreground || $background) $string = "$string{end}";
-
-		print(self::write($string));
 	}
 }

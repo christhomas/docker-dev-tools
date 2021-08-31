@@ -90,7 +90,7 @@ try{
     $this->cli->failure($e->getMessage());
 }catch(Exception $e){
     if(!$this->cli->isCommand('fswatch')){
-        $answer = DDT\CLI::ask("fswatch is not installed, install it?", ['yes', 'no']);
+        $answer = $this->cli->ask("fswatch is not installed, install it?", ['yes', 'no']);
         if($answer === 'yes'){
             $os = strtolower(PHP_OS);
             if($os === 'darwin') $this->cli->passthru('brew install fswatch');
@@ -99,7 +99,7 @@ try{
     }
 
     if(!$this->cli->isCommand('fswatch')){
-        Text::print(Text::box($e->getMessage(), 'white', 'red'));
+        $this->cli->print(Text::box($e->getMessage(), 'white', 'red'));
         exit(1);
     }
 }
@@ -108,7 +108,7 @@ function help(DDT\CLI $cli)
 {
 	$script = $cli->getScript(false);
 
-	Text::print(<<<EOF
+	$this->cli->print(<<<EOF
     {yel}Usage Examples: {end}
 
     {blu}Description:{end}
@@ -131,12 +131,12 @@ if($cli->hasArg('help') || $cli->countArgs() === 0){
 if($cli->hasArg(['list-ignore-rule','list-ignore-rules'])){
     $ignoreRuleList = $watcher->listIgnoreRules();
 
-    Text::print("{blu}Ignore Rules{end}:\n");
+    $this->cli->print("{blu}Ignore Rules{end}:\n");
     foreach($ignoreRuleList as $ignoreRule){
-        Text::print("Rule: '{yel}$ignoreRule{end}'\n");
+        $this->cli->print("Rule: '{yel}$ignoreRule{end}'\n");
     }
     if(empty($ignoreRuleList)){
-        Text::print("There are no ignore rules in place\n");
+        $this->cli->print("There are no ignore rules in place\n");
     }
 
     exit(0);
@@ -176,12 +176,12 @@ if($cli->hasArg(['list-profile', 'list-profiles'])){
         $this->cli->failure($e->getMessage());
     }
 
-    Text::print("{blu}Profile List{end}:\n");
+    $this->cli->print("{blu}Profile List{end}:\n");
     foreach($profileList as $name => $profile){
-        Text::print("{cyn}$name{end}: to container '{yel}{$profile->getContainer()}{end}' with local dir '{yel}{$profile->getLocalDir()}{end}' and remote dir '{yel}{$profile->getRemoteDir()}{end}'\n");
+        $this->cli->print("{cyn}$name{end}: to container '{yel}{$profile->getContainer()}{end}' with local dir '{yel}{$profile->getLocalDir()}{end}' and remote dir '{yel}{$profile->getRemoteDir()}{end}'\n");
     }
     if(empty($profileList)){
-        Text::print("There were no profiles with this docker configuration\n");
+        $this->cli->print("There were no profiles with this docker configuration\n");
     }
 
     exit(0);
@@ -228,7 +228,7 @@ if($name !== null){
 
 if($cli->hasArg('watch')){
     try{
-        Text::print("{blu}Starting watcher process using docker '{$dockerProfile->getName()}' and container '{$syncProfile->getContainer()}'...{end}\n");
+        $this->cli->print("{blu}Starting watcher process using docker '{$dockerProfile->getName()}' and container '{$syncProfile->getContainer()}'...{end}\n");
         if($watcher->watch($dockerProfile, $syncProfile)){
             $this->cli->success("Terminated successfully");
         }else{
@@ -244,7 +244,7 @@ if(($localFilename = $cli->getArgWithVal('write')) !== null){
         $relativeFilename = str_replace($syncProfile->getLocalDir(), "", $localFilename);
 		$remoteFilename = $syncProfile->getRemoteFilename($localFilename);
 		$now = (new DateTime())->format("Y-m-d H:i:s");
-		Text::print("$now - $relativeFilename => $remoteFilename ");
+		$this->cli->print("$now - $relativeFilename => $remoteFilename ");
 
 		if(is_dir($localFilename)){
 			$this->cli->success("{yel}IGNORED (WAS DIRECTORY){end}");

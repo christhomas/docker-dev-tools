@@ -45,13 +45,13 @@ class DnsService implements DnsServiceInterface
 
     private function setDNS(string $message, string $ipAddress): bool
 	{
-		\Text::print("DNS Servers: '{yel}$message{end}' => '{yel}$ipAddress{end}'\n");
+		$this->cli->print("DNS Servers: '{yel}$message{end}' => '{yel}$ipAddress{end}'\n");
 
         $this->cli->sudo();
 
 		$interfaces = $this->enumerateNetworkInterfaces();
 		foreach($interfaces as $i){
-			\Text::print("Configuring interface '{yel}{$i['name']}{end}'\n");
+			$this->cli->print("Configuring interface '{yel}{$i['name']}{end}'\n");
             $this->cli->exec("networksetup -setdnsservers '{$i['name']}' $ipAddress");
 		}
 
@@ -75,7 +75,7 @@ class DnsService implements DnsServiceInterface
 
     public function flush(): void
     {
-        \Text::print("Flushing DNS Cache: ");
+        $this->cli->print("Flushing DNS Cache: ");
 
         $this->cli->sudo();
 
@@ -85,6 +85,6 @@ class DnsService implements DnsServiceInterface
 
         $this->cli->exec('killall -HUP mDNSResponder || true');
 
-		\Text::print("{grn}FLUSHED{end}\n");
+		$this->cli->print("{grn}FLUSHED{end}\n");
     }
 }

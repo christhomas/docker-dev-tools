@@ -5,7 +5,7 @@ use DDT\DistroDetect;
 use DDT\Contract\IpServiceInterface;
 use DDT\Contract\DnsServiceInterface;
 
-$cli = new \DDT\CLI($argv);
+$cli = new \DDT\CLI($argv, new \Text());
 
 $container = new Container($cli);
 

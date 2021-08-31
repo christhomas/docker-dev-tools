@@ -66,7 +66,7 @@ function help(CLI $cli)
 {
     $script = $cli->getScript(false);
 
-    Text::print(<<<EOF
+    $this->cli->print(<<<EOF
     {yel}Usage Examples: {end}
         $script --pull
         $script --push=api-server
@@ -139,12 +139,12 @@ if($cli->getArg("list-hook") || $cli->getArg("list-hooks")){
 	$repoSync = new RepositorySync($config);
     $list = $repoSync->listHookNames();
     foreach($list as $name){
-        Text::print("{blu}Hook{end}: {yel}$name{end}\n");
+        $this->cli->print("{blu}Hook{end}: {yel}$name{end}\n");
         $scripts = $repoSync->listHook($name);
         if(!empty($scripts)) {
-            Text::print(" - " . implode("\n - ", $scripts) . "\n\n");
+            $this->cli->print(" - " . implode("\n - ", $scripts) . "\n\n");
         }else{
-            Text::print(" --- NO SCRIPTS --- \n\n");
+            $this->cli->print(" --- NO SCRIPTS --- \n\n");
         }
     }
 
@@ -262,9 +262,9 @@ if($cli->hasArg('import-scan')){
         $projectManager = new ProjectManager($config, $name);
 		try{
 			$projectManager->import();
-			print(Text::write("{blu}Project{end} '{yel}$name{end}' has been imported successfully\n"));
+			$this->cli->print("{blu}Project{end} '{yel}$name{end}' has been imported successfully\n");
 		}catch(Exception $e){
-			print(Text::red("Project '$name' has failed to import successfully\n"));
+			$this->cli->print("{red}Project '$name' has failed to import successfully\n{end}");
 		}
     }
 
@@ -325,9 +325,9 @@ foreach(glob(CLI::getToolPath("/../** <<-delete this space>/.git"), GLOB_ONLYDIR
 		$changes = empty($status) ? "no" : "yes";
 
         if($showBranch){
-            Text::print("{blu}Project:{end} {yel}$project ($branch){end}. Has Changes: {yel}$changes{end}\n");
+            $this->cli->print("{blu}Project:{end} {yel}$project ($branch){end}. Has Changes: {yel}$changes{end}\n");
         }else if($changes === "no"){
-            Text::print("{blu}".ucwords($action)."ing the project:{end} {yel}$project ($branch){end} ");
+            $this->cli->print("{blu}".ucwords($action)."ing the project:{end} {yel}$project ($branch){end} ");
 
 			switch($action){
 				case "pull":
@@ -341,7 +341,7 @@ foreach(glob(CLI::getToolPath("/../** <<-delete this space>/.git"), GLOB_ONLYDIR
 
 			$repo->fetch($dir, true);
 
-            Text::print("{grn}Done{end}\n");
+            $this->cli->print("{grn}Done{end}\n");
 
             if($action === "pull"){
                 $afterPull = $repoSync->parseHook("after_pull", ["project_dir" => $dir]);
@@ -350,19 +350,19 @@ foreach(glob(CLI::getToolPath("/../** <<-delete this space>/.git"), GLOB_ONLYDIR
                 }
             }
         }else{
-            Text::print("{red}Skipping the project:{end} {yel}$project ($branch){end} because it has changes\n");
-            Text::print("Changes:\n$status\n");
+            $this->cli->print("{red}Skipping the project:{end} {yel}$project ($branch){end} because it has changes\n");
+            $this->cli->print("Changes:\n$status\n");
         }
     }catch(Exception $e){
         if(strpos($e->getMessage(), "no tracking information") !== false){
-            Text::print("{red}No tracking branch configured{end}\n");
+            $this->cli->print("{red}No tracking branch configured{end}\n");
         }else if(strpos($e->getMessage(), "Could not read from remote repository") !== false){
-            Text::print("{red}Failed{end}. There was a connectivity issue\n");
+            $this->cli->print("{red}Failed{end}. There was a connectivity issue\n");
         }else{
-            Text::print("{red}Failed{end}. The command failed and threw an exception\n");
+            $this->cli->print("{red}Failed{end}. The command failed and threw an exception\n");
         }
 
-        Text::print("Error Output: " . $e->getMessage());
+        $this->cli->print("Error Output: " . $e->getMessage());
     }
 }
 */

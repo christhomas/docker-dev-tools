@@ -3,6 +3,7 @@
 namespace DDT;
 class CLI
 {
+	private $text;
 	private $args = [];
 	private $script = null;
 	private $channels = [];
@@ -11,8 +12,9 @@ class CLI
 	public static $stdout = "";
 	public static $stderr = "";
 
-	public function __construct(array $argv)
+	public function __construct(array $argv, \Text $text)
 	{
+		$this->text = $text;
 		$this->setScript($argv[0]);
 		$this->setArgs(array_slice($argv, 1));
 		$this->listenChannel('stdout');
@@ -40,10 +42,10 @@ class CLI
 		return $withPath ? $this->script : basename($this->script);
 	}
 
-	static public function ask(string $question, array $accept): string
+	public function ask(string $question, array $accept): string
 	{
 		$responses = "(Accepts: " . implode(", ", $accept) . "): ";
-		$reply = readline(\Text::write("{yel}$question $responses{end}"));
+		$reply = readline($this->text::write("{yel}$question $responses{end}"));
 
 		return $reply;
 	}
@@ -52,7 +54,7 @@ class CLI
 	{
 		if($enabled === null){
 			$enabled = function($text){
-				$text = \Text::write($text);
+				$text = $this->text::write($text);
 				print($text);
 				return $text;
 			};
@@ -274,7 +276,7 @@ class CLI
 		$where	= $exitCode === 0 ? STDOUT : STDERR;
 
 		if($string !== null){
-			fwrite($where, \Text::write($colour.rtrim($string, "\n")."{end}\n"));
+			fwrite($where, $this->text::write($colour.rtrim($string, "\n")."{end}\n"));
 		}
 
 		exit($exitCode);
