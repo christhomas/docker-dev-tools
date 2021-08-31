@@ -6,6 +6,7 @@ use DDT\CLI;
 use DDT\Config\DnsConfig;
 use DDT\Docker\Docker;
 use DDT\Docker\DockerContainer;
+use DDT\Exceptions\UnsupportedDistroException;
 
 class DNSMasq
 {
@@ -135,7 +136,7 @@ class DNSMasq
 	}
 
     /**
-     * @throws UnsupportedDistroException
+     * @throws UnsupportedDistroception
      */
     public function start()
     {

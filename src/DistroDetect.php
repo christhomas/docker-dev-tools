@@ -2,6 +2,8 @@
 
 namespace DDT;
 
+use DDT\Exceptions\UnsupportedDistroException;
+
 class DistroDetect
 {
 	/** @var CLI */
@@ -27,6 +29,6 @@ class DistroDetect
 			return strpos($release, $version) !== false;
 		}
 
-		throw new \UnsupportedDistroException('unknown linux distribution');
+		throw new UnsupportedDistroException('unknown linux distribution');
 	}
 }

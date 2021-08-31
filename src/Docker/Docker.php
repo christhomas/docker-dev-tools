@@ -8,7 +8,6 @@ use DDT\Exceptions\Docker\DockerInspectException;
 use DDT\Exceptions\Docker\DockerMissingException;
 use DDT\Exceptions\Docker\DockerNetworkCreateException;
 use DDT\Exceptions\Docker\DockerNetworkExistsException;
-use DDT\Exceptions\Docker\DockerNetworkNotFoundException;
 use DDT\Exceptions\Docker\DockerNotRunningException;
 
 class Docker
@@ -219,7 +218,7 @@ class Docker
      * @param $type
      * @param $name
      * @return array|null
-     * @throws ContainerNotRunningException
+     * @throws DockerInspectException
      */
 	public function inspect(string $type, string $name, ?string $filter='-f \'{{json .}}\''): ?array
 	{

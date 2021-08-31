@@ -61,7 +61,6 @@ class Proxy
 
     /**
      * @return string
-     * @throws ContainerNotRunningException
      */
 	public function getConfig(): string
 	{
@@ -70,7 +69,7 @@ class Proxy
 		try{
 			return $this->docker->exec($containerId, 'cat /etc/nginx/conf.d/default.conf');
 		}catch(\Exception $e){
-			$this->cli->printDebug($e->getMessage());
+			$this->cli->debug($e->getMessage());
 			return "";
 		}
 	}
@@ -139,7 +138,7 @@ class Proxy
 				try{
 					$this->docker->createNetwork($network);
 				}catch(DockerNetworkExistsException $e){
-					$this->cli->printDebug("Network '$network' already exists");
+					$this->cli->debug("Network '$network' already exists");
 				}
 				$this->docker->networkAttach($network, $id);
 			}
@@ -150,9 +149,6 @@ class Proxy
 		}
 	}
 
-    /**
-     * @throws ContainerNotRunningException
-     */
 	public function stop()
 	{
 		$containerId = $this->getContainerId();
@@ -197,7 +193,7 @@ class Proxy
 			return $this->config->addNetwork($network);
 		}else{
 			// TODO: should we do anything different here?
-			$this->cli->printDebug("We have a general failure attaching the proxy to network '$network'");
+			$this->cli->debug("We have a general failure attaching the proxy to network '$network'");
 			return false;
 		}
 	}
