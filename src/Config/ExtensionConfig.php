@@ -1,6 +1,9 @@
 <?php declare(strict_types=1);
 
 namespace DDT\Config;
+
+use DDT\Exceptions\Config\ConfigWrongTypeException;
+
 class ExtensionConfig extends BaseConfig
 {
     public function __construct(string $path)
@@ -8,7 +11,7 @@ class ExtensionConfig extends BaseConfig
         parent::__construct($path);
 
         if($this->getType() !== 'extension'){
-            throw new \DDT\Exceptions\Config\ConfigWrongTypeException([$this->getType(), 'extension']);
+            throw new ConfigWrongTypeException([$this->getType(), 'extension']);
         }
     }
 

@@ -4,6 +4,7 @@ namespace DDT\Tool;
 
 use DDT\CLI;
 use DDT\Config\SystemConfig;
+use DDT\Exceptions\Config\ConfigWrongTypeException;
 use DDT\Extension\ExtensionManager;
 
 class ExtensionTool extends Tool
@@ -149,7 +150,7 @@ class ExtensionTool extends Tool
         // we do like a venn diagram of configured and installed extensions regarding their status
         try{
             var_dump($this->extensionManager->list());
-        }catch(\DDT\Exceptions\Config\ConfigWrongTypeException $e){
+        }catch(ConfigWrongTypeException $e){
             $this->cli->failure($e->getMessage());
         }
     }

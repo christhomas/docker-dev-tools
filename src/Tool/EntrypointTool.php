@@ -7,6 +7,7 @@ use DDT\Exceptions\Tool\ToolNotFoundException;
 use DDT\Exceptions\Tool\ToolNotSpecifiedException;
 use DDT\Exceptions\Tool\CommandNotFoundException;
 use DDT\Exceptions\Config\ConfigMissingException;
+use DDT\Text;
 
 class EntrypointTool extends Tool
 {
@@ -25,7 +26,7 @@ class EntrypointTool extends Tool
         try{
             return $this->cli->print(parent::handle());
         }catch(ConfigMissingException $e){
-            $this->cli->failure(\Text::box($e->getMessage(), "white", "red"));
+            $this->cli->failure(Text::box($e->getMessage(), "white", "red"));
         }catch(ToolNotFoundException $e){
             $this->cli->failure($e->getMessage());
         }catch(ToolNotSpecifiedException $e){
@@ -59,7 +60,7 @@ class EntrypointTool extends Tool
             return $tool->handle();
         }
         
-        throw new \DDT\Exceptions\Tool\ToolNotFoundException($command['name']);
+        throw new ToolNotFoundException($command['name']);
     }
 
     public function createTool(string $name)
@@ -68,7 +69,7 @@ class EntrypointTool extends Tool
             return container('DDT\\Tool\\'.ucwords($name).'Tool');
         }catch(\Exception $e){
             $this->cli->debug("{red}".$e->getMessage()."{end}");
-            throw new \DDT\Exceptions\Tool\ToolNotFoundException($name, 0, $e);
+            throw new ToolNotFoundException($name, 0, $e);
         }
     }
 
@@ -101,7 +102,7 @@ See the below options for subcommands that you can run for specific functionalit
             $instance = $this->createTool($tool['name']);
 
             if($instance->isTool()){
-                $options[] = \Text::write("  {$instance->getName()}: {$instance->getShortDescription()}");
+                $options[] = Text::write("  {$instance->getName()}: {$instance->getShortDescription()}");
             }
         }
 

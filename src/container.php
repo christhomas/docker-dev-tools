@@ -12,7 +12,7 @@ class Container {
     private $singleton = [];
     private $singletonCache = [];
 
-    public function __construct(\DDT\CLI $cli)
+    public function __construct(CLI $cli)
     {
         self::$instance = $this;
 
