@@ -156,7 +156,7 @@ NOTES;
         // $dns->stop();
     }
 
-    public function restart(): void
+    public function restartCommand(): void
     {
         $this->cli->print("{yel}Restarting:{end} DNS...\n");
 
