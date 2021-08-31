@@ -146,9 +146,11 @@ class DNSMasq
 
 		$this->cli->print("{blu}Starting DNSMasq Container...{end}\n");
 
-		$dockerImage = $this->config->getDockerImage();
-		$containerName = $this->config->getContainerName();
-		$this->docker->run($dockerImage, $containerName, ["53:53/udp"]);
+        $container = container(DockerContainer::class, [
+            'image' => $this->config->getDockerImage(),
+            'name' => $this->config->getContainerName(),
+            'ports' => ["53:53/udp"]
+        ]);
 
 		sleep(2);
     }
