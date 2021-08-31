@@ -17,6 +17,8 @@ class EntrypointTool extends Tool
     public function __construct(CLI $cli, Text $text)
     {
         parent::__construct($cli->getScript(false), $cli);
+
+        $this->text = $text;
     }
 
     public function isTool(): bool

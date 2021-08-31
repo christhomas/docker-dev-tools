@@ -248,18 +248,24 @@ class CLI
 		return $code;
 	}
 
-	public function print(string $string): string
+	public function print(?string $string=''): string
 	{
+		if(empty($string)) return '';
+
 		return $this->writeChannel('stdout', $string);
 	}
 
-	public function debug(string $string)
+	public function debug(?string $string='')
 	{
+		if(empty($string)) return '';
+
 		return $this->writeChannel('debug', '{blu}[DEBUG]:{end} '.trim($string)."\n");
 	}
 
-	public function quiet(string $string)
+	public function quiet(?string $string='')
 	{
+		if(empty($string)) return '';
+
 		return $this->writeChannel('quiet', $string);
 	}
 

@@ -11,6 +11,7 @@ use DDT\Contract\DnsServiceInterface;
 use DDT\Exceptions\AutoloadException;
 use DDT\Exceptions\Config\ConfigInvalidException;
 use DDT\Exceptions\Config\ConfigMissingException;
+use DDT\Exceptions\Container\ContainerNotInstantiatedException;
 
 try{
 	if (version_compare(phpversion(), '7.2', '<')) {
@@ -32,7 +33,7 @@ try{
 	function container(?string $ref = null, ?array $args = [])
 	{
 		if(Container::$instance === null){
-			throw new \Exception("You must create the container before attempting to use it");
+			throw new ContainerNotInstantiatedException();
 		}
 
 		return is_string($ref)
