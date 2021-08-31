@@ -85,12 +85,12 @@ NOTES;
 		}
 	}
 
-	protected function getCommand(): string
+	public function getCommand(): string
 	{
-		return $this->config->getKey('.ip_address');
+		return $this->config->getKey('.ip_address') . "\n";
 	}
 
-	protected function addCommand(): void
+	public function addCommand(): void
 	{
 		$ipAddress = $this->config->getKey('.ip_address');
 
@@ -108,7 +108,7 @@ NOTES;
 		}
 	}
 
-	protected function removeCommand(): void
+	public function removeCommand(): void
 	{
 		$ipAddress = $this->config->getKey('.ip_address');
 
@@ -126,14 +126,14 @@ NOTES;
 		}
 	}
 
-	protected function resetCommand(): void
+	public function resetCommand(): void
 	{
 		$this->cli->print("{blu}Resetting IP Address:{end}\n");
 		$this->removeCommand();
 		$this->addCommand();
 	}
 
-	protected function pingCommand(): void
+	public function pingCommand(): void
 	{
 		$this->cli->failure("TODO: implement ping functionality");
 		/*
