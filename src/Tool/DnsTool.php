@@ -8,6 +8,8 @@ use DDT\Config\IpConfig;
 use DDT\Config\SystemConfig;
 use DDT\Contract\DnsServiceInterface;
 use DDT\Network\DNSMasq;
+use DDT\Text\Table;
+use DDT\Text\Text;
 
 class DnsTool extends Tool
 {
@@ -182,7 +184,7 @@ NOTES;
         // $ipAddress = $cli->getArgWithVal('ip-address', $alias->get());
 
         // if($ipAddress !== $alias->get()){
-        //     Text::print("{blu}Overriding IP Alias:{end} '{yel}" . $alias->get() . "{end}' with custom IP Address '{yel}$ipAddress{end}'\n\n");
+        //     $this->cli->print("{blu}Overriding IP Alias:{end} '{yel}" . $alias->get() . "{end}' with custom IP Address '{yel}$ipAddress{end}'\n\n");
         // }
 
         // $dns->addDomain($ipAddress, $domain);
@@ -236,11 +238,11 @@ NOTES;
         $domainList = $this->dnsMasq->listDomains();
         var_dump($domainList);
 
-        // Text::print("{blu}Domains that are registered in the dns container:{end}\n");
+        // $this->cli->print("{blu}Domains that are registered in the dns container:{end}\n");
 
         // $domainList = $dns->listDomains(true);
 
-        // $table = new TextTable();
+        // $table = new Table(new Text());
         // $table->setRightPadding(10);
         // $table->addRow(['Domain', 'IP Address']);
         // foreach($domainList as $domain){

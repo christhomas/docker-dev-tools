@@ -4,16 +4,21 @@ namespace DDT\Tool;
 
 use DDT\CLI;
 use DDT\Config\SystemConfig;
+use DDT\Text\Text;
 
 class SetupTool extends Tool
 {
-    /** @var \DDT\Config\SystemConfig  */
+    /** @var Text */
+    private $text;
+
+    /** @var SystemConfig  */
     private $config;
 
-    public function __construct(CLI $cli, SystemConfig $config)
+    public function __construct(CLI $cli, Text $text, SystemConfig $config)
     {
     	parent::__construct('setup', $cli);
 
+        $this->text = $text;
         $this->config = $config;
     }
 
@@ -76,9 +81,9 @@ class SetupTool extends Tool
         $toolPath = $config->getToolsPath();
 
         if($shellPath->test($toolPath, $cli->getScript(false))){
-            print(\DDT\Text::box("The path was successfully installed, you might need to open a new terminal to see the effects", "black", "green"));
+            $this->cli->print($this->text->box("The path was successfully installed, you might need to open a new terminal to see the effects", "black", "green"));
         }else{
-            print(\DDT\Text::box("The tool '" . basename($cli->getScript()) . "' could not set the shell path successfully installed. Please report this error", "white", "red"));
+            $this->cli->print($this->text->box("The tool '" . basename($cli->getScript()) . "' could not set the shell path successfully installed. Please report this error", "white", "red"));
             exit(1);
         }*/
     }

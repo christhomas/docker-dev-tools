@@ -4,16 +4,21 @@ namespace DDT\Tool;
 
 use DDT\CLI;
 use DDT\Config\SystemConfig;
+use DDT\Text\Text;
 
 class SyncTool extends Tool
 {
-    /** @var \DDT\Config\SystemConfig  */
+    /** @var Text */
+    private $text;
+
+    /** @var SystemConfig  */
     private $config;
 
-    public function __construct(CLI $cli, SystemConfig $config)
+    public function __construct(CLI $cli, Text $text, SystemConfig $config)
     {
     	parent::__construct('extension', $cli);
 
+        $this->text = $text;
         $this->config = $config;
     }
 
@@ -99,12 +104,12 @@ try{
     }
 
     if(!$this->cli->isCommand('fswatch')){
-        $this->cli->print(\DDT\Text::box($e->getMessage(), 'white', 'red'));
+        $this->cli->print($this->text->box($e->getMessage(), 'white', 'red'));
         exit(1);
     }
 }
 
-function help(DDT\CLI $cli)
+function help(CLI $cli)
 {
 	$script = $cli->getScript(false);
 

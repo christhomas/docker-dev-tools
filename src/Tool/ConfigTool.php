@@ -5,11 +5,18 @@ namespace DDT\Tool;
 use DDT\CLI;
 use DDT\Config\SystemConfig;
 use DDT\Exceptions\Config\ConfigMissingException;
+use DDT\Text\Text;
+
 class ConfigTool extends Tool
 {
-    public function __construct(CLI $cli)
+	/** @var Text */
+	private $text;
+
+    public function __construct(CLI $cli, Text $text)
     {
     	parent::__construct('config', $cli);
+
+		$this->text = $text;
     }
 
     public function getTitle(): string
@@ -93,7 +100,7 @@ EXAMPLES;
 
 	public function filename(): string
 	{
-		$config = container(\DDT\Config\SystemConfig::class);
+		$config = container(SystemConfig::class);
 
 		return $config->getFilename();
 	}
@@ -111,9 +118,9 @@ EXAMPLES;
 		$reply = $this->cli->ask('Are you sure you want to reset your configuration?', ['yes', 'no']);
 
 		if($reply === 'yes'){
-			return \DDT\Text::box("The request to reset was refused", "black", "green");
+			return $this->text->box("The request to reset was refused", "black", "green");
 		}else{
-			return \DDT\Text::box("The request to reset was refused", "white", "red");
+			return $this->text->box("The request to reset was refused", "white", "red");
 		}
 
 
@@ -122,8 +129,8 @@ EXAMPLES;
 		// 		$this->cli->print("The configuration file '{yel}$filename{end}' already exists\n"));
 		// 		if($cli->hasArg('break-me')) file_put_contents($filename, file_get_contents($filename)."!@#@#^#$!@#");
 		// 	}else{
-		// 		$this->cli->print(\DDT\Text::box("Writing the configuration file: $filename", 'black', 'yellow'));
-		// 		$config = new \DDT\Config\SystemConfig(DDT\CLI::getToolPath("/defaults.json"));
+		// 		$this->cli->print($this->text->box("Writing the configuration file: $filename", 'black', 'yellow'));
+		// 		$config = new SystemConfig(DDT\CLI::getToolPath("/defaults.json"));
 		// 		$config->write($filename);
 		// 	}
 		// }
@@ -154,7 +161,7 @@ EXAMPLES;
 		$this->cli->failure("implement: " . __METHOD__);
 		/*
 		if($exists && $removeKey = $cli->getArgWithVal('remove-key')){
-			$config = container(\DDT\Config\SystemConfig::class);
+			$config = container(SystemConfig::class);
 			$config->deleteKey($removeKey);
 			$config->write();
 			exit(0);
@@ -170,13 +177,13 @@ EXAMPLES;
 		$config = container(\DDT\Config\SystemConfig::class);
 
 		return implode("\n", [
-			\DDT\Text::box("The system configuration in file '{$config->getFilename()}' was valid", 'black', 'green'),
+			$this->text->box("The system configuration in file '{$config->getFilename()}' was valid", 'black', 'green'),
 		]);
 	}
 
 	public function version(): string
 	{
-		$config = container(\DDT\Config\SystemConfig::class);
+		$config = container(SystemConfig::class);
 
 		return $config->getVersion();
 	}

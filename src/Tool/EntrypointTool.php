@@ -3,15 +3,18 @@
 namespace DDT\Tool;
 
 use DDT\CLI;
+use DDT\Text\Text as Text;
 use DDT\Exceptions\Tool\ToolNotFoundException;
 use DDT\Exceptions\Tool\ToolNotSpecifiedException;
 use DDT\Exceptions\Tool\CommandNotFoundException;
 use DDT\Exceptions\Config\ConfigMissingException;
-use DDT\Text;
 
 class EntrypointTool extends Tool
 {
-    public function __construct(CLI $cli)
+    /** @var Text */
+    private $text;
+
+    public function __construct(CLI $cli, Text $text)
     {
         parent::__construct($cli->getScript(false), $cli);
     }
@@ -26,7 +29,7 @@ class EntrypointTool extends Tool
         try{
             return $this->cli->print(parent::handle());
         }catch(ConfigMissingException $e){
-            $this->cli->failure(Text::box($e->getMessage(), "white", "red"));
+            $this->cli->failure($this->text->box($e->getMessage(), "white", "red"));
         }catch(ToolNotFoundException $e){
             $this->cli->failure($e->getMessage());
         }catch(ToolNotSpecifiedException $e){
@@ -102,7 +105,7 @@ See the below options for subcommands that you can run for specific functionalit
             $instance = $this->createTool($tool['name']);
 
             if($instance->isTool()){
-                $options[] = Text::write("  {$instance->getName()}: {$instance->getShortDescription()}");
+                $options[] = $this->text->write("  {$instance->getName()}: {$instance->getShortDescription()}");
             }
         }
 

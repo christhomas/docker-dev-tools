@@ -1,11 +1,12 @@
 <?php declare(strict_types=1);
 
-namespace DDT;
+namespace DDT\Text;
+
 class Text
 {
 	const TERMINATE_CONTROL_CHAR = "\033[0m";
 
-	static private $codes = [];
+	private $codes = [];
 
 	public function __construct()
 	{
@@ -25,7 +26,7 @@ class Text
 			define($key, $val);
 
 			if(!in_array($key, ['chk', 'mss', 'wrn'])){
-				self::addCode($key, $val);
+				$this->addCode($key, $val);
 
 				$map = [
 					"BLK"=>"BLACK",
@@ -39,23 +40,23 @@ class Text
 				];
 
 				$key = str_replace(array_keys($map), array_values($map), $key);
-				self::addCode($key, $val);
+				$this->addCode($key, $val);
 			}
 		}
 	}
 
-	static public function addCode($key, $value): void
+	public function addCode($key, $value): void
 	{
 		$printing = strpos($key, "_I") !== false ? 2 : 0;
 
-		self::$codes[$key] = ['printing' => $printing, 'value' => $value];
+		$this->codes[$key] = ['printing' => $printing, 'value' => $value];
 	}
 
-	static public function findCodes($string): array
+	public function findCodes($string): array
 	{
 		$codes = [];
 
-		foreach(self::$codes as $code){
+		foreach($this->codes as $code){
 			$count = substr_count($string, $code['value']);
 			$codes = $codes + array_fill(count($codes),$count, $code);
 		}
@@ -63,20 +64,20 @@ class Text
 		return $codes;
 	}
 
-	static public function stripColours(string $input): string
+	public function stripColours(string $input): string
 	{
-		foreach(self::$codes as $key){
+		foreach($this->codes as $key){
 			$input = str_replace($key['value'], '', $input);
 		}
 		return $input;
 	}
 
-	static public function dump(): string
+	public function dump(): string
 	{
 		$args = func_get_args();
 
 		if(count($args) === 0){
-			print(self::write(
+			print($this->write(
 				"\n".
 				"dump(): called with no arguments?\n".
 				"Why are you like this? You don't have to be this way.....\n",
@@ -91,57 +92,57 @@ class Text
 		return ob_get_clean();
 	}
 
-	static public function checkIcon(): string
+	public function checkIcon(): string
 	{
 		return constant('chk_i');
 	}
 
-	static public function crossIcon(): string
+	public function crossIcon(): string
 	{
 		return constant('mss_i');
 	}
 
-	static public function warnIcon(): string
+	public function warnIcon(): string
 	{
 		return constant('wrn_i');
 	}
 
-	static public function write(string $string): string
+	public function write(string $string): string
 	{
-		foreach(self::$codes as $key => $code){
+		foreach($this->codes as $key => $code){
 			$string = str_replace('{'.strtolower($key).'}',$code['value'],$string);
 		}
 
 		return $string;
 	}
 
-	static public function white(string $string): string
+	public function white(string $string): string
 	{
-		return self::write("{wht}$string{end}");
+		return $this->write("{wht}$string{end}");
 	}
 
-	static public function green(string $string): string
+	public function green(string $string): string
 	{
-		return self::write("{grn}$string{end}");
+		return $this->write("{grn}$string{end}");
 	}
 
-	static public function red(string $string): string
+	public function red(string $string): string
 	{
-		return self::write("{red}$string{end}");
+		return $this->write("{red}$string{end}");
 	}
 
-	static public function blue(string $string): string
+	public function blue(string $string): string
 	{
-		return self::write("{blu}$string{end}");
+		return $this->write("{blu}$string{end}");
 	}
 
-	static public function yellow(string $string): string
+	public function yellow(string $string): string
 	{
-		return self::write("{yel}$string{end}");
+		return $this->write("{yel}$string{end}");
 	}
 
-	static public function box(string $string, string $foreground, string $background): string
+	public function box(string $string, string $foreground, string $background): string
 	{
-		return self::write("{" . $foreground . "}{" . $background . "_b}\n\t\n\t" . trim($string) . "\n{end}\n");
+		return $this->write("{" . $foreground . "}{" . $background . "_b}\n\t\n\t" . trim($string) . "\n{end}\n");
 	}
 }

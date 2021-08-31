@@ -4,16 +4,22 @@ namespace DDT\Tool;
 
 use DDT\CLI;
 use DDT\Config\SystemConfig;
+use DDT\Text\Text;
+use DDT\Text\Table;
 
 class StatusTool extends Tool
 {
-    /** @var \DDT\Config\SystemConfig  */
+    /** @var Text */
+    private $text;
+
+    /** @var SystemConfig  */
     private $config;
 
-    public function __construct(CLI $cli, SystemConfig $config)
+    public function __construct(CLI $cli, Text $text, SystemConfig $config)
     {
     	parent::__construct('status', $cli);
 
+        $this->text = $text;
         $this->config = $config;
     }
 
@@ -69,7 +75,7 @@ class StatusTool extends Tool
 // }
 
 // $list = $config->listHealthcheck();
-// $table = new TextTable();
+// $table = new Table(new Text);
 // $table->setRightPadding(5);
 
 // foreach($list as $name){
@@ -80,22 +86,22 @@ class StatusTool extends Tool
 //     $url = $result['url'];
 
 // 	$access = $result['connected']
-//         ? \DDT\Text::green(\DDT\Text::checkIcon() . " Connected")
-//         : \DDT\Text::red(\DDT\Text::crossIcon() . " Failed");
+//         ? $this->text->green($this->text->checkIcon() . " Connected")
+//         : $this->text->red($this->text->crossIcon() . " Failed");
 
 // 	if(array_key_exists('http_code', $result)){
 // 		$http_status = $result['http_code'] === 200
-// 			? \DDT\Text::green(\DDT\Text::checkIcon() . " HTTP Success ({$result['http_code']})")
-// 			: \DDT\Text::red(\DDT\Text::crossIcon() . " HTTP Failed ({$result['http_code']})");
+// 			? $this->text->green($this->text->checkIcon() . " HTTP Success ({$result['http_code']})")
+// 			: $this->text->red($this->text->crossIcon() . " HTTP Failed ({$result['http_code']})");
 //     }else{
 // 		$http_status = "";
 //     }
 
 // 	if(array_key_exists('success', $result)){
 // 		if($result['success']){
-// 			$data_ok = \DDT\Text::green(\DDT\Text::checkIcon() . " Data OK");
+// 			$data_ok = $this->text->green($this->text->checkIcon() . " Data OK");
 // 		}else{
-// 			$data_ok = \DDT\Text::red(\DDT\Text::crossIcon() . " Data Failed");
+// 			$data_ok = $this->text->red($this->text->crossIcon() . " Data Failed");
 // 		}
 //     }else{
 // 	    $data_ok = "";
@@ -103,7 +109,7 @@ class StatusTool extends Tool
 
 // 	if(array_key_exists('db_status', $result) && is_array($result['db_status'])){
 // 	    $db_ok = array_reduce(array_keys($result['db_status']), function($c, $i) use ($result){
-// 	        $status = $result['db_status'][$i] === true ? \DDT\Text::green($i) : \DDT\Text::red($i);
+// 	        $status = $result['db_status'][$i] === true ? $this->text->green($i) : $this->text->red($i);
 //             return trim("$c, $status", " ,");
 //         }, "");
 
@@ -133,5 +139,5 @@ class StatusTool extends Tool
 // print($table->render(true));
 
 // if(empty($list)){
-//     print(\DDT\Text::yellow("There were no healthchecks found, nothing to test\n"));
+//     print($this->text->yellow("There were no healthchecks found, nothing to test\n"));
 // }

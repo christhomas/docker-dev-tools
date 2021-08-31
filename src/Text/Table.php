@@ -1,13 +1,19 @@
-<?php
-class TextTable {
+<?php declare(strict_types=1);
+
+namespace DDT\Text;
+
+class Table
+{
+    private $text;
 	private $data;
 	private $tabWidth = 2;
 	private $space = " ";
 	private $rightPadding = 0;
 	private $debug = false;
 
-	public function __construct(?array $data=[], int $tabWidth=2)
-	{
+    public function __construct(Text $text, ?array $data=[], int $tabWidth=2)
+    {
+        $this->text = $text;
 		$this->data = $data;
 		$this->tabWidth = $tabWidth;
 	}
@@ -19,12 +25,19 @@ class TextTable {
 		if($state) $this->space = "_";
 	}
 
-	public function debug($data, $varDump=false)
+	public function debug($data)
 	{
 		if($this->debug){
-			$varDump ? var_dump($data) : print("$data\n");
+			print("$data\n");
 		}
 	}
+
+    public function var_dump($data)
+    {
+        if($this->debug){
+			var_dump($data);
+		}
+    }
 
 	public function addRow($data) {
 		foreach($data as $c => $column){
@@ -37,7 +50,7 @@ class TextTable {
 	private function adjustColumnWidthByNonPrintingChars($width, $text)
 	{
 		// Find all non text colour and non printing character codes
-		$codes = \DDT\Text::findCodes($text);
+		$codes = $this->text->findCodes($text);
 
 		$this->debug("Found ".count($codes)." codes");
 
@@ -112,7 +125,7 @@ class TextTable {
 				$cellWidths[$r][$c] = $colWidths[$c] - $cw;
 			}
 		}
-		$this->debug(['widths' => $cellWidths], true);
+		$this->var_dump(['widths' => $cellWidths]);
 
 		$output = "";
 		foreach($this->data as $r => $row){
