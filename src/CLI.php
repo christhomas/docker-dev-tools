@@ -16,6 +16,7 @@ class CLI
 		$this->setScript($argv[0]);
 		$this->setArgs(array_slice($argv, 1));
 		$this->listenChannel('stdout');
+		$this->listenChannel('quiet');
 	}
 
 	public function enableErrors(bool $showErrors=false)

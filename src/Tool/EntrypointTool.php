@@ -46,7 +46,7 @@ class EntrypointTool extends Tool
             
             case $arg['name'] === '--quiet':
                 $this->cli->print("{yel}** quiet output enabled{end}\n");
-                $this->cli->listenChannel('quiet');
+                $this->cli->listenChannel('quiet', false);
                 break;
         }
     }
