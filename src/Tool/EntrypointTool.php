@@ -42,16 +42,11 @@ class EntrypointTool extends Tool
                 $this->cli->print("{yel}** errors enabled{end}\n");
                 $this->cli->enableErrors(true);
                 $this->cli->listenChannel('debug');
-
-                \Text::setDebug($arg['value'] ?? 'true');
-                \Shell::setDebug(true);
                 break;
             
             case $arg['name'] === '--quiet':
                 $this->cli->print("{yel}** quiet output enabled{end}\n");
                 $this->cli->listenChannel('quiet');
-
-                \Text::setQuiet(true);
                 break;
         }
     }

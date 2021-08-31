@@ -2,12 +2,16 @@
 
 namespace DDT\Network;
 
+use DDT\CLI;
 use DDT\Config\DnsConfig;
 use DDT\Docker\Docker;
 use DDT\Docker\DockerContainer;
 
 class DNSMasq
 {
+    /** @var CLI */
+    private $cli;
+
     /** @var DnsConfig */
     private $config;
 
@@ -19,8 +23,9 @@ class DNSMasq
 		'container_name'	=> 'ddt-dnsmasq',
 	];
 
-    public function __construct(DnsConfig $config, Docker $docker)
+    public function __construct(CLI $cli, DnsConfig $config, Docker $docker)
     {
+        $this->cli = $cli;
         $this->config = $config;
         $this->docker = $docker;
 
@@ -72,7 +77,7 @@ class DNSMasq
         /* UPGRADE CODE
 	    $containerId = $this->getContainerId();
 
-        Text::print("{blu}Installing domain:{end} '{yel}$domain{end}' with ip address '{yel}$ipAddress{end}' into dnsmasq configuration running in container '{yel}$containerId{end}'\n");
+        $this->cli->print("{blu}Installing domain:{end} '{yel}$domain{end}' with ip address '{yel}$ipAddress{end}' into dnsmasq configuration running in container '{yel}$containerId{end}'\n");
 
         $this->docker->exec($containerId, "/bin/sh -c 'echo 'address=/$domain/$ipAddress' > /etc/dnsmasq.d/$domain.conf'");
         $this->docker->exec($containerId, "kill -s SIGHUP 1");
@@ -99,7 +104,7 @@ class DNSMasq
         /* UPGRADE CODE
 	    $containerId = $this->getContainerId();
 
-        Text::print("{blu}Remove domain:{end} '{yel}$domain{end}' from dnsmasq configuration running in container '{yel}$containerId{end}'\n");
+        $this->cli->print("{blu}Remove domain:{end} '{yel}$domain{end}' from dnsmasq configuration running in container '{yel}$containerId{end}'\n");
 
         $this->docker->exec($containerId, "/bin/sh -c 'f=/etc/dnsmasq.d/$domain.conf && [ -f \$f ] && rm \$f'");
         $this->docker->exec($containerId, "kill -s SIGHUP 1");
@@ -124,7 +129,7 @@ class DNSMasq
 	public function pull(): void
 	{
 		$dockerImage = $this->config->getDockerImage();
-		\Text::print("{blu}Docker:{end} Pulling '{yel}$dockerImage{end}' before changing the dns\n");
+		$this->cli->print("{blu}Docker:{end} Pulling '{yel}$dockerImage{end}' before changing the dns\n");
 
 		$this->docker->pull($dockerImage);
 	}
@@ -138,7 +143,7 @@ class DNSMasq
 
 		$this->stop();
 
-		\Text::print("{blu}Starting DNSMasq Container...{end}\n");
+		$this->cli->print("{blu}Starting DNSMasq Container...{end}\n");
 
 		$dockerImage = $this->config->getDockerImage();
 		$containerName = $this->config->getContainerName();
@@ -167,14 +172,14 @@ class DNSMasq
 				$this->docker->deleteContainer($containerId);
 			}
 		}catch(\Exception $e){
-			\Text::print("Exception: ".$e->getMessage());
+			$this->cli->print("Exception: ".$e->getMessage());
 		}
         */
 	}
 
     public function refresh()
     {
-        \Shell::sudo();
+        $this->cli->sudo();
     }
 
     private function getContainerId()

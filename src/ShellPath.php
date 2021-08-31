@@ -1,6 +1,13 @@
 <?php
+
+use DDT\CLI;
+use DDT\Config\SystemConfig;
+
 class ShellPath
 {
+	/** @var CLI */
+	private $cli;
+
 	/** @var string The home directory of this computer */
 	private $home;
 
@@ -16,8 +23,9 @@ class ShellPath
 	 * @param string $home The home directory of this computer
 	 * @param string $path The path to the tools to setup
 	 */
-	public function __construct(SystemConfig $config, ?string $home=null)
+	public function __construct(CLI $cli, SystemConfig $config, ?string $home=null)
 	{
+		$this->cli = $cli;
 		$this->config = $config;
 
 		$home = $home ?: $_SERVER['HOME'];
@@ -39,7 +47,7 @@ class ShellPath
 		$script = "ddt-setup";
 
 		if(!is_dir("$path/bin") || !file_exists("$path/bin/$script")){
-			Script::failure(implode("\n",[
+			$this->cli->failure(implode("\n",[
 				"{red}Sanity checks for this path failed. The following items are required to be valid:",
 				"Folder: $path/bin",
 				"File: $path/bin/$script{end}",
@@ -194,7 +202,7 @@ class ShellPath
 
 	public function test(string $toolPath, string $script): bool
 	{
-		$path = implode("\n",Shell::exec("bash --login -c 'echo \$PATH'"));
+		$path = implode("\n",$this->cli->exec("bash --login -c 'echo \$PATH'"));
 		$path = explode(":", $path);
 
 		$toolPath = "$toolPath/bin";
@@ -202,11 +210,11 @@ class ShellPath
 		foreach($path as $segment){
 			if($toolPath === $segment){
 				try {
-					Shell::exec("bash --login -c '$script --help'");
-					Shell::exec("bash -c '$toolPath/$script --help'");
+					$this->cli->exec("bash --login -c '$script --help'");
+					$this->cli->exec("bash -c '$toolPath/$script --help'");
 					return true;
 				}catch(Exception $e){
-					Text::print($e->getMessage());
+					$this->cli->print($e->getMessage());
 					return false;
 				}
 			}

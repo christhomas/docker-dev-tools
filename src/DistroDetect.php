@@ -4,15 +4,23 @@ namespace DDT;
 
 class DistroDetect
 {
-	static public function isDarwin(): bool
+	/** @var CLI */
+	private $cli;
+
+	public function __construct(CLI $cli)
+	{
+		$this->cli = $cli;
+	}
+
+	public function isDarwin(): bool
 	{
 		return strtolower(PHP_OS) === 'darwin';
 	}
 
-	static public function isUbuntu(string $version): bool
+	public function isUbuntu(string $version): bool
 	{
-		if(\Shell::isCommand('lsb_release')){
-			$lsb_output = \Shell::exec("lsb_release -d", true);
+		if($this->cli->isCommand('lsb_release')){
+			$lsb_output = $this->cli->exec("lsb_release -d", true);
 			list($ignore, $release) = explode(":", $lsb_output);
 			$release = trim($release);
 

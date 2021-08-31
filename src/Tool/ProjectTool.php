@@ -346,7 +346,7 @@ foreach(glob(CLI::getToolPath("/../** <<-delete this space>/.git"), GLOB_ONLYDIR
             if($action === "pull"){
                 $afterPull = $repoSync->parseHook("after_pull", ["project_dir" => $dir]);
                 foreach($afterPull as $script){
-                    Shell::passthru($script);
+                    $this->cli->passthru($script);
                 }
             }
         }else{

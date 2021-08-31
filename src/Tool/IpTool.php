@@ -140,7 +140,7 @@ NOTES;
 		$ipAddress = $ipAddress ?: $this->get();
 
 		try{
-			$result = Shell::exec("ping -c 1 -W 1 $ipAddress 2>&1");
+			$result = $this->cli->exec("ping -c 1 -W 1 $ipAddress 2>&1");
 		}catch(Exception $e){
 			$result = explode("\n",$e->getMessage());
 		}

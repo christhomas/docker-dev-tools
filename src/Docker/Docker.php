@@ -108,7 +108,7 @@ class Docker
         try{
 			return $this->cli->passthru("$this->command pull $image");
 		}catch(\Exception $e){
-			\Text::print("{red}" . $this->parseErrors($e->getMessage()) . "{end}");
+			$this->cli->print("{red}" . $this->parseErrors($e->getMessage()) . "{end}");
 		}
 
 		return 1;

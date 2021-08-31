@@ -89,16 +89,16 @@ try{
 }catch(DockerMissingException $e){
     $this->cli->failure($e->getMessage());
 }catch(Exception $e){
-    if(!Shell::isCommand('fswatch')){
+    if(!$this->cli->isCommand('fswatch')){
         $answer = DDT\CLI::ask("fswatch is not installed, install it?", ['yes', 'no']);
         if($answer === 'yes'){
             $os = strtolower(PHP_OS);
-            if($os === 'darwin') Shell::passthru('brew install fswatch');
-            if($os === 'linux') Shell::passthru('api-get install fswatch');
+            if($os === 'darwin') $this->cli->passthru('brew install fswatch');
+            if($os === 'linux') $this->cli->passthru('api-get install fswatch');
         }
     }
 
-    if(!Shell::isCommand('fswatch')){
+    if(!$this->cli->isCommand('fswatch')){
         Text::print(Text::box($e->getMessage(), 'white', 'red'));
         exit(1);
     }

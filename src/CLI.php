@@ -7,6 +7,10 @@ class CLI
 	private $script = null;
 	private $channels = [];
 
+	public static $exitCode = 0;
+	public static $stdout = "";
+	public static $stderr = "";
+
 	public function __construct(array $argv)
 	{
 		$this->setScript($argv[0]);
@@ -84,6 +88,15 @@ class CLI
 		}
 	}
 
+	public function statusChannel(string $channel): bool
+	{
+		if(array_key_exists($channel, $this->channels)){
+			return $this->channels[$channel]['state'];
+		}
+
+		return false;
+	}
+
 	public function setArgs(array $argv): array
 	{
 		$this->args = [];
@@ -151,34 +164,82 @@ class CLI
 
 	public function isCommand(string $command): bool
 	{
-		return \Shell::isCommand($command);
+		try{
+			$this->exec("command -v $command");
+			return true;
+		}catch(\Exception $e){
+			return false;
+		}
 	}
 
 	public function sudo(): CLI
 	{
-		\Shell::sudo();
+		$this->exec("sudo echo");
 
 		return $this;
 	}
 
 	public function getStdErr(): string
 	{
-		return \Shell::$stderr;
+		return self::$stderr;
 	}
 
 	public function getErrorCode(): int
 	{
-		return \Shell::$exitCode;
+		return self::$exitCode;
 	}
 
-	public function exec(string $command)
+	public function exec(string $command, bool $firstLine=false, bool $throw=true)
 	{
-		return \Shell::exec($command);
+		$debug = "{red}[EXEC]:{end} $command";
+
+		unset($pipes);
+		$pipes = [];
+
+		$proc = proc_open($command,[
+			1 => ['pipe','w'],
+			2 => ['pipe','w'],
+		],$pipes);
+
+		self::$stdout = trim(stream_get_contents($pipes[1]));
+		fclose($pipes[1]);
+
+		self::$stderr = trim(stream_get_contents($pipes[2]));
+		fclose($pipes[2]);
+
+		$code = proc_close($proc);
+
+		self::$exitCode = $code;
+
+		$debug = "$debug, {blu}Return Code:{end} $code";
+		$debug = "$debug, {blu}Error Output:{end} '".self::$stderr."'";
+
+		$this->debug($debug);
+
+		if($code !== 0 && $throw === true){
+			throw new \Exception(self::$stdout." ".self::$stderr, $code);
+		}
+
+		$output = empty(self::$stdout) ? [""] : explode("\n", self::$stdout);
+
+		return $firstLine ? current($output) : $output;
 	}
 
 	public function passthru(string $command, bool $throw=true): int
 	{
-		return \Shell::passthru($command, $throw);
+		$this->cli->debug("{red}[EXEC]:{end} Passthru command: $command");
+
+		$redirect = $this->statusChannel('debug') ? "" : "2>&1";
+
+		passthru("$command $redirect", $code);
+
+		self::$exitCode = $code;
+
+		if ($code !== 0 && $throw === true){
+			throw new \Exception(__METHOD__.": error with command '$command'\n");
+		}
+
+		return $code;
 	}
 
 	public function print(string $string): string
