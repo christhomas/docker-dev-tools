@@ -10,13 +10,9 @@ use DDT\Exceptions\Config\ConfigMissingException;
 
 class EntrypointTool extends Tool
 {
-    /** @var callable The response handler for dealing with what the tool replies with */
-    protected $responseHandler;
-
     public function __construct(CLI $cli)
     {
         parent::__construct($cli->getScript(false), $cli);
-        $this->setTerminalResponse();
     }
 
     public function isTool(): bool
@@ -24,26 +20,10 @@ class EntrypointTool extends Tool
         return false;
     }
 
-    public function setTerminalResponse()
-    {
-        $this->responseHandler = function(string $output): string {
-            $output = \Text::write($output);
-            print($output."\n");
-            return $output;
-        };
-    }
-
-    public function setReturnResponse()
-    {
-        $this->responseHandler = function(string $output): string {
-            return $output;
-        };
-    }
-
     public function handle()
     {
         try{
-            return call_user_func($this->responseHandler, parent::handle() ?? '');
+            return $this->cli->print(parent::handle());
         }catch(ConfigMissingException $e){
             $this->cli->failure(\Text::box($e->getMessage(), "white", "red"));
         }catch(ToolNotFoundException $e){
@@ -59,14 +39,14 @@ class EntrypointTool extends Tool
     {
         switch(true){
             case $arg['name'] === '--debug':
-                \Text::print("{yel}** errors enabled{end}\n");
+                $this->cli->print("{yel}** errors enabled{end}\n");
                 $this->cli->enableErrors(true);
                 \Text::setDebug($arg['value'] ?? 'true');
                 \Shell::setDebug(true);
                 break;
             
             case $arg['name'] === '--quiet':
-                \Text::print("{yel}** quiet output enabled{end}\n");
+                $this->cli->print("{yel}** quiet output enabled{end}\n");
                 \Text::setQuiet(true);
                 break;
         }
@@ -112,11 +92,6 @@ See the below options for subcommands that you can run for specific functionalit
 
     public function getOptions(): string
     {
-        $network = container(\DDT\Docker\DockerNetwork::class, ['name' => 'testing']);
-        var_dump($network->listContainers());
-        var_dump($network->attach('8d12a6f558557700643da74856d5a19d75e2b30f2a325b53b424af80da6a91af'));
-        die("DEAD: ".__METHOD__);
-
         $list = array_map(function($t){ 
             return ['name' => str_replace(['tool', '.php'], '', strtolower(basename($t))), 'path' => $t];
         }, glob(__DIR__ . "/../Tool/?*Tool.php"));

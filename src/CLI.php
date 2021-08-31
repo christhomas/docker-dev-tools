@@ -5,11 +5,13 @@ class CLI
 {
 	private $args = [];
 	private $script = null;
+	private $channels = [];
 
 	public function __construct(array $argv)
 	{
 		$this->setScript($argv[0]);
 		$this->setArgs(array_slice($argv, 1));
+		$this->listenChannel('stdout');
 	}
 
 	public function enableErrors(bool $showErrors=false)
@@ -39,6 +41,47 @@ class CLI
 		$reply = readline(\Text::write("{yel}$question $responses{end}"));
 
 		return $reply;
+	}
+
+	public function listenChannel(string $channel, ?callable $enabled=null, ?callable $disabled=null)
+	{
+		if($enabled === null){
+			$enabled = function($text){
+				$text = \Text::write($text);
+				print($text);
+				return $text;
+			};
+		}
+
+		if($disabled === null){
+			$disabled = function($text){
+				return $text;
+			};
+		}
+		
+		$this->channels[$channel] = [
+			'state' => true,
+			'enabled' => $enabled,
+			'disabled' => $disabled,
+		];
+	}
+
+	public function toggleChannel(string $channel, bool $state)
+	{
+		if(array_key_exists($channel, $this->channels)){
+			$this->channels[$channel]['state'] = $state;
+		}
+	}
+
+	public function writeChannel(string $channel, string $text)
+	{
+		if(array_key_exists($channel, $this->channels)){
+			if($this->channels[$channel]['state'] === true){
+				return $this->channels[$channel]['enabled']($text);
+			}else{
+				return $this->channels[$channel]['disabled']($text);
+			}
+		}
 	}
 
 	public function setArgs(array $argv): array
@@ -138,9 +181,9 @@ class CLI
 		return \Shell::passthru($command, $throw);
 	}
 
-	public function print(string $string)
+	public function print(string $string): string
 	{
-		\Text::print($string);
+		return $this->writeChannel('stdout', $string);
 	}
 
 	public function debug(string $string)
