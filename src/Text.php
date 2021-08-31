@@ -51,6 +51,8 @@ class Text
 	// TODO: future plan is to allow a generic way to 'strip tags' from output instead of just quiet or debug 
 	static public function stripQuiet(string $input, ?bool $strip=true, ?bool $ignore=false): string
 	{
+		return $input;
+		
 		$tag = 'quiet';
 
 		if(preg_match_all("/({".$tag."}((?:.|\n)*?){\/".$tag."})/", $input, $matches) !== false){
@@ -63,6 +65,8 @@ class Text
 
 	static public function stripDebug(string $input, ?string $mode='true'): string
 	{
+		return $input;
+
 		// TODO: future plan is to allow this to accept optional states, like 'verbose'
 		$tag = 'debug';
 		

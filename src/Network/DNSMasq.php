@@ -63,7 +63,7 @@ class DNSMasq
 			return $domains;
         }catch(\Exception $e){
             // TODO: what should I do n this situation?
-            $this->cli->print("{debug}{red}[DOCKER-CONTAINER]: {end} ". $e->getMessage() ."\n{/debug}");
+            $this->cli->debug("{red}[DOCKER-CONTAINER]: {end} ". $e->getMessage());
         }
 	}
 

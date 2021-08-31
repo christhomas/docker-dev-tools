@@ -2,21 +2,21 @@
 
 namespace DDT;
 
-use DDT\Exceptions\Container\CannotAutowireException;
-use DDT\Exceptions\Container\CannotAutowireParameterException;
 use DDT\Exceptions\Container\NotClassReferenceException;
-use ReflectionFunctionAbstract;
 
 class Container {
     static public $instance = null;
 
+    private $cli;
     private $bind = [];
     private $singleton = [];
     private $singletonCache = [];
 
-    public function __construct()
+    public function __construct(\DDT\CLI $cli)
     {
         self::$instance = $this;
+
+        $this->cli = $cli;
     }
 
     public function bind(string $ref, $func){
@@ -29,7 +29,7 @@ class Container {
     }
 
     private function createInstance(string $ref, array $args = []) {
-        \Text::print("{debug}{red}[CONTAINER]:{end} '$ref' was bound as an instance\n{/debug}");
+        $this->cli->debug("{red}[CONTAINER]:{end} '$ref' was bound as an instance");
 
         $thing = $this->bind[$ref];
 
@@ -43,7 +43,7 @@ class Container {
     }
 
     private function createSingleton(string $ref, array $args = []) {
-        \Text::print("{debug}{red}[CONTAINER]:{end} '$ref' was bound as a singleton\n{/debug}");
+        $this->cli->debug("{red}[CONTAINER]:{end} '$ref' was bound as a singleton");
 
         if(!array_key_exists($ref, $this->singletonCache)){
 
@@ -53,22 +53,22 @@ class Container {
 
             switch(true){
                 case is_callable($thing):
-                    \Text::print("{debug}{red}[CONTAINER]:{end} the singleton references a callable\n{/debug}");
+                    $this->cli->debug("{red}[CONTAINER]:{end} the singleton references a callable");
                     $this->singletonCache[$ref] = call_user_func_array($thing, $args);
                     break;
 
                 case is_object($thing):
-                    \Text::print("{debug}{red}[CONTAINER]:{end} the singleton references an object\n{/debug}");
+                    $this->cli->debug("{red}[CONTAINER]:{end} the singleton references an object");
                     $this->singletonCache[$ref] = $thing;
                     break;
 
                 case class_exists($thing):
-                    \Text::print("{debug}{red}[CONTAINER]:{end} the singleton references a class name\n{/debug}");
+                    $this->cli->debug("{red}[CONTAINER]:{end} the singleton references a class name");
                     $this->singletonCache[$ref] = $this->createClass($thing, $args);
                     break;
 
                 case is_scalar($thing):
-                    \Text::print("{debug}{red}[CONTAINER]:{end} the singleton references a scalar value\n{/debug}");
+                    $this->cli->debug("{red}[CONTAINER]:{end} the singleton references a scalar value");
                     $this->singletonCache[$ref] = $thing;
                     break;    
             }
@@ -78,7 +78,7 @@ class Container {
     }
 
     private function createClass(string $ref, array $args = []) {
-        \Text::print("{debug}{red}[CONTAINER]:{end} '$ref' was bound as class\n{/debug}");
+        $this->cli->debug("{red}[CONTAINER]:{end} '$ref' was bound as class");
         
         // NOTE: You can't use the container to get this class, infinite loop!
         $autowire = new Autowire($this);

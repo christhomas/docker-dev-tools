@@ -23,7 +23,7 @@ class IpService implements IpServiceInterface
 				return true;
 			}
 		}catch(\Exception $e){
-            $this->cli->print("{debug}{red}[IP SERVICE]:{end} ".$e->getMessage()."{/debug}");
+            $this->cli->debug("{red}[IP SERVICE]:{end} ".$e->getMessage());
         }
 
 		return false;
@@ -41,7 +41,7 @@ class IpService implements IpServiceInterface
 				return true;
 			}
 		}catch(\Exception $e){
-            $this->cli->print("{debug}{red}[IP SERVICE]:{end} ".$e->getMessage()."{/debug}");
+            $this->cli->debug("{red}[IP SERVICE]:{end} ".$e->getMessage());
         }
 
 		return false;

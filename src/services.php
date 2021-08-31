@@ -1,12 +1,15 @@
 <?php declare(strict_types=1);
 
+use DDT\Container;
 use DDT\DistroDetect;
 use DDT\Contract\IpServiceInterface;
 use DDT\Contract\DnsServiceInterface;
 
-$container = container();
+$cli = new \DDT\CLI($argv);
 
-$container->singleton(\DDT\CLI::class, new \DDT\CLI($argv));
+$container = new Container($cli);
+
+$container->singleton(\DDT\CLI::class, $cli);
 
 $container->singleton(\DDT\Config\SystemConfig::class, new \DDT\Config\SystemConfig($_SERVER['HOME']));
 

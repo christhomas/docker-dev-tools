@@ -86,7 +86,7 @@ abstract class Tool
      */
     public function handleArg(array $arg): void
     {
-        \Text::print("{debug}Unhandled argument named '{$arg['name']}' with value '{$arg['value']}'\n{/debug}");
+        $this->cli->debug("Unhandled argument named '{$arg['name']}' with value '{$arg['value']}'");
     }
     
     /**

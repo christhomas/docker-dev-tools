@@ -28,15 +28,11 @@ spl_autoload_register(function ($fqcn) {
 
 function container(?string $ref = null, ?array $args = [])
 {
-    static $container = null;
-
-    if($container === null){
-        $container = \DDT\Container::$instance ?? new \DDT\Container();
+    if(\DDT\Container::$instance === null){
+        throw new \Exception("You must create the container before attempting to use it");
     }
 
-    if(is_string($ref)) {
-        return $container->get($ref, $args);
-    }
-
-    return $container;
+    return is_string($ref)
+        ? \DDT\Container::$instance->get($ref, $args)
+        : \DDT\Container::$instance;
 }

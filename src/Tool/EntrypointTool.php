@@ -41,12 +41,16 @@ class EntrypointTool extends Tool
             case $arg['name'] === '--debug':
                 $this->cli->print("{yel}** errors enabled{end}\n");
                 $this->cli->enableErrors(true);
+                $this->cli->listenChannel('debug');
+
                 \Text::setDebug($arg['value'] ?? 'true');
                 \Shell::setDebug(true);
                 break;
             
             case $arg['name'] === '--quiet':
                 $this->cli->print("{yel}** quiet output enabled{end}\n");
+                $this->cli->listenChannel('quiet');
+
                 \Text::setQuiet(true);
                 break;
         }
@@ -68,7 +72,7 @@ class EntrypointTool extends Tool
         try{
             return container('DDT\\Tool\\'.ucwords($name).'Tool');
         }catch(\Exception $e){
-            \Text::print("{debug}{red}".$e->getMessage()."{end}\n{/debug}");
+            $this->cli->debug("{red}".$e->getMessage()."{end}");
             throw new \DDT\Exceptions\Tool\ToolNotFoundException($name, 0, $e);
         }
     }

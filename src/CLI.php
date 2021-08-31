@@ -43,7 +43,7 @@ class CLI
 		return $reply;
 	}
 
-	public function listenChannel(string $channel, ?callable $enabled=null, ?callable $disabled=null)
+	public function listenChannel(string $channel, ?bool $state=true, ?callable $enabled=null, ?callable $disabled=null)
 	{
 		if($enabled === null){
 			$enabled = function($text){
@@ -60,7 +60,7 @@ class CLI
 		}
 		
 		$this->channels[$channel] = [
-			'state' => true,
+			'state' => $state,
 			'enabled' => $enabled,
 			'disabled' => $disabled,
 		];
@@ -188,7 +188,12 @@ class CLI
 
 	public function debug(string $string)
 	{
-		$this->print("{debug}".trim($string)."\n{/debug}");
+		return $this->writeChannel('debug', '{blu}[DEBUG]:{end} '.trim($string)."\n");
+	}
+
+	public function quiet(string $string)
+	{
+		return $this->writeChannel('quiet', $string);
 	}
 
 	public function success(?string $string=null)

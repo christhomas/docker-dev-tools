@@ -73,7 +73,7 @@ class DockerNetwork
                 if($id === $containerId) return true;
             }
         }catch(\Exception $e){
-            $this->cli->print("{debug}{red}[DOCKER]:{end} ".$e->getMessage()."\n{/debug}");
+            $this->cli->debug("{red}[DOCKER]:{end} ".$e->getMessage());
         }
 
         return false;
@@ -92,7 +92,7 @@ class DockerNetwork
 			
             return true;
 		}catch(\Exception $e){
-            $this->cli->print("{debug}{red}[DOCKER]:{end} ".$e->getMessage()."\n{/debug}");
+            $this->cli->debug("{red}[DOCKER]:{end} ".$e->getMessage());
 			return false;
 		}
 	}

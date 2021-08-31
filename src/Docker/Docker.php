@@ -186,7 +186,7 @@ class Docker
 			
 			return $r[0];
 		}catch(\Exception $e){
-			$this->cli->print("{debug}The docker network '$name' failed to create with error:\n".$e->getMessage()."\n{/debug}");
+			$this->cli->debug("The docker network '$name' failed to create with error:\n".$e->getMessage());
 			throw new DockerNetworkCreateException($name);
 		}
 	}

@@ -20,10 +20,6 @@ class Autowire
         $constructor = $reflectionClass->getConstructor();
         $finalArgs = $this->getMethodArgsFromAssocArray($constructor, $args);
 
-        //  This is too much output to leave in by default, we need to support debug=verbose or something 
-        //  cause this just overloads the programmer with far too much information to be useful in the general case
-        //\Text::print("{debug}{red}[CONTAINER]:{end} final-args: ".serialize($finalArgs)."\n{/debug}");
-        
         return $reflectionClass->newInstanceArgs($finalArgs);
     }
 
