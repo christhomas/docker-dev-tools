@@ -12,7 +12,7 @@ class CLI
 	public static $stdout = "";
 	public static $stderr = "";
 
-	public function __construct(array $argv, \Text $text)
+	public function __construct(array $argv, Text $text)
 	{
 		$this->text = $text;
 		$this->setScript($argv[0]);
