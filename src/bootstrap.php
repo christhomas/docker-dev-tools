@@ -1,7 +1,7 @@
 <?php declare(strict_types=1);
 
 use DDT\CLI;
-use DDT\Text;
+use DDT\Text\Text;
 use DDT\Container;
 use DDT\DistroDetect;
 use DDT\Tool\EntrypointTool;

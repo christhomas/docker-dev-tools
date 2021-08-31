@@ -1,6 +1,9 @@
 <?php declare(strict_types=1);
 
 namespace DDT;
+
+use DDT\Text\Text;
+
 class CLI
 {
 	private $text;
@@ -45,7 +48,7 @@ class CLI
 	public function ask(string $question, array $accept): string
 	{
 		$responses = "(Accepts: " . implode(", ", $accept) . "): ";
-		$reply = readline($this->text::write("{yel}$question $responses{end}"));
+		$reply = readline($this->text->write("{yel}$question $responses{end}"));
 
 		return $reply;
 	}
@@ -54,7 +57,7 @@ class CLI
 	{
 		if($enabled === null){
 			$enabled = function($text){
-				$text = $this->text::write($text);
+				$text = $this->text->write($text);
 				print($text);
 				return $text;
 			};
@@ -276,7 +279,7 @@ class CLI
 		$where	= $exitCode === 0 ? STDOUT : STDERR;
 
 		if($string !== null){
-			fwrite($where, $this->text::write($colour.rtrim($string, "\n")."{end}\n"));
+			fwrite($where, $this->text->write($colour.rtrim($string, "\n")."{end}\n"));
 		}
 
 		exit($exitCode);
