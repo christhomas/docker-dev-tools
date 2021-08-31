@@ -8,7 +8,6 @@ use DDT\Tool\EntrypointTool;
 use DDT\Config\SystemConfig;
 use DDT\Contract\IpServiceInterface;
 use DDT\Contract\DnsServiceInterface;
-use DDT\Exceptions\AutoloadException;
 use DDT\Exceptions\Config\ConfigInvalidException;
 use DDT\Exceptions\Config\ConfigMissingException;
 use DDT\Exceptions\Container\ContainerNotInstantiatedException;
@@ -26,8 +25,8 @@ try{
 		if (strlen($class) && file_exists($file)) {
 			return require_once($file);
 		}
-
-		throw new AutoloadException("Autoloader could not find class '$fqcn'");
+		
+		return false;
 	});
 
 	function container(?string $ref = null, ?array $args = [])
