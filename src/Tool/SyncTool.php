@@ -99,7 +99,7 @@ try{
     }
 
     if(!$this->cli->isCommand('fswatch')){
-        $this->cli->print(Text::box($e->getMessage(), 'white', 'red'));
+        $this->cli->print(\DDT\Text::box($e->getMessage(), 'white', 'red'));
         exit(1);
     }
 }

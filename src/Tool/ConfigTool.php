@@ -111,9 +111,9 @@ EXAMPLES;
 		$reply = $this->cli->ask('Are you sure you want to reset your configuration?', ['yes', 'no']);
 
 		if($reply === 'yes'){
-			return \Text::box("The request to reset was refused", "black", "green");
+			return \DDT\Text::box("The request to reset was refused", "black", "green");
 		}else{
-			return \Text::box("The request to reset was refused", "white", "red");
+			return \DDT\Text::box("The request to reset was refused", "white", "red");
 		}
 
 
@@ -122,7 +122,7 @@ EXAMPLES;
 		// 		$this->cli->print("The configuration file '{yel}$filename{end}' already exists\n"));
 		// 		if($cli->hasArg('break-me')) file_put_contents($filename, file_get_contents($filename)."!@#@#^#$!@#");
 		// 	}else{
-		// 		$this->cli->print(Text::box("Writing the configuration file: $filename", 'black', 'yellow'));
+		// 		$this->cli->print(\DDT\Text::box("Writing the configuration file: $filename", 'black', 'yellow'));
 		// 		$config = new \DDT\Config\SystemConfig(DDT\CLI::getToolPath("/defaults.json"));
 		// 		$config->write($filename);
 		// 	}
@@ -170,7 +170,7 @@ EXAMPLES;
 		$config = container(\DDT\Config\SystemConfig::class);
 
 		return implode("\n", [
-			\Text::box("The system configuration in file '{$config->getFilename()}' was valid", 'black', 'green'),
+			\DDT\Text::box("The system configuration in file '{$config->getFilename()}' was valid", 'black', 'green'),
 		]);
 	}
 

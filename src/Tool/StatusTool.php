@@ -80,22 +80,22 @@ class StatusTool extends Tool
 //     $url = $result['url'];
 
 // 	$access = $result['connected']
-//         ? Text::green(Text::checkIcon() . " Connected")
-//         : Text::red(Text::crossIcon() . " Failed");
+//         ? \DDT\Text::green(\DDT\Text::checkIcon() . " Connected")
+//         : \DDT\Text::red(\DDT\Text::crossIcon() . " Failed");
 
 // 	if(array_key_exists('http_code', $result)){
 // 		$http_status = $result['http_code'] === 200
-// 			? Text::green(Text::checkIcon() . " HTTP Success ({$result['http_code']})")
-// 			: Text::red(Text::crossIcon() . " HTTP Failed ({$result['http_code']})");
+// 			? \DDT\Text::green(\DDT\Text::checkIcon() . " HTTP Success ({$result['http_code']})")
+// 			: \DDT\Text::red(\DDT\Text::crossIcon() . " HTTP Failed ({$result['http_code']})");
 //     }else{
 // 		$http_status = "";
 //     }
 
 // 	if(array_key_exists('success', $result)){
 // 		if($result['success']){
-// 			$data_ok = Text::green(Text::checkIcon() . " Data OK");
+// 			$data_ok = \DDT\Text::green(\DDT\Text::checkIcon() . " Data OK");
 // 		}else{
-// 			$data_ok = Text::red(Text::crossIcon() . " Data Failed");
+// 			$data_ok = \DDT\Text::red(\DDT\Text::crossIcon() . " Data Failed");
 // 		}
 //     }else{
 // 	    $data_ok = "";
@@ -103,7 +103,7 @@ class StatusTool extends Tool
 
 // 	if(array_key_exists('db_status', $result) && is_array($result['db_status'])){
 // 	    $db_ok = array_reduce(array_keys($result['db_status']), function($c, $i) use ($result){
-// 	        $status = $result['db_status'][$i] === true ? Text::green($i) : Text::red($i);
+// 	        $status = $result['db_status'][$i] === true ? \DDT\Text::green($i) : \DDT\Text::red($i);
 //             return trim("$c, $status", " ,");
 //         }, "");
 
@@ -133,5 +133,5 @@ class StatusTool extends Tool
 // print($table->render(true));
 
 // if(empty($list)){
-//     print(Text::yellow("There were no healthchecks found, nothing to test\n"));
+//     print(\DDT\Text::yellow("There were no healthchecks found, nothing to test\n"));
 // }

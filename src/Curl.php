@@ -83,33 +83,33 @@ class Curl
 
 		if(strpos($response, "SQLSTATE") !== false){
 			if(strpos($response, "Access denied for user") !== false){
-				$reason[] = Text::red("Reason: ") . "Database error";
-				$reason[] = Text::yellow("Suggestion: ") . "Run a migration tool?";
+				$reason[] = \DDT\Text::red("Reason: ") . "Database error";
+				$reason[] = \DDT\Text::yellow("Suggestion: ") . "Run a migration tool?";
 			}
 		}
 
 		if(strpos($response, "PDO::__construct()") !== false){
 			if(strpos($response, "errno=32 Broken pipe") !== false){
-				$reason[] = Text::red("Reason: ") . "Database error";
-				$reason[] = Text::red("Description: ") . "There is an unrecognised database error, just that pdo construct failed and it's unclear why";
-				$reason[] = Text::yellow("Suggestion: ") . "Maybe restarting database containers will help";
-				$reason[] = Text::yellow("Suggestion: ") . "Maybe running a migration tool to rebuild databases will help";
+				$reason[] = \DDT\Text::red("Reason: ") . "Database error";
+				$reason[] = \DDT\Text::red("Description: ") . "There is an unrecognised database error, just that pdo construct failed and it's unclear why";
+				$reason[] = \DDT\Text::yellow("Suggestion: ") . "Maybe restarting database containers will help";
+				$reason[] = \DDT\Text::yellow("Suggestion: ") . "Maybe running a migration tool to rebuild databases will help";
 			}
 
 			if(strpos($response, "MySQL server has gone away") !== false){
-				$reason[] = Text::red("Reason: ") . "MySQL server has gone away";
-				$reason[] = Text::yellow("Suggestion: ") . "Maybe restarting database containers will help";
+				$reason[] = \DDT\Text::red("Reason: ") . "MySQL server has gone away";
+				$reason[] = \DDT\Text::yellow("Suggestion: ") . "Maybe restarting database containers will help";
 			}
 		}
 
 		if(strpos($response, "symfony") !== false){
-			$reason[] = Text::red("Reason: ") . "Generic Symfony Error";
-			$reason[] = Text::yellow("Suggestion: ") . "Nothing to suggest, see the source code or error logs";
+			$reason[] = \DDT\Text::red("Reason: ") . "Generic Symfony Error";
+			$reason[] = \DDT\Text::yellow("Suggestion: ") . "Nothing to suggest, see the source code or error logs";
 		}
 
 		if(strpos($response, "vendor/autoload.php") !== false){
-			$reason[] = Text::red("Reason: ") . "Autoload failed";
-			$reason[] = Text::yellow("Suggestion: ") . "Run php composer to install missing libraries and generate autoloaders";
+			$reason[] = \DDT\Text::red("Reason: ") . "Autoload failed";
+			$reason[] = \DDT\Text::yellow("Suggestion: ") . "Run php composer to install missing libraries and generate autoloaders";
 		}
 
 		return $reason;
@@ -121,18 +121,18 @@ class Curl
 
 		switch($curl_code){
 			case 6:
-				$reason[] = Text::red("Reason: ") . "Curl could not resolve endpoint '$url' (code:$curl_code)";
+				$reason[] = \DDT\Text::red("Reason: ") . "Curl could not resolve endpoint '$url' (code:$curl_code)";
 				break;
 			case 7:
-				$reason[] = Text::red("Reason: ") . "Curl refused to connect (code:$curl_code)";
+				$reason[] = \DDT\Text::red("Reason: ") . "Curl refused to connect (code:$curl_code)";
 				break;
 
 			case 28:
-				$reason[] = Text::red("Reason: ") . "Curl timeout (code:$curl_code)";
+				$reason[] = \DDT\Text::red("Reason: ") . "Curl timeout (code:$curl_code)";
 				break;
 
 			default:
-				$reason[] = Text::red("Reason: ") . "Unknown curl error '" . Text::yellow($curl_code) . "'";
+				$reason[] = \DDT\Text::red("Reason: ") . "Unknown curl error '" . \DDT\Text::yellow($curl_code) . "'";
 				break;
 		}
 

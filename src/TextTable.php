@@ -37,7 +37,7 @@ class TextTable {
 	private function adjustColumnWidthByNonPrintingChars($width, $text)
 	{
 		// Find all non text colour and non printing character codes
-		$codes = Text::findCodes($text);
+		$codes = \DDT\Text::findCodes($text);
 
 		$this->debug("Found ".count($codes)." codes");
 

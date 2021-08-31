@@ -76,9 +76,9 @@ class SetupTool extends Tool
         $toolPath = $config->getToolsPath();
 
         if($shellPath->test($toolPath, $cli->getScript(false))){
-            print(Text::box("The path was successfully installed, you might need to open a new terminal to see the effects", "black", "green"));
+            print(\DDT\Text::box("The path was successfully installed, you might need to open a new terminal to see the effects", "black", "green"));
         }else{
-            print(Text::box("The tool '" . basename($cli->getScript()) . "' could not set the shell path successfully installed. Please report this error", "white", "red"));
+            print(\DDT\Text::box("The tool '" . basename($cli->getScript()) . "' could not set the shell path successfully installed. Please report this error", "white", "red"));
             exit(1);
         }*/
     }

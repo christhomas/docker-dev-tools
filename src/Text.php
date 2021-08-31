@@ -1,4 +1,6 @@
-<?php
+<?php declare(strict_types=1);
+
+namespace DDT;
 class Text
 {
 	const TERMINATE_CONTROL_CHAR = "\033[0m";
@@ -67,22 +69,6 @@ class Text
 			$input = str_replace($key['value'], '', $input);
 		}
 		return $input;
-	}
-
-	static public function prefixLines(string $prefix, array $lines, string $separator="\n", string $terminate="\n", string $colour="blue")
-	{
-		if(!$lines) $lines = ["<EMPTY STRING>"];
-
-		if(!is_array($lines)) $lines = [$lines];
-
-		$lines = array_map(function($entry) use ($colour,$prefix) {
-			return call_user_func("self::$colour",$prefix).$entry;
-		}, $lines);
-
-		if($separator == false) return $lines;
-		if(is_string($separator)) return implode($separator,$lines).$terminate;
-
-		return $lines;
 	}
 
 	static public function dump(): string

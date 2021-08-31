@@ -14,7 +14,7 @@ class SystemConfig extends BaseConfig
         }catch(\DDT\Exceptions\Config\ConfigInvalidException $e){
 			// FIXME: I don't think this should die here, throwing the exception is enough
 			// do this instead: $e->setPath($path); and let the calling tool handle displaying the error
-            die(\Text::box("The config file was invalid, it could not be decoded: '$path'", "white", "red"));
+            die(\DDT\Text::box("The config file was invalid, it could not be decoded: '$path'", "white", "red"));
         }
     }
 
