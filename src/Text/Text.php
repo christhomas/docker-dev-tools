@@ -10,7 +10,7 @@ class Text
 
 	public function __construct()
 	{
-		$colours = parse_ini_file(__DIR__ . '/../lib/colours.ini');
+		$colours = parse_ini_file(__DIR__ . '/../../lib/colours.ini');
 
 		foreach($colours as $key => $val){
 			if(strpos($val, '\033') === 0){
