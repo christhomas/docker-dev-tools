@@ -31,6 +31,16 @@ class DockerContainer
         }
     }
 
+    public function logsFollow()
+    {
+        $this->docker->logsFollow($this->id);
+    }
+
+    public function logs()
+    {        
+        $this->docker->logs($this->id);
+    }
+
     public function stop(): bool
     {
         return false;

@@ -192,16 +192,16 @@ class DNSMasq
 
     public function logs(bool $follow=false)
     {
-        $containerId = $this->getContainerId() ?? '';
-
-        if(empty($containerId)){
-            throw new \Exception('Could not find docker container id to view the logs from');
-        }
-
-        if($follow){
-            $this->docker->logsFollow($containerId);
-        }else{
-            $this->docker->logs($containerId);
+        try{
+            $container = container(DockerContainer::class, ['name' => $this->config->getContainerName()]);
+            
+            if($follow){
+                $container->logsFollow();
+            }else{
+                $container->logs();
+            }
+        }catch(\Exception $e){
+            throw new \Exception('Could not find docker container view the logs from: ' . $e->getMessage());
         }
     }
 }
