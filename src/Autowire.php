@@ -90,7 +90,9 @@ class Autowire
             // cast the value to the correct type according to reflection
             $v = null;
             $v = $a['value'];
-            settype($v, $type);
+            if(!empty($type)){
+                settype($v, $type);
+            }
 
             if(empty($v)){
                 if($p->isOptional()){
