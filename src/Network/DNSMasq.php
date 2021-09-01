@@ -19,24 +19,11 @@ class DNSMasq
     /** @var Docker */
     private $docker;
 
-	private $defaults = [
-		'docker_image'		=> 'christhomas/supervisord-dnsmasq',
-		'container_name'	=> 'ddt-dnsmasq',
-	];
-
     public function __construct(CLI $cli, DnsConfig $config, Docker $docker)
     {
         $this->cli = $cli;
         $this->config = $config;
         $this->docker = $docker;
-
-        if($this->config->getDockerImage() === null){
-            $this->config->setDockerImage($this->defaults['docker_image']);
-        }
-
-        if($this->config->getContainerName() === null){
-            $this->config->setContainerName($this->defaults['container_name']);
-        }
     }
 
     public function isRunning(): bool
