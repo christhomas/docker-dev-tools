@@ -8,7 +8,7 @@ use DDT\Docker\Docker;
 use DDT\Docker\DockerContainer;
 use DDT\Exceptions\UnsupportedDistroException;
 
-class DNSMasq
+class DnsMasq
 {
     /** @var CLI */
     private $cli;
@@ -60,58 +60,32 @@ class DNSMasq
         }
 	}
 
-	public function addDomain(string $ipAddress, string $domain)
+	public function addDomain(string $domain, string $ipAddress): bool
 	{
-        /* UPGRADE CODE
-	    $containerId = $this->getContainerId();
+        $container = container(DockerContainer::class, [
+            'name' => $this->config->getContainerName(),
+        ]);
 
-        $this->cli->print("{blu}Installing domain:{end} '{yel}$domain{end}' with ip address '{yel}$ipAddress{end}' into dnsmasq configuration running in container '{yel}$containerId{end}'\n");
-
-        $this->docker->exec($containerId, "/bin/sh -c 'echo 'address=/$domain/$ipAddress' > /etc/dnsmasq.d/$domain.conf'");
-        $this->docker->exec($containerId, "kill -s SIGHUP 1");
+        $container->exec("/bin/sh -c 'echo 'address=/$domain/$ipAddress' > /etc/dnsmasq.d/$domain.conf'");
+        $container->exec("kill -s SIGHUP 1");
 
         sleep(2);
 
-        $domainList = $this->config->getKey($this->keys['domains']);
-
-        foreach($domainList as $key => $value) {
-            if($value['domain'] === $domain) unset($domainList[$key]);
-        }
-
-        $domainList[] = ['domain' => $domain, 'ip_address' => $ipAddress];
-        $this->config->setKey($this->keys['domains'], array_values($domainList));
-
-        if(!$this->config->write()){
-            throw new \DDT\Exceptions\Config\ConfigWriteException("Could not write new '{$this->keys['domains']}' configuration");
-        }
-        */
+        return $this->config->addDomain($domain, $ipAddress);
 	}
 
-	public function removeDomain(string $domain)
+	public function removeDomain(string $domain, string $ipAddress)
 	{
-        /* UPGRADE CODE
-	    $containerId = $this->getContainerId();
+        $container = container(DockerContainer::class, [
+            'name' => $this->config->getContainerName(),
+        ]);
 
-        $this->cli->print("{blu}Remove domain:{end} '{yel}$domain{end}' from dnsmasq configuration running in container '{yel}$containerId{end}'\n");
-
-        $this->docker->exec($containerId, "/bin/sh -c 'f=/etc/dnsmasq.d/$domain.conf && [ -f \$f ] && rm \$f'");
-        $this->docker->exec($containerId, "kill -s SIGHUP 1");
+        $container->exec("/bin/sh -c 'f=/etc/dnsmasq.d/$domain.conf && [ -f \$f ] && rm \$f'");
+        $container->exec("kill -s SIGHUP 1");
 
         sleep(2);
 
-        $domainList = $this->config->getKey($this->keys['domains']);
-
-        foreach($domainList as $key => $value) {
-            if($value['domain'] === $domain) unset($domainList[$key]);
-        }
-
-        $domainList = array_values($domainList);
-        $this->config->setKey($this->keys['domains'], $domainList);
-
-        if(!$this->config->write()){
-            throw new \DDT\Exceptions\Config\ConfigWriteException("Could not write new '{$this->keys['domains']}' configuration");
-        }
-        */
+        return $this->config->removeDomain($domain, $ipAddress);
 	}
 
 	public function pull(): void
