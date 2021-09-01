@@ -62,12 +62,12 @@ class Container {
                     $this->singletonCache[$ref] = $thing;
                     break;
 
-                case class_exists($thing):
+                case is_string($thing) && class_exists($thing):
                     $this->cli->debug("{red}[CONTAINER]:{end} the singleton references a class name");
                     $this->singletonCache[$ref] = $this->createClass($thing, $args);
                     break;
 
-                case is_scalar($thing):
+                case is_array($thing) || is_scalar($thing):
                     $this->cli->debug("{red}[CONTAINER]:{end} the singleton references a scalar value");
                     $this->singletonCache[$ref] = $thing;
                     break;    
