@@ -103,6 +103,13 @@ class CLI
 		return false;
 	}
 
+	public function silenceChannel(string $channel, callable $callback): void
+	{
+		$this->toggleChannel($channel, false);
+		$callback();
+		$this->toggleChannel($channel, true);
+	}
+
 	public function setArgs(array $argv): array
 	{
 		$this->args = [];
