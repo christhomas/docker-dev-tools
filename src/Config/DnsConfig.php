@@ -66,32 +66,40 @@ class DnsConfig
 		return $this->config->getKey($this->keys['domains']);
 	}
 
-	public function setDomainList(array $list): bool
+	public function addDomain(string $domain, string $ipAddress): bool
 	{
-		if(empty($list)) return false;
+		$list = $this->config->getKey($this->keys['domains']);
 		
-		$this->config->setKey($this->keys['domains'], $list);
+		if(array_key_exists($ipAddress, $list) === false){
+			$list[$ipAddress] = [];
+		}
 
-		return $this->config->write();
-	}
-
-	public function addDomain(string $ipAddress, string $domain): bool
-	{
-		$list = $this->config->getKey($this->keys['domains']);
-		$list[] = ['ip_address' => $ipAddress, 'doman' => $domain];
-		$list = array_unique(array_values($list));
+		$list[$ipAddress][] = $domain;
+		$list[$ipAddress] = array_unique(array_values($list[$ipAddress]));
 
 		$this->config->setKey($this->keys['domains'], $list);
 
 		return $this->config->write();
 	}
 
-	public function removeDomain(string $domain): bool
+	public function removeDomain(string $domain, ?string $ipAddress=null): bool
 	{
 		$list = $this->config->getKey($this->keys['domains']);
 
-		foreach($list as $key => $compare){
-			if($compare === $domain) unset($list[$key]);
+		foreach($list as $key => $domainList){
+			// if ip address was given, but it doesn't match the current key, skip processing it
+			if($ipAddress !== null && $key !== $ipAddress){
+				continue;
+			}
+
+			$index = array_search($domain, $domainList);
+			if($index !== false){
+				unset($domainList[$index]);
+			}
+			$list[$key] = array_unique(array_values($domainList));
+
+			// if the resulting list of domains is empty, remove the entire ip address from the domain config
+			if(empty($list[$key])) unset($list[$key]);
 		}
 
 		$this->config->setKey($this->keys['domains'], $list);
