@@ -25,7 +25,7 @@ class DnsConfig
 		}
 
 		if($this->config->getKey($this->keys['domains']) === null){
-			$this->config->setDomainList([]);
+			$this->config->setKey($this->keys['domains'], []);
 		}
     }
 
