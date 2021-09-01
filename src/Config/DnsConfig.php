@@ -23,6 +23,10 @@ class DnsConfig
 		if($this->config->getKey($this->keys['container_name']) === null){
 			$this->config->setContainerName(container('defaults.dns.container_name'));
 		}
+
+		if($this->config->getKey($this->keys['domains']) === null){
+			$this->config->setDomainList([]);
+		}
     }
 
 	public function setDockerImage(string $image): string
@@ -55,5 +59,43 @@ class DnsConfig
 	public function getContainerName(): string
 	{
 		return $this->config->getKey($this->keys['container_name']);
+	}
+
+	public function getDomainList(): array
+	{
+		return $this->config->getKey($this->keys['domains']);
+	}
+
+	public function setDomainList(array $list): bool
+	{
+		if(empty($list)) return false;
+		
+		$this->config->setKey($this->keys['domains'], $list);
+
+		return $this->config->write();
+	}
+
+	public function addDomain(string $ipAddress, string $domain): bool
+	{
+		$list = $this->config->getKey($this->keys['domains']);
+		$list[] = ['ip_address' => $ipAddress, 'doman' => $domain];
+		$list = array_unique(array_values($list));
+
+		$this->config->setKey($this->keys['domains'], $list);
+
+		return $this->config->write();
+	}
+
+	public function removeDomain(string $domain): bool
+	{
+		$list = $this->config->getKey($this->keys['domains']);
+
+		foreach($list as $key => $compare){
+			if($compare === $domain) unset($list[$key]);
+		}
+
+		$this->config->setKey($this->keys['domains'], $list);
+
+		return $this->config->write();
 	}
 }
