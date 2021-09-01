@@ -44,10 +44,18 @@ try{
 	$cli = new CLI($argv, $text);
 
 	$container = new Container($cli);
-
 	$container->singleton(CLI::class, $cli);
-
 	$container->singleton(SystemConfig::class, new SystemConfig($_SERVER['HOME']));
+
+	// Set the container to have some default values which can be extracted on demand
+	// This just centralises all the defaults in one place, there are other ways to do it
+	// But this just seems to be a nice place since you're also setting up the rest of the di-container
+	$container->singleton('defaults.ip_address',			'10.254.254.254');
+	$container->singleton('defaults.proxy.docker_image',	'christhomas/nginx-proxy:alpine');
+	$container->singleton('defaults.proxy.container_name',	'ddt-proxy');
+	$container->singleton('defaults.proxy.network',			['ddt-proxy']);
+	$container->singleton('defaults.dns.docker_image',		'christhomas/supervisord-dnsmasq');
+	$container->singleton('defaults.dns.container_name',	'ddt-dnsmasq');
 
 	$detect = $container->get(DistroDetect::class);
 

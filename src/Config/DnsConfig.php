@@ -15,6 +15,14 @@ class DnsConfig
     public function __construct(SystemConfig $config)
     {
         $this->config = $config;
+	
+		if($this->config->getKey($this->keys['docker_image']) === null){
+			$this->config->setDockerImage(container('defaults.dns.docker_image'));
+		}
+	
+		if($this->config->getKey($this->keys['container_name']) === null){
+			$this->config->setContainerName(container('defaults.dns.container_name'));
+		}
     }
 
 	public function setDockerImage(string $image): string
@@ -25,10 +33,10 @@ class DnsConfig
 			return $image;
 		}
 
-		throw new \Exception('failed to write nd dns docker image');
+		throw new \Exception('failed to write new dns docker image');
 	}
 
-	public function getDockerImage(): ?string
+	public function getDockerImage(): string
 	{
 		return $this->config->getKey($this->keys['docker_image']);
 	}
@@ -44,7 +52,7 @@ class DnsConfig
 		throw new \Exception('failed to write new dns container name');
 	}
 
-	public function getContainerName(): ?string
+	public function getContainerName(): string
 	{
 		return $this->config->getKey($this->keys['container_name']);
 	}

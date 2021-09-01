@@ -13,26 +13,20 @@ class ProxyConfig
 		'network'			=> 'proxy.network',
 	];
 
-	private $defaults = [
-		'docker_image'		=> 'christhomas/nginx-proxy:alpine',
-		'container_name'	=> 'ddt-proxy',
-		'network'			=> ['ddt-proxy']
-	];
-
     public function __construct(SystemConfig $config)
     {
         $this->config = $config;
 
 		if($this->config->getKey($this->keys['docker_image']) === null){
-			$this->setDockerImage($this->defaults['docker_image']);
+			$this->setDockerImage(container('defaults.proxy.docker_image'));
 		}
 
 		if($this->config->getKey($this->keys['container_name']) === null){
-			$this->setContainerName($this->defaults['container_name']);
+			$this->setContainerName(container('defaults.proxy.container_name'));
 		}
 
 		if($this->config->getKey($this->keys['network']) === null){
-			$this->setNetworkList($this->defaults['network']);
+			$this->setNetworkList(container('defaults.proxy.network'));
 		}
     }
 

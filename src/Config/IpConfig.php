@@ -4,19 +4,28 @@ namespace DDT\Config;
 
 class IpConfig
 {
+	private $keys = [
+		'ip_address' => '.ip_address'
+	];
+
     public function __construct(SystemConfig $config)
     {
         $this->config = $config;
+
+		if($this->config->getKey($this->keys['ip_address']) === null){
+			$this->set(container('defaults.ip_address'));
+		}
     }
 
 	public function get(): string
 	{
-		return $this->config->getKey('.ip_address');
+		return $this->config->getKey($this->keys['ip_address']);
 	}
 
-	public function set(string $ipAddress)
+	public function set(string $ipAddress): bool
 	{
-		$this->config->setKey('.ip_address', $ipAddress);
-		$this->config->write();
+		$this->config->setKey($this->keys['ip_address'], $ipAddress);
+		
+		return $this->config->write();
 	}
 }
