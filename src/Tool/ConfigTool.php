@@ -151,22 +151,31 @@ EXAMPLES;
 		*/
 	}
 
-	public function get($value/*, $arg1, $arg2, $arg3*/): string
+	public function getCommand(string $key): string
 	{
-		return $this->config->getKeyAsJson($value);
+		$config = container(SystemConfig::class);
+
+		return '{cyan}'.$config->getKeyAsJson($key)."{end}\n";
 	}
 
-	public function delete($value): string
+	public function deleteCommand(string $key): void
 	{
-		$this->cli->failure("implement: " . __METHOD__);
-		/*
-		if($exists && $removeKey = $cli->getArgWithVal('remove-key')){
+		$config = container(SystemConfig::class);
+		$config->deleteKey($key);
+		$config->write();
+	}
+
+	public function setCommand(string $key, string $value): void
+	{
+		$value = json_decode($value, true);
+
+		if(!empty($value)){
 			$config = container(SystemConfig::class);
-			$config->deleteKey($removeKey);
+			$config->setKey($key, $value);
 			$config->write();
-			exit(0);
+		}else{
+			$this->cli->debug("Attempting to set an empty config key '$key'");
 		}
-		*/
 	}
 
 	public function validate(): string
@@ -174,7 +183,7 @@ EXAMPLES;
 		// FIXME: add extensions to this output
 		// FIXME: add projects to this output
 
-		$config = container(\DDT\Config\SystemConfig::class);
+		$config = container(SystemConfig::class);
 
 		return implode("\n", [
 			$this->text->box("The system configuration in file '{$config->getFilename()}' was valid", 'black', 'green'),
