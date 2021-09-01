@@ -5,21 +5,25 @@ namespace DDT\Tool;
 use DDT\CLI;
 use DDT\Config\DnsConfig;
 use DDT\Config\IpConfig;
-use DDT\Config\SystemConfig;
 use DDT\Contract\DnsServiceInterface;
-use DDT\Network\DNSMasq;
-use DDT\Text\Table;
-use DDT\Text\Text;
+use DDT\Network\Address;
+use DDT\Network\DnsMasq;
 
 class DnsTool extends Tool
 {
+    /** @var DnsConfig */
     private $dnsConfig;
+
+    /** @var IpConfig */
     private $ipConfig;
 
+    /** @var DnsMasq */
     private $dnsMasq;
+    
+    /** @var DnsServiceInterface */
     private $dnsService;
 
-    public function __construct(CLI $cli, DnsConfig $dnsConfig, IpConfig $ipConfig, DNSMasq $dnsMasq, DnsServiceInterface $dnsService)
+    public function __construct(CLI $cli, DnsConfig $dnsConfig, IpConfig $ipConfig, DnsMasq $dnsMasq, DnsServiceInterface $dnsService)
     {
     	parent::__construct('dns', $cli);
 
@@ -178,28 +182,64 @@ NOTES;
         $this->dnsMasq->logs(true);
     }
 
-    public function addDomainCommand(): void
+    public function addDomainCommand(string $domain): void
     {
-        $this->cli->print("{yel}TODO: addDomain{end}\n");
-        // $ipAddress = $cli->getArgWithVal('ip-address', $alias->get());
+        $this->cli->sudo();
 
-        // if($ipAddress !== $alias->get()){
-        //     $this->cli->print("{blu}Overriding IP Alias:{end} '{yel}" . $alias->get() . "{end}' with custom IP Address '{yel}$ipAddress{end}'\n\n");
-        // }
+        $domain = container(Address::class, ['address' => $domain]);
 
-        // $dns->addDomain($ipAddress, $domain);
+        if($domain->hostname === null){
+            throw new \Exception('The hostname was not interpreted correctly, if relevant; please use a hostname and not an ip address');
+        }
 
-        // Format::ping($alias->ping('google.com'));
-        // Format::ping($alias->ping($domain, $ipAddress));
+        $ipAddress = $this->ipConfig->get();
+
+        // TODO: support overriding the ip address through the command line argument --ip-address=x.x.x.x
+
+        $this->cli->print("{blu}Adding domain:{end} '{yel}$domain->hostname{end}' with ip address '{yel}$ipAddress{end}' to Dns Resolver: ");
+        
+        if($this->dnsMasq->addDomain($domain->hostname, $ipAddress)){
+            $this->cli->silenceChannel('stdout', function(){
+                $this->refreshCommand();
+            });
+
+            $domain = container(Address::class, ['address' => $domain->hostname]);
+            if($domain->ping() === true){
+                $this->cli->print("{grn}SUCCESS{end}\n");
+            }else{
+                $this->cli->print("{red}FAILURE{end}\n");
+            }
+        }
     }
 
-    public function removeDomainCommand(): void
+    public function removeDomainCommand(string $domain): void
     {
-        $this->cli->print("{yel}TODO: removeDomain{end}\n");
-        // $dns->removeDomain($domain);
+        $this->cli->sudo();
 
-        // Format::ping($alias->ping('google.com'));
-        // Format::ping($alias->ping($domain));
+        $domain = container(Address::class, ['address' => $domain]);
+
+        if($domain->hostname === null){
+            throw new \Exception('The hostname was not interpreted correctly, if relevant; please use a hostname and not an ip address');
+        }
+
+        $ipAddress = $this->ipConfig->get();
+
+        // TODO: support overriding the ip address through the command line argument --ip-address=x.x.x.x
+
+        $this->cli->print("{blu}Removing domain:{end} '{yel}$domain->hostname{end}' with ip address '{yel}$ipAddress{end}' from the Dns Resolver: ");
+        
+        if($this->dnsMasq->removeDomain($domain->hostname, $ipAddress)){
+            $this->cli->silenceChannel('stdout', function(){
+                $this->refreshCommand();
+            });
+
+            $domain = container(Address::class, ['address' => $domain->hostname]);
+            if($domain->ping() === false){
+                $this->cli->print("{grn}SUCCESS{end}\n");
+            }else{
+                $this->cli->print("{red}FAILURE{end}\n");
+            }
+        }
     }
 
     public function setIp(): void
