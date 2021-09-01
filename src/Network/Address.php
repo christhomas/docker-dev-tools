@@ -1,0 +1,91 @@
+<?php declare(strict_types=1);
+
+namespace DDT\Network;
+
+use DDT\CLI;
+
+class Address
+{
+    /** @var CLI */
+    private $cli;
+
+    /** @var string */
+    private $address;
+
+    private $status = false;
+    private $hostname = null;
+    private $ip_address = null;
+    private $packet_loss = 0.0;
+    private $can_resolve = true;
+
+    public function __construct(CLI $cli, string $address)
+    {
+        $address = trim($address);
+
+        if(empty($address)){
+            throw new \Exception("The address given must not be an empty string");
+        }
+
+        $this->cli = $cli;
+        $this->address = $address;
+
+        if (filter_var($address, FILTER_VALIDATE_IP)) {
+            $this->ip_address = $address;
+        }else if (filter_var($address, FILTER_VALIDATE_DOMAIN)){
+            $this->hostname = $address;
+        }
+    }
+
+    public function ping()
+    {
+        try{
+            $count = 20;
+            $delay = 0.1;
+			$result = implode("\n",$this->cli->exec("ping $this->address -c $count -i $delay 2>&1"));
+		}catch(\Exception $e){
+			$result = $e->getMessage();
+		}
+
+        if(preg_match("/^PING\s+([^\s]+)\s\(([^\)]+)\)/", $result, $matches)){
+            $this->hostname = $matches[1];
+            // We do this because pinging a hostname will return the ip address
+            $this->ip_address = $matches[2];
+        }
+
+        if($this->hostname === $this->ip_address){
+            $this->hostname = null;
+        }
+
+        if(preg_match("/((?:[0-9]{1,3})(?:\.[0-9]+)?)[\s]?% packet loss/", $result, $matches)){
+            $this->packet_loss = (float)$matches[1];
+        }
+
+        if(preg_match("/cannot resolve ([^\s]+): unknown host/i", $result, $matches)){
+            $this->ip_address = $matches[1];
+        }
+
+        if(preg_match("/(cannot resolve|Time to live exceeded|\s0 packets received)/", $result, $matches)){
+            $this->can_resolve = false;
+            $this->packet_loss = 100;
+            $this->cli->debug("{red}[PING]:{end} There was a problem resolving address");
+        }
+
+        if($this->packet_loss > 0){
+            $this->cli->debug("{red}[PING]:{end} There was non-zero packet loss: '{$this->packet_loss}%'");
+        }
+
+        if($this->ip_address !== null && $this->packet_loss === 0.0 && $this->can_resolve === true){
+            return $this->status = true;
+        }else{
+            return $this->status = false;
+        }
+    }
+
+    public function __get(string $name){
+        if(in_array($name, ['status', 'address', 'hostname', 'ip_address', 'packet_loss', 'can_resolve'])){
+            return $this->$name;
+        }
+
+        throw new \Exception("The property named '$name' is not available");
+    }
+}
