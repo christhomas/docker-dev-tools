@@ -68,6 +68,15 @@ class ProxyConfig
 		return $this->config->getKey($this->keys['network']);
 	}
 
+	public function setNetworkList(array $list): bool
+	{
+		if(empty($list)) return false;
+		
+		$this->config->setKey($this->keys['network'], $list);
+
+		return $this->config->write();
+	}
+
 	public function addNetwork(string $network): bool
 	{
 		$list = $this->config->getKey($this->keys['network']);
@@ -87,15 +96,6 @@ class ProxyConfig
 			if($compare === $network) unset($list[$key]);
 		}
 
-		$this->config->setKey($this->keys['network'], $list);
-
-		return $this->config->write();
-	}
-
-	public function setNetworkList(array $list): bool
-	{
-		if(empty($list)) return false;
-		
 		$this->config->setKey($this->keys['network'], $list);
 
 		return $this->config->write();
