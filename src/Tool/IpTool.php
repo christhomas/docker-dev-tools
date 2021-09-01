@@ -3,18 +3,20 @@
 namespace DDT\Tool;
 
 use DDT\CLI;
+use DDT\Config\IpConfig;
 use DDT\Config\SystemConfig;
 use DDT\Contract\IpServiceInterface;
+use DDT\Network\Address;
 
 class IpTool extends Tool
 {
-    /** @var \DDT\Config\SystemConfig  */
+    /** @var IpConfig  */
     private $config;
 
 	/** @var IpServiceInterface */
 	private $ipService;
 
-    public function __construct(CLI $cli, SystemConfig $config, IpServiceInterface $ipService)
+    public function __construct(CLI $cli, IpConfig $config, IpServiceInterface $ipService)
     {
     	parent::__construct('ip', $cli);
 
@@ -43,7 +45,7 @@ IDE Is listening for incoming connections";
 
     public function getOptions(): string
 	{
-		$alias = $this->config->getKey('.ip_address') ?? 'unknown';
+		$alias = $this->config->get() ?? 'unknown';
 
 		return "\t" . implode("\n\t", [
 			"set <ip-address>: Add an IP Address to your configuration stack, this value will be remembered and used in the future",
@@ -75,24 +77,24 @@ NOTES;
 			$ipAddress = $ipAddress['name'];
 			$this->cli->print("Writing IP Address '{yel}$ipAddress{end}': ");
 
-			$this->config->setKey('.ip_address', $ipAddress);
-			if($this->config->write()){
+			$this->config->set($ipAddress);
+
+			if($this->config->set($ipAddress)){
 				$this->cli->print("{grn}SUCCESS{end}\n");
 			}else{
-				$this->cli->print("{red}FAILURE{end}\n");
-				$this->cli->failure();
+				$this->cli->failure("{red}FAILURE{end}\n");
 			}
 		}
 	}
 
 	public function getCommand(): string
 	{
-		return $this->config->getKey('.ip_address') . "\n";
+		return $this->config->get() . "\n";
 	}
 
 	public function addCommand(): void
 	{
-		$ipAddress = $this->config->getKey('.ip_address');
+		$ipAddress = $this->config->get();
 
 		if(empty($ipAddress)){
 			throw new \Exception('There is no ip address configured, you must use the \'set\' command to configure one');
@@ -110,7 +112,7 @@ NOTES;
 
 	public function removeCommand(): void
 	{
-		$ipAddress = $this->config->getKey('.ip_address');
+		$ipAddress = $this->config->get();
 
 		if(empty($ipAddress)){
 			throw new \Exception('There is no ip address configured, you must use the \'set\' command to configure one');
@@ -133,59 +135,41 @@ NOTES;
 		$this->addCommand();
 	}
 
-	public function pingCommand(): void
+	public function pingCommand(): string
 	{
-		$this->cli->failure("TODO: implement ping functionality");
-		/*
-		$ipAddress = $ipAddress ?: $this->get();
+		$output = [];
 
-		try{
-			$result = $this->cli->exec("ping -c 1 -W 1 $ipAddress 2>&1");
-		}catch(Exception $e){
-			$result = explode("\n",$e->getMessage());
-		}
-
-		$data = [
-			'hostname'		=> null,
-			'ip_address'	=> null,
-			'packet_loss'	=> 0.0,
-			'can_resolve'	=> true,
-			'matched'		=> true,
-		];
-
-		foreach($result as $line){
-			if(preg_match("/^PING\s+([^\s]+)\s\(([^\)]+)\)/", $line, $matches)){
-				$data['hostname'] = $matches[1];
-				// We do this because pinging a hostname will return the ip address
-				$data['ip_address'] = $matches[2];
-			}
-
-			// Check DNS resolution resolved to the expected domain name
-			if($compare && $compare !== $data['ip_address']){
-				$data['matched'] = $compare;
-			}
-
-			if(preg_match("/cannot resolve ([^\s]+): unknown host/i", $line, $matches)){
-				$data['ip_address'] = $matches[1];
-			}
-
-			if(preg_match("/((?:[0-9]{1,3})(?:\.[0-9]+)?)[\s]?% packet loss/", $line, $matches)){
-				$data['packet_loss'] = (float)$matches[1];
-			}
-
-			if(preg_match("/(cannot resolve|Time to live exceeded|0 packets received)/", $line, $matches)){
-				$data['can_resolve'] = false;
-			}
-		}
-
-		if($data['ip_address'] && $data['packet_loss'] === 0.0 && $data['can_resolve'] === true){
-			$data['status'] = true;
+		/** @var Address */
+		$address = container(Address::class, ['address' => $this->config->get()]);
+		
+		if($address->ping()){
+			$output[] = "Ping: {grn}SUCCESS{end}";
 		}else{
-			$data['status'] = false;
+			$output[] = "Ping: {red}FAILURE{end}";
 		}
 
-		return $data;
-		*/
-//		Format::ping($ipAddress->ping());
+		if($address->hostname !== null){
+			$output[] = "Hostname: '{yel}{$address->hostname}{end}'";
+		}
+
+		if($address->ip_address !== null){
+			$output[] = "IP Address: '{yel}{$address->ip_address}{end}'";
+		}
+
+		if($address->packet_loss === 0.0 && $address->can_resolve === true){
+			$output[] = "Status: {grn}SUCCESS{end}";
+		}else{
+			$output[] = "Status: {red}FAILURE{end}";
+		}
+
+		if($address->can_resolve === true){
+			$output[] = "Can Resolve: {grn}YES{end}";
+		}else{
+			$output[] = "Can Resolve: {red}NO{end}";
+		}
+
+		$output = implode(", ", $output) . "\n";
+
+		return $output;
 	}
 }
