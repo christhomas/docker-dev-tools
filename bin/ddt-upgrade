@@ -1,19 +1,24 @@
 #!/usr/bin/env php
 <?php declare(strict_types=1);
+
+use DDT\Config\SystemConfig;
+use DDT\Text\Text;
+
 $cli = require_once(__DIR__.'/../src/init.php');
+$text = new Text();
 
 ###################################################################
 ## Upgrade the tools
 ###################################################################
 try{
     if($cli->hasArg("skip-tool-upgrade") === false){
-		$output = Shell::passthru('ddt-project --pull=/tool');
+		$output = $cli->passthru('ddt-project --pull=/tool');
     }
 }catch(Exception $e){
     // Couldn't sync, we should fail here
 	$output = $e->getMessage();
 	if(strpos($output, "Skipping") !== false){
-		print(Text::box('Cannot perform update because cannot upgrade tools, on the tools project you must perform one of the following commands:', 'white', 'red'));
+		print($text->box('Cannot perform update because cannot upgrade tools, on the tools project you must perform one of the following commands:', 'white', 'red'));
 	    print(<<<EOF
             1: git --reset hard
             2: git stash
@@ -32,20 +37,20 @@ EOF
 ###################################################################
 try{
     $newVersion = '1.0';
-	Shell::exec(__DIR__ . "/ddt-config");
-    Shell::exec(__DIR__ . "/ddt-setup --install");
-    $config = \DDT\Config\SystemConfig::instance();
+	$cli->exec(__DIR__ . "/ddt-config");
+    $cli->exec(__DIR__ . "/ddt-setup --install");
+    $config = container(SystemConfig::class);
     $config->setVersion($newVersion);
 }catch(Exception $e){
-    print(Text::red("The upgrade to $newVersion has failed, please report this error\n"));
+    print($text->red("The upgrade to $newVersion has failed, please report this error\n"));
 
-	$message = trim(Text::stripColours($e->getMessage()));
-    print(Text::box("Error: $message", "white", "red"));
+	$message = trim($text->stripColours($e->getMessage()));
+    print($text->box("Error: $message", "white", "red"));
     exit(1);
 }
 
 $version = $config->getVersion();
-print(Text::yellow("You are running version '$version' of the tools\n"));
+print($text->yellow("You are running version '$version' of the tools\n"));
 
 exit(0);
 
@@ -60,10 +65,10 @@ exit(0);
 //        /** do something here */
 //        print("");
 //    }catch(Exception $e){
-//		print(Text::red("The upgrade to $newVersion has failed, please report this error\n"));
+//		print($text->red("The upgrade to $newVersion has failed, please report this error\n"));
 //
-//		$message = trim(Text::stripColours($e->getMessage()));
-//		print(Text::box("Error: $message", "white", "red"));
+//		$message = trim($text->stripColours($e->getMessage()));
+//		print($text->box("Error: $message", "white", "red"));
 //		exit(1);
 //    }
 //}
