@@ -24,10 +24,10 @@ class CLI
 		$this->setArgs(array_slice($argv, 1));
 		$this->listenChannel('stdout');
 		$this->listenChannel('quiet');
-		$this->isRoot = $this->exec('whoami') === 'root';
+		$this->isRoot = $this->exec('whoami', true) === 'root';
 
 		if($this->isRoot){
-			$this->print("{yel}[SYSTEM]: Root user detected\n");
+			$this->print("{yel}[SYSTEM]:{end} Root user detected\n");
 		}
 	}
 
