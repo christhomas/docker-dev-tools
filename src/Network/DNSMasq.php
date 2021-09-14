@@ -41,13 +41,13 @@ class DnsMasq
                 'name' => $this->config->getContainerName(),
             ]);
 
-            $list = $container->exec("find /etc/dnsmasq.d -name \"*.conf\" -type f");
+            $list = array_map('trim', explode("\n", $container->exec("find /etc/dnsmasq.d -name \"*.conf\" -type f")));
 
             $domains = [];
 
             foreach($list as $file){
 			    $file = trim($file);
-				$contents = implode("\n", $container->exec("cat $file", true));
+				$contents = $container->exec("cat $file", true);
 				if(preg_match("/^[^\/]+\/(?P<domain>[^\/]+)\/(?P<ip_address>[^\/]+)/", $contents, $matches)){
 					$domains[] = ['domain' => $matches['domain'], 'ip_address' => $matches['ip_address']];
 				}
