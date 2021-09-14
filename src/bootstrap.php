@@ -8,11 +8,9 @@ use DDT\Tool\EntrypointTool;
 use DDT\Config\SystemConfig;
 use DDT\Contract\IpServiceInterface;
 use DDT\Contract\DnsServiceInterface;
-use DDT\Docker\DockerVolume;
 use DDT\Exceptions\Config\ConfigInvalidException;
 use DDT\Exceptions\Config\ConfigMissingException;
 use DDT\Exceptions\Container\ContainerNotInstantiatedException;
-use DDT\Network\Proxy;
 
 try{
 	if (version_compare(phpversion(), '7.2', '<')) {

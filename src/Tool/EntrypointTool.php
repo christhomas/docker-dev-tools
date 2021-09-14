@@ -45,13 +45,13 @@ class EntrypointTool extends Tool
     {
         switch(true){
             case $arg['name'] === '--debug':
-                $this->cli->print("{yel}** errors enabled{end}\n");
+                $this->cli->print("{yel}[SYSTEM]:{end} errors enabled\n");
                 $this->cli->enableErrors(true);
                 $this->cli->listenChannel('debug');
                 break;
             
             case $arg['name'] === '--quiet':
-                $this->cli->print("{yel}** quiet output enabled{end}\n");
+                $this->cli->print("{yel}[SYSTEM]:{end} quiet output enabled\n");
                 $this->cli->listenChannel('quiet', false);
                 break;
         }

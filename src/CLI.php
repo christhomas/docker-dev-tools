@@ -25,6 +25,10 @@ class CLI
 		$this->listenChannel('stdout');
 		$this->listenChannel('quiet');
 		$this->isRoot = $this->exec('whoami') === 'root';
+
+		if($this->isRoot){
+			$this->print("{yel}[SYSTEM]: Root user detected\n");
+		}
 	}
 
 	public function enableErrors(bool $showErrors=false)
