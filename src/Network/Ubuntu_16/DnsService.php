@@ -15,6 +15,11 @@ class DnsService implements DnsServiceInterface
         $this->cli = $cli;
     }
 
+	public function getIpAddressList(): array
+	{
+		throw new \Exception("TODO: write method " . __METHOD__);
+	}
+
     public function enable(string $dnsIpAddress): bool
     {
         throw new \Exception("Implement method: " . __METHOD__);

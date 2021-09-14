@@ -60,9 +60,14 @@ class DnsService implements DnsServiceInterface
 		return true;
 	}
 
+	public function getIpAddressList(): array
+	{
+		return $this->cli->exec("scutil --dns | grep nameserver | awk '{print $3}' | sort | uniq");
+	}
+
     public function enable(string $dnsIpAddress): bool
     {
-		$existing = $this->cli->exec("scutil --dns | grep nameserver | awk '{print $3}' | sort | uniq");
+		$existing = $this->getIpAddressList();
 		$ipAddress = implode(' ', array_unique(array_merge([$dnsIpAddress], $existing)));
 
 		return $this->setDNS('Docker Container', $ipAddress);

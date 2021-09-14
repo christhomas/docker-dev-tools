@@ -8,6 +8,8 @@ use DDT\Config\IpConfig;
 use DDT\Contract\DnsServiceInterface;
 use DDT\Network\Address;
 use DDT\Network\DnsMasq;
+use DDT\Text\Table;
+use DDT\Text\Text;
 
 class DnsTool extends Tool
 {
@@ -247,6 +249,23 @@ NOTES;
         $this->cli->print("{yel}TODO: setIp{end}\n");
     }
 
+    public function ipCommand(): string
+    {
+        $list = $this->dnsService->getIpAddressList();
+        return implode("\n", $list)."\n";
+    }
+
+    public function pingCommand()
+    {
+        $list = $this->dnsService->getIpAddressList();
+
+        foreach($list as $ipAddress){
+            $address = container(Address::class, ['address' => $ipAddress]);
+            
+            $this->cli->ping($address);
+        }
+    }
+
     public function containerNameCommand(): string
     {
         $containerName = $this->cli->shiftArg();
@@ -271,23 +290,25 @@ NOTES;
         }
     }
 
-    public function statusCommand(): void
+    public function statusCommand(): string
     {
-        $this->cli->print("{yel}TODO: Show status information here{end}\n");
+        $this->cli->print("{blu}Registered domains:{end}\n");
 
         $domainList = $this->dnsMasq->listDomains();
-        var_dump($domainList);
 
-        // $this->cli->print("{blu}Domains that are registered in the dns container:{end}\n");
+        $table = new Table(new Text());
+        $table->setRightPadding(10);
+        $table->addRow(['{yel}Domain{end}', '{yel}IP Address{end}']);
 
-        // $domainList = $dns->listDomains(true);
+        $reply = [];
+        foreach($domainList as $item){
+            if(!array_key_exists($item['ip_address'], array_keys($reply))){
+                $reply[$item['ip_address']] = true;
+            }
 
-        // $table = new Table(new Text());
-        // $table->setRightPadding(10);
-        // $table->addRow(['Domain', 'IP Address']);
-        // foreach($domainList as $domain){
-        //     $table->addRow([$domain['domain'], $domain['ip_address']]);
-        // }
-        // $table->render();
+            $table->addRow(["{wht}{$item['domain']}{end}", "{wht}{$item['ip_address']}{end}"]);
+        }
+        
+        return $table->render(true);
     }
 }

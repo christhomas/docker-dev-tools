@@ -4,7 +4,6 @@ namespace DDT\Tool;
 
 use DDT\CLI;
 use DDT\Config\IpConfig;
-use DDT\Config\SystemConfig;
 use DDT\Contract\IpServiceInterface;
 use DDT\Network\Address;
 
@@ -135,41 +134,11 @@ NOTES;
 		$this->addCommand();
 	}
 
-	public function pingCommand(): string
+	public function pingCommand()
 	{
-		$output = [];
-
 		/** @var Address */
 		$address = container(Address::class, ['address' => $this->config->get()]);
 		
-		if($address->ping()){
-			$output[] = "Ping: {grn}SUCCESS{end}";
-		}else{
-			$output[] = "Ping: {red}FAILURE{end}";
-		}
-
-		if($address->hostname !== null){
-			$output[] = "Hostname: '{yel}{$address->hostname}{end}'";
-		}
-
-		if($address->ip_address !== null){
-			$output[] = "IP Address: '{yel}{$address->ip_address}{end}'";
-		}
-
-		if($address->packet_loss === 0.0 && $address->can_resolve === true){
-			$output[] = "Status: {grn}SUCCESS{end}";
-		}else{
-			$output[] = "Status: {red}FAILURE{end}";
-		}
-
-		if($address->can_resolve === true){
-			$output[] = "Can Resolve: {grn}YES{end}";
-		}else{
-			$output[] = "Can Resolve: {red}NO{end}";
-		}
-
-		$output = implode(", ", $output) . "\n";
-
-		return $output;
+		$this->cli->ping($address);
 	}
 }
