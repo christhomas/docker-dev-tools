@@ -2,14 +2,10 @@
 
 namespace DDT\Docker;
 
-use DDT\CLI;
 use DDT\Exceptions\Docker\DockerNetworkNotFoundException;
 
 class DockerNetwork
 {
-    /** @var CLI */
-    private $cli;
-
     /** @var Docker */
     private $docker;
 
@@ -19,16 +15,19 @@ class DockerNetwork
     /** @var string the docker network id */
     private $id;
 
-    public function __construct(CLI $cli, Docker $docker, string $name)
+    public function __construct(Docker $docker, string $name, ?bool $autoCreate=true)
     {
-        $this->cli = $cli;
         $this->docker = $docker;
         $this->name = $name;
 
         try{
             $this->id = $this->getId();
         }catch(DockerNetworkNotFoundException $e){
-            $this->id = $this->docker->createNetwork($this->name);
+            if($autoCreate){
+                $this->id = $this->docker->createNetwork($this->name);
+            }else{
+                throw $e;
+            }
         }
     }
 
@@ -62,38 +61,29 @@ class DockerNetwork
         return true;
     }
 
-	public function attach($containerId): ?bool
+	public function attach($containerId): void
 	{
-        try{
-            $this->docker->networkAttach($this->name, $containerId);
+        $this->docker->networkAttach($this->name, $containerId);
 
-            $containers = $this->listContainers();
-    
-            foreach($containers as $id => $name){
-                if($id === $containerId) return true;
-            }
-        }catch(\Exception $e){
-            $this->cli->debug("{red}[DOCKER]:{end} ".$e->getMessage());
+        $containers = $this->listContainers();
+
+        foreach($containers as $id => $name){
+            if($id === $containerId) return;
         }
 
-        return false;
+        throw new \Exception("Failed to attach container '$containerId' to network '$this->name'");
 	}
 
-	public function detach(string $containerId): bool
+	public function detach(string $containerId): void
 	{
-		try{
-            $this->docker->networkDetach($this->name, $containerId);
+        $this->docker->networkDetach($this->name, $containerId);
 
-            $containers = $this->listContainers();
+        $containers = $this->listContainers();
 
-            foreach($containers as $id => $name){
-                if($id === $containerId) return false;
+        foreach($containers as $id => $name){
+            if($id === $containerId) {
+                throw new \Exception("Failed to detach container '$containerId' from network '$this->name'");
             }
-			
-            return true;
-		}catch(\Exception $e){
-            $this->cli->debug("{red}[DOCKER]:{end} ".$e->getMessage());
-			return false;
-		}
+        }
 	}
 }
