@@ -77,6 +77,10 @@ try{
 		case $detect->isUbuntu('18.04') || $detect->isUbuntu('18.10'):
 			$container->singleton(DnsServiceInterface::class, \DDT\Network\Ubuntu_18\DnsService::class);
 			break;
+
+		default:
+			$container->singleton(DnsServiceInterface::class, \DDT\Network\Linux\DnsService::class);
+			break;
 	}
 
 	$tool = container(EntrypointTool::class);
