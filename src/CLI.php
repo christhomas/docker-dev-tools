@@ -11,6 +11,7 @@ class CLI
 	private $args = [];
 	private $script = null;
 	private $channels = [];
+	private $isRoot = false;
 
 	public static $exitCode = 0;
 	public static $stdout = "";
@@ -23,6 +24,7 @@ class CLI
 		$this->setArgs(array_slice($argv, 1));
 		$this->listenChannel('stdout');
 		$this->listenChannel('quiet');
+		$this->isRoot = $this->exec('whoami') === 'root';
 	}
 
 	public function enableErrors(bool $showErrors=false)
@@ -186,9 +188,11 @@ class CLI
 		}
 	}
 
-	public function sudo(): CLI
+	public function sudo(?string $command='echo'): CLI
 	{
-		$this->exec("sudo echo");
+		if($this->isRoot === false){
+			$this->exec("sudo $command");
+		}
 
 		return $this;
 	}

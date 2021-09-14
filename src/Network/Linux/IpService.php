@@ -19,7 +19,7 @@ class IpService implements IpServiceInterface
     {
         try{
 			if(!empty($ipAddress)){
-                $this->cli->exec("sudo ip addr add $ipAddress/24 dev lo label lo:40");
+                $this->cli->sudo("ip addr add $ipAddress/24 dev lo label lo:40");
                 return true;
             }
 		}catch(\Exception $e){
@@ -37,7 +37,7 @@ class IpService implements IpServiceInterface
 			}
 
 			if(!empty($ipAddress)){
-				$this->cli->exec("sudo ip addr del $ipAddress/24 dev lo");
+				$this->cli->sudo("ip addr del $ipAddress/24 dev lo");
 				return true;
 			}
 		}catch(\Exception $e){

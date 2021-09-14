@@ -114,12 +114,24 @@ class Proxy
 			// It's already not started or not found, so we have nothing to do
 		}
 
+		//	TODO: allow this tool to support HTTPS and production modes by creating the acme container
+		//	TODO: right now it just ignores it and leaves it up to the developer to manually deploy
+
+		//	In order to support HTTPS for production servers, we will create three empty volumes for the 
+		//	acme container to possible use, if it's enabled
+		container(DockerVolume::class, ['name' => 'ddt_proxy_certs']);
+		container(DockerVolume::class, ['name' => 'ddt_proxy_vhost']);
+		container(DockerVolume::class, ['name' => 'ddt_proxy_html']);
+
 		try{
 			$container = container(DockerContainer::class, [
 				'name' => $name,
 				'image' => $image,
 				'ports' => ['80:80', '443:443'],
 				'volumes' => [
+					"ddt_proxy_certs:/etc/nginx/certs",
+					"ddt_proxy_vhost:/etc/nginx/vhost.d",
+					"ddt_proxy_html:/usr/share/nginx/html",
 					"/var/run/docker.sock:/tmp/docker.sock:ro",
 					"$path/proxy-config/global.conf:/etc/nginx/conf.d/global.conf",
 					"$path/proxy-config/nginx-proxy.conf:/etc/nginx/proxy.conf",

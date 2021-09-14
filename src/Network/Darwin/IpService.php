@@ -19,7 +19,7 @@ class IpService implements IpServiceInterface
 	{
 		try{
 			if(!empty($ipAddress)){
-				$this->cli->exec("sudo ifconfig lo0 alias $ipAddress");
+				$this->cli->sudo("ifconfig lo0 alias $ipAddress");
 				return true;
 			}
 		}catch(\Exception $e){
@@ -37,7 +37,7 @@ class IpService implements IpServiceInterface
 			}
 
 			if(!empty($ipAddress)){
-				$this->cli->exec("sudo ifconfig lo0 $ipAddress delete &>/dev/null");
+				$this->cli->sudo("ifconfig lo0 $ipAddress delete &>/dev/null");
 				return true;
 			}
 		}catch(\Exception $e){
