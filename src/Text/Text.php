@@ -23,7 +23,9 @@ class Text
 			}
 
 			$key = strtoupper($key);
-			define($key, $val);
+			if(!defined($key)){
+				define($key, $val);
+			}
 
 			if(!in_array($key, ['chk', 'mss', 'wrn'])){
 				$this->addCode($key, $val);
