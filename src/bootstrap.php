@@ -12,6 +12,7 @@ use DDT\Docker\DockerVolume;
 use DDT\Exceptions\Config\ConfigInvalidException;
 use DDT\Exceptions\Config\ConfigMissingException;
 use DDT\Exceptions\Container\ContainerNotInstantiatedException;
+use DDT\Network\Proxy;
 
 try{
 	if (version_compare(phpversion(), '7.2', '<')) {
@@ -60,27 +61,19 @@ try{
 
 	$detect = $container->get(DistroDetect::class);
 
-	switch(true){
-		case $detect->isDarwin():
-			$container->singleton(IpServiceInterface::class, \DDT\Network\Darwin\IpService::class);
-			$container->singleton(DnsServiceInterface::class, \DDT\Network\Darwin\DnsService::class);
-			break;
+	if($detect->isDarwin()){
+		$container->singleton(IpServiceInterface::class, \DDT\Network\Darwin\IpService::class);
+		$container->singleton(DnsServiceInterface::class, \DDT\Network\Darwin\DnsService::class);
+	}else if($detect->isLinux()){
+		$container->singleton(IpServiceInterface::class, \DDT\Network\Linux\IpService::class);
 
-		case $detect->isLinux():
-			$container->singleton(IpServiceInterface::class, \DDT\Network\Linux\IpService::class);
-			break;
-
-		case $detect->isUbuntu('16.04') || $detect->isUbuntu('16.10'):
+		if($detect->isUbuntu('16.04') || $detect->isUbuntu('16.10')){
 			$container->singleton(DnsServiceInterface::class, \DDT\Network\Ubuntu_16\DnsService::class);
-			break;
-		
-		case $detect->isUbuntu('18.04') || $detect->isUbuntu('18.10'):
+		}else if($detect->isUbuntu('18.04') || $detect->isUbuntu('18.10')){
 			$container->singleton(DnsServiceInterface::class, \DDT\Network\Ubuntu_18\DnsService::class);
-			break;
-
-		default:
+		}else{
 			$container->singleton(DnsServiceInterface::class, \DDT\Network\Linux\DnsService::class);
-			break;
+		}
 	}
 
 	$tool = container(EntrypointTool::class);
