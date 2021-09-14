@@ -12,7 +12,7 @@ class ExtensionTool extends Tool
     /** @var ExtensionManager */
     private $extensionManager;
 
-    /** @var SystemConfig  */
+    /** @var SystemConfig */
     private $config;
 
     public function __construct(CLI $cli, ExtensionManager $extensionManager, SystemConfig $config)
@@ -44,21 +44,18 @@ class ExtensionTool extends Tool
         $entrypoint = $this->cli->getScript(false) . " " . $this->getName();
 
         return implode("\n", [
-            "{yel}Usage Example:{end} $entrypoint {yel}install name url=https://github.com/something/extension_repo.git{end}",
-            "{yel}Usage Example:{end} $entrypoint {yel}uninstall plista{end}"
+            "{yel}Usage Example:{end} $entrypoint {yel}install --name=example url=https://github.com/something/extension_repo.git{end}",
+            "{yel}Usage Example:{end} $entrypoint {yel}uninstall --name=example{end}"
         ]);   
     }
 
     public function getOptions(): string
 	{
-		$alias = $this->config->getKey('.ip_address') ?? 'unknown';
-
 		return "\t" . implode("\n\t", [
-            "--install=XXX: Will install a new extension using the parameters value as the given name",
-            "--url=XXX: Will use this location to install the extension, only git repositories are supported",
-            "--uninstall=XXX: Will uninstall an extension with the given name",
-            "--list: Will list the installed extensions",
-            "--update: Will update all extensions from their repository urls given during installation",
+            "install --name=<name> --url=<url>: Will install a new extension, requires two parameters, --name and --url, only git urls are supported",
+            "uninstall --name<name>: Will uninstall an extension with the given name",
+            "list: Will list the installed extensions",
+            "update: Will update all extensions from their repository urls given during installation",
 		]);
 	}
 
