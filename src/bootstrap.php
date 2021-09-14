@@ -85,7 +85,3 @@ try{
 }catch(ConfigInvalidException $e){
 	$cli->failure($text->box($e->getMessage(), "white", "red"));
 }
-
-$volume = container(DockerVolume::class, ['name' => 'ddt_proxy_certs']);
-var_dump($volume->getId());
-die("DEAD");

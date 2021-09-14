@@ -44,7 +44,7 @@ class DockerVolume
 
     public function delete(): bool
     {
-        // TODO: attempt to delete docker network
+        // TODO: attempt to delete docker volume
         // TODO: if fails to delete, throw exception
         // TODO: if succeeds to delete, return true
 
