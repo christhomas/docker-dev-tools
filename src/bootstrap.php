@@ -8,6 +8,7 @@ use DDT\Tool\EntrypointTool;
 use DDT\Config\SystemConfig;
 use DDT\Contract\IpServiceInterface;
 use DDT\Contract\DnsServiceInterface;
+use DDT\Docker\DockerVolume;
 use DDT\Exceptions\Config\ConfigInvalidException;
 use DDT\Exceptions\Config\ConfigMissingException;
 use DDT\Exceptions\Container\ContainerNotInstantiatedException;
@@ -65,15 +66,15 @@ try{
 			$container->singleton(DnsServiceInterface::class, \DDT\Network\Darwin\DnsService::class);
 			break;
 
-		case $detect->isUbuntu('16.04'):
-		case $detect->isUbuntu('16.10'):
+		case $detect->isLinux():
 			$container->singleton(IpServiceInterface::class, \DDT\Network\Linux\IpService::class);
+			break;
+
+		case $detect->isUbuntu('16.04') || $detect->isUbuntu('16.10'):
 			$container->singleton(DnsServiceInterface::class, \DDT\Network\Ubuntu_16\DnsService::class);
 			break;
 		
-		case $detect->isUbuntu('18.04'):
-		case $detect->isUbuntu('18.10'):
-			$container->singleton(IpServiceInterface::class, \DDT\Network\Linux\IpService::class);
+		case $detect->isUbuntu('18.04') || $detect->isUbuntu('18.10'):
 			$container->singleton(DnsServiceInterface::class, \DDT\Network\Ubuntu_18\DnsService::class);
 			break;
 	}
@@ -87,3 +88,7 @@ try{
 }catch(ConfigInvalidException $e){
 	$cli->failure($text->box($e->getMessage(), "white", "red"));
 }
+
+$volume = container(DockerVolume::class, ['name' => 'ddt_proxy_certs']);
+var_dump($volume->getId());
+die("DEAD");
