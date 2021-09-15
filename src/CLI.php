@@ -297,37 +297,6 @@ class CLI
 		$this->die($string, 1);
 	}
 
-	public function ping(Address $address): void
-	{
-		if($address->ping()){
-			$output[] = "Ping: {grn}SUCCESS{end}";
-		}else{
-			$output[] = "Ping: {red}FAILURE{end}";
-		}
-
-		if($address->hostname !== null){
-			$output[] = "Hostname: '{yel}{$address->hostname}{end}'";
-		}
-
-		if($address->ip_address !== null){
-			$output[] = "IP Address: '{yel}{$address->ip_address}{end}'";
-		}
-
-		if($address->packet_loss === 0.0 && $address->can_resolve === true){
-			$output[] = "Status: {grn}SUCCESS{end}";
-		}else{
-			$output[] = "Status: {red}FAILURE{end}";
-		}
-
-		if($address->can_resolve === true){
-			$output[] = "Can Resolve: {grn}YES{end}";
-		}else{
-			$output[] = "Can Resolve: {red}NO{end}";
-		}
-
-		$this->print(implode(", ", $output) . "\n");
-	}
-
 	public function die(?string $string=null, int $exitCode=0)
 	{
 		$colour	= $exitCode === 0 ? "{grn}" : "{red}";
