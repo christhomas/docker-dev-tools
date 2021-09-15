@@ -6,7 +6,6 @@ use DDT\Autowire;
 use DDT\CLI;
 use DDT\Exceptions\Tool\CommandInvalidException;
 use DDT\Exceptions\Tool\CommandNotFoundException;
-use ReflectionMethod;
 
 abstract class Tool
 {
@@ -51,7 +50,7 @@ abstract class Tool
         $command = lcfirst($command);
         $command = $command . "Command";
 
-        if(!method_exists($this, $command)){
+        if(!is_callable([$this, $command])){
             throw new CommandNotFoundException("$this->entrypoint $this->name", $name);
         }
 
