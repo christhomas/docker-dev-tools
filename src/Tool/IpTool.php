@@ -6,6 +6,7 @@ use DDT\CLI;
 use DDT\Config\IpConfig;
 use DDT\Contract\IpServiceInterface;
 use DDT\Network\Address;
+use DDT\ui\Ping;
 
 class IpTool extends Tool
 {
@@ -134,11 +135,13 @@ NOTES;
 		$this->addCommand();
 	}
 
-	public function pingCommand()
+	public function pingCommand(): string
 	{
 		/** @var Address */
 		$address = container(Address::class, ['address' => $this->config->get()]);
 		
-		$this->cli->ping($address);
+		$address->ping();
+		
+		return Ping::render($address);
 	}
 }

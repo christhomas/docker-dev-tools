@@ -53,8 +53,8 @@ logs: View the logs from the Nginx proxy container
 logs-f: View and follow the logs from the Nginx proxy container
 
 {cyn}Network Configuration:{end}
-add=XXX: Add a new network to a running proxy without needing to restart it
-remove=XXX: Remove an existing network from the proxy container so it stops monitoring it
+add-network=XXX: Add a new network to a running proxy without needing to restart it
+remove-network=XXX: Remove an existing network from the proxy container so it stops monitoring it
 
 {cyn}Configuration:{end}
 nginx-config: Output the raw /etc/nginx/conf.d/default.conf which is generated when containers start and stop
@@ -105,12 +105,12 @@ OPTIONS;
 
     public function logsCommand(?string $since=null)
     {
-        $this->proxy->logs($since);
+        $this->proxy->logs(true, $since);
     }
 
     public function logsFCommand(?string $since=null)
     {
-        $this->proxy->logsFollow($since);
+        $this->proxy->logs(false, $since);
     }
 
     public function addNetworkCommand(string $network)
@@ -146,7 +146,7 @@ OPTIONS;
     public function nginxConfigCommand()
     {
         if($this->proxy->isRunning()){
-            $this->cli->print('{cyan}'.$this->proxy->getConfig().'{end}');
+            $this->cli->print("\n{cyan}".$this->proxy->getConfig()."{end}\n\n");
         }else{
             $this->cli->print('{red}Proxy is not running{end}');
         }

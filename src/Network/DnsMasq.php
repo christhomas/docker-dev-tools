@@ -151,18 +151,18 @@ class DnsMasq
         return null;
     }
 
-    public function logs(bool $follow=false)
+    public function getContainerName(): string
     {
-        try{
-            $container = container(DockerContainer::class, ['name' => $this->config->getContainerName()]);
-            
-            if($follow){
-                $container->logsFollow();
-            }else{
-                $container->logs();
-            }
+        return $this->config->getContainerName();
+    }
+
+    public function logs(bool $follow, ?string $since=null)
+	{
+		try{
+            $container = container(DockerContainer::class, ['name' => $this->getContainerName()]);
+			$container->logs($follow, $since);
         }catch(\Exception $e){
             throw new \Exception('Could not find docker container view the logs from: ' . $e->getMessage());
         }
-    }
+	}
 }

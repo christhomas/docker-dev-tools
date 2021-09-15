@@ -10,6 +10,7 @@ use DDT\Network\Address;
 use DDT\Network\DnsMasq;
 use DDT\Text\Table;
 use DDT\Text\Text;
+use DDT\ui\Ping;
 
 class DnsTool extends Tool
 {
@@ -58,8 +59,8 @@ class DnsTool extends Tool
         return<<<OPTIONS
 {cyn}Configuring IP Address and domains:{end}
     add-domain=yourdomain.com: Add a domain to the running DNS server
-    remove-domain=yourdomain.com: Remove a domain to the running DNS server (see also --ip-address)
-    set-ip=xxx.xxx.xxx.xxx: Use this ip address when configuring the server instead of the default one
+    remove-domain=yourdomain.com: Remove a domain to the running DNS server
+    ip=xxx.xxx.xxx.xxx: Use this ip address when configuring the server instead of the default one
 
 {cyn}Toggling the DNS Server:{end}
     enable: Enable the DNS Server
@@ -133,15 +134,26 @@ NOTES;
         $this->dnsMasq->start();
         $this->enableCommand();
 
-        // Format::ping($alias->ping('127.0.0.1'));
-        // Format::ping($alias->ping('google.com'));
+        // Configure all the domains to be resolved on this computer
+        $domainList = $this->dnsMasq->listDomains();
 
-        // // Configure all the domains to be resolved on this computer
-        // $domainList = $dns->listDomains();
-        // foreach($domainList as $domain){
-        //     $dns->addDomain($alias->get(), $domain['domain']);
-        //     Format::ping($alias->ping($domain['domain'], $domain['ip_address']));
-        // }
+        foreach($domainList as $domain){
+            $this->dnsMasq->addDomain($domain['domain'], $domain['ip_address']);
+        }
+
+        $address = container(Address::class, ['address' => '127.0.0.1']);
+        $address->ping();
+        $this->cli->print(Ping::render($address));
+
+        $address = container(Address::class, ['address' => 'google.com']);
+        $address->ping();
+        $this->cli->print(Ping::render($address));
+
+        foreach($domainList as $domain){
+            $address = container(Address::class, ['address' => $domain['domain']]);
+            $address->ping();
+            $this->cli->print(Ping::render($address));
+        }
     }
 
     public function stopCommand()
@@ -174,14 +186,14 @@ NOTES;
         }
     }
 
-    public function logsCommand(): void
+    public function logsCommand(?string $since=null): void
     {
-        $this->dnsMasq->logs();
+        $this->dnsMasq->logs(false, $since);
     }
 
-    public function logsFCommand(): void
+    public function logsFCommand(?string $since=null): void
     {
-        $this->dnsMasq->logs(true);
+        $this->dnsMasq->logs(true, $since);
     }
 
     public function addDomainCommand(string $domain): void
@@ -244,14 +256,14 @@ NOTES;
         }
     }
 
-    public function setIp(): void
+    public function ipCommand(?string $address=null): string
     {
-        $this->cli->print("{yel}TODO: setIp{end}\n");
-    }
+        // TODO: what to do when you set a new ip address, here, should reconfigure everything with that new ip address?
+        // NOTE: this could be quite a lot of changes in various aspects of the system that might be storing that ip address and using it locally
+        $this->cli->debug("new ip address = '$address'");
 
-    public function ipCommand(): string
-    {
         $list = $this->dnsService->getIpAddressList();
+
         return implode("\n", $list)."\n";
     }
 
@@ -261,8 +273,10 @@ NOTES;
 
         foreach($list as $ipAddress){
             $address = container(Address::class, ['address' => $ipAddress]);
-            
-            $this->cli->ping($address);
+
+            $address->ping();
+
+            $this->cli->print(Ping::render($address));
         }
     }
 

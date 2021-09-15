@@ -172,22 +172,14 @@ class Proxy
 		// just leave it and reuse it when necessary
 	}
 
-	public function logs(?string $since=null)
+	public function logs(bool $follow, ?string $since=null)
 	{
-		$containerId = $this->getContainerId();
-
-		if(!empty($containerId)){
-			$this->docker->logs($containerId, $since);
-		}
-	}
-
-	public function logsFollow(?string $since=null)
-	{
-		$containerId = $this->getContainerId();
-
-		if(!empty($containerId)){
-			$this->docker->logsFollow($containerId, $since);
-		}
+		try{
+            $container = container(DockerContainer::class, ['name' => $this->getContainerName()]);
+			$container->logs($follow, $since);
+        }catch(\Exception $e){
+            throw new \Exception('Could not find docker container view the logs from: ' . $e->getMessage());
+        }
 	}
 
 	public function addNetwork(string $network)
