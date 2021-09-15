@@ -6,6 +6,7 @@ use DDT\CLI;
 use DDT\Config\ProxyConfig;
 use DDT\Docker\Docker;
 use DDT\Docker\DockerContainer;
+use DDT\Docker\DockerVolume;
 use DDT\Exceptions\Docker\DockerContainerNotFoundException;
 use DDT\Exceptions\Docker\DockerNetworkExistsException;
 
