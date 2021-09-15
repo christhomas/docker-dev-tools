@@ -3,6 +3,7 @@
 namespace DDT;
 
 use DDT\Exceptions\Container\CannotAutowireParameterException;
+use ReflectionClass;
 
 class Autowire
 {
@@ -25,12 +26,18 @@ class Autowire
 
     public function callMethod(object $class, string $method, ?array $args=[])
     {
-        // obtain using reflect all the method parameters
-        $reflectionMethod = new \ReflectionMethod($class, $method);
+        $rClass= new \ReflectionClass($class);
 
-        $finalArgs = $this->getMethodArgsFromCLI($reflectionMethod, $args);
+        if($rClass->hasMethod($method) === true || $rClass->hasMethod('__call') === false){
+            $rMethod = $rClass->getMethod($method);
+            $finalArgs = $this->getMethodArgsFromCLI($rMethod, $args);
 
-        return $reflectionMethod->invoke($class, ...$finalArgs);
+            return $rMethod->invoke($class, ...$finalArgs);
+        }
+
+        $rMethod = $rClass->getMethod('__call');
+
+        return $rMethod->invoke($class, $method, $args);
     }
 
     public function getMethodArgsFromAssocArray(?\ReflectionFunctionAbstract $method = null, array $input): array
