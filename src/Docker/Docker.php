@@ -144,7 +144,7 @@ class Docker
 		$command[] = $image;
 
 		try{
-			return implode("\n", $this->cli->exec(implode(" ", $command), true));
+			return implode("\n", $this->cli->exec(implode(" ", $command)));
 		}catch(\Exception $e){
 			// FIXME: I don't think this should die here, but return an exception which can be understood by somewhere above in the hierarchy
 			$this->cli->failure($this->parseErrors($e->getMessage(), ["{port}" => $ports]));
