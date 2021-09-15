@@ -195,8 +195,10 @@ class CLI
 	public function sudo(?string $command='echo'): CLI
 	{
 		if($this->isRoot === false){
-			$this->exec("sudo $command");
+			$command = "sudo $command";
 		}
+
+		$this->exec($command);
 
 		return $this;
 	}
