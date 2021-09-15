@@ -251,7 +251,7 @@ class CLI
 
 	public function passthru(string $command, bool $throw=true): int
 	{
-		$this->debug("{red}[EXEC]:{end} Passthru command: $command");
+		$this->debug("{red}[PASSTHRU]:{end} $command");
 
 		$redirect = $this->statusChannel('debug') ? "" : "2>&1";
 
