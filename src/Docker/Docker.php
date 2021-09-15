@@ -239,13 +239,17 @@ class Docker
 		}
 	}
 
-	public function logs(string $containerId): int
+	public function logs(string $containerId, ?string $since=null): int
 	{
-		return $this->cli->passthru("$this->command logs $containerId");
+		if(!empty($since)) $since = "--since=$since";
+
+		return $this->cli->passthru("$this->command logs $containerId $since");
 	}
 
-	public function logsFollow(string $containerId): int
+	public function logsFollow(string $containerId, ?string $since=null): int
 	{
-		return $this->cli->passthru("$this->command logs -f $containerId");
+		if(!empty($since)) $since = "--since=$since";
+
+		return $this->cli->passthru("$this->command logs -f $containerId $since");
 	}
 }

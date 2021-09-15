@@ -103,14 +103,14 @@ OPTIONS;
         $this->startCommand();
     }
 
-    public function logsCommand()
+    public function logsCommand(?string $since=null)
     {
-        $this->proxy->logs();
+        $this->proxy->logs($since);
     }
 
-    public function logsFCommand()
+    public function logsFCommand(?string $since=null)
     {
-        $this->proxy->logsFollow();
+        $this->proxy->logsFollow($since);
     }
 
     public function addNetworkCommand(string $network)

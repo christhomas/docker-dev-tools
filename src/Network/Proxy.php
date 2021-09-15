@@ -171,21 +171,21 @@ class Proxy
 		// just leave it and reuse it when necessary
 	}
 
-	public function logs()
+	public function logs(?string $since=null)
 	{
 		$containerId = $this->getContainerId();
 
 		if(!empty($containerId)){
-			$this->docker->logs($containerId);
+			$this->docker->logs($containerId, $since);
 		}
 	}
 
-	public function logsFollow()
+	public function logsFollow(?string $since=null)
 	{
 		$containerId = $this->getContainerId();
 
 		if(!empty($containerId)){
-			$this->docker->logsFollow($containerId);
+			$this->docker->logsFollow($containerId, $since);
 		}
 	}
 
