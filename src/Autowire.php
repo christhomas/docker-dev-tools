@@ -84,7 +84,11 @@ class Autowire
 
             // named arguments can't be found, then this is an error
             if(empty($a)){
-                throw new \Exception("This command required a parameter --{$name}, see help for more information");
+                if($p->isOptional()){
+                    $a = ['name' => $name, 'value' => $p->getDefaultValue()];
+                }else{
+                    throw new \Exception("This command required a parameter --{$name}, see help for more information");
+                }
             }
 
             // cast the value to the correct type according to reflection
