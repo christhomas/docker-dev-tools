@@ -77,7 +77,7 @@ class Autowire
             $a = null;
             foreach($input as $key => $item){
                 if($item['name'] === "--{$name}"){
-                    unset($args[$key]);
+                    unset($input[$key]);
                     $a = $item;
                 }
             }
