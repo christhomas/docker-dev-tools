@@ -85,7 +85,7 @@ abstract class Tool
      */
     public function handleArg(array $arg): void
     {
-        $this->cli->debug("Unhandled argument named '{$arg['name']}' with value '{$arg['value']}'");
+        $this->cli->debug(get_class($this). " - Unhandled argument named '{$arg['name']}' with value '{$arg['value']}'");
     }
     
     /**

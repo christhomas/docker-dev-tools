@@ -2,7 +2,6 @@
 
 namespace DDT;
 
-use DDT\Network\Address;
 use DDT\Text\Text;
 
 class CLI
