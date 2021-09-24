@@ -151,7 +151,7 @@ EXAMPLES;
 		*/
 	}
 
-	public function getCommand(string $key): string
+	public function getCommand(?string $key='.'): string
 	{
 		$config = container(SystemConfig::class);
 
