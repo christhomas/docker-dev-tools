@@ -33,7 +33,7 @@ class DnsMasq
     }
 
 
-	public function listDomains(bool $fromContainer=false)
+	public function listDomains(bool $fromContainer=false): array
 	{
         // create a new object for this container, to interact with it
         try{
@@ -52,12 +52,12 @@ class DnsMasq
 					$domains[] = ['domain' => $matches['domain'], 'ip_address' => $matches['ip_address']];
 				}
 			}
-
-			return $domains;
         }catch(\Exception $e){
             // TODO: what should I do n this situation?
             $this->cli->debug("{red}[DOCKER-CONTAINER]: {end} ". $e->getMessage());
         }
+
+        return $domains;
 	}
 
 	public function addDomain(string $domain, string $ipAddress): bool
