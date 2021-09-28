@@ -108,7 +108,8 @@ abstract class BaseConfig implements ConfigInterface
 	{
 		$results = [];
 
-        $parent = Arr::get($this->data, $section);
+        $arr = new Arr($this->data);
+        $parent = $arr->get($section);
 
         if($callback === null){
             if($parent !== null) $results[] = $parent;
