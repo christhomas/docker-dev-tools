@@ -12,40 +12,41 @@ class ProjectTool extends Tool
 
     public function __construct(CLI $cli, SystemConfig $config)
     {
-    	parent::__construct('extension', $cli);
+    	parent::__construct('project', $cli);
 
         $this->config = $config;
     }
 
     public function getTitle(): string
     {
-        return 'Extension Management Tool';
+        return 'Project Management Tool';
     }
 
     public function getShortDescription(): string
     {
-        return 'A tool to manage tool extensions and update them';
+        return 'A tool to manage projects installed and control them using scripts and hooks';
     }
 
     public function getDescription(): string
     {
-		return "This tool will manage extensions installed within the tools. It can install, uninstall, or update them. At this time
-        the tool only supports extensions from GIT repositories";
+		return "This tool allows projects to be installed and managed by the tooling system. It can run scripts, and perform actions upon the projects,
+        using functionality or scripts installed within the projects themselves";
     }
 
     public function getExamples(): string
     {
-        $entrypoint = $this->cli->getScript(false) . " " . $this->getName();
+        /*$entrypoint = $this->cli->getScript(false) . " " . $this->getName();
 
         return implode("\n", [
             "{yel}Usage Example:{end} $entrypoint {yel}install name url=https://github.com/something/extension_repo.git{end}",
             "{yel}Usage Example:{end} $entrypoint {yel}uninstall plista{end}"
-        ]);   
+        ]);*/
+        return "";
     }
 
     public function getOptions(): string
 	{
-		$alias = $this->config->getKey('.ip_address') ?? 'unknown';
+		/*$alias = $this->config->getKey('.ip_address') ?? 'unknown';
 
 		return "\t" . implode("\n\t", [
             "--install=XXX: Will install a new extension using the parameters value as the given name",
@@ -53,8 +54,14 @@ class ProjectTool extends Tool
             "--uninstall=XXX: Will uninstall an extension with the given name",
             "--list: Will list the installed extensions",
             "--update: Will update all extensions from their repository urls given during installation",
-		]);
+		]);*/
+        return "";
 	}
+
+    public function groupCommand(string $subcommand, ...$params): void
+    {
+        var_dump(__METHOD__);
+    }
 }
 
 /*
