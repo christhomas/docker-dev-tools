@@ -325,4 +325,36 @@ NOTES;
         
         return $table->render(true);
     }
+
+    public function listDevicesCommand() {
+        $this->cli->print("{blu}List of all devices:{end}\n");
+        
+        foreach($this->dnsService->getHardwarePorts() as $index => $device){
+            $this->cli->print($index+1 . " - ${device['name']} (dev: ${device['device']})\n");
+        }
+    }
+
+    public function setDeviceCommand(string $device=null) {
+        $this->cli->print("{blu}Set the device for DNS service:{end}\n");
+
+        $list = $this->dnsService->getHardwarePorts();
+
+        foreach($list as $index => $device){
+            $this->cli->print($index+1 . " - ${device['name']} (dev: ${device['device']})\n");
+        }
+
+        $answer = (int)$this->cli->ask("Please enter the number of device to select: ", range(1,count($list)));
+
+        if($answer < 1 || $answer > count($list)) {
+            $this->cli->print("{red}Sorry but the device selected was not available (requested: $answer){end}\n");
+        }else{
+            $device = $list[$answer-1];
+            $this->cli->print("You have requested device: {yel}{$device['name']} (dev: {$device['device']}){end}\n");
+            $this->dnsConfig->setDevice($device['name'], $device['device']);
+        }
+    }
+
+    public function removeDeviceCommand() {
+        $this->dnsConfig->removeDevice();
+    }
 }

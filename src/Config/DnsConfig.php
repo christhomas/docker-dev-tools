@@ -10,6 +10,7 @@ class DnsConfig
 		'docker_image'		=> 'dns.docker_image',
 		'container_name'	=> 'dns.container_name',
         'domains'           => 'dns.domains',
+		'device'			=> 'dns.device',
 	];
 
     public function __construct(SystemConfig $config)
@@ -104,6 +105,25 @@ class DnsConfig
 
 		$this->config->setKey($this->keys['domains'], $list);
 
+		return $this->config->write();
+	}
+
+	public function setDevice(string $name, string $device): bool 
+	{
+		$this->config->setKey($this->keys['device'], ['name' => $name, 'device' => $device]);
+
+		return $this->config->write();
+	}
+
+	public function getDevice(): array
+	{
+		return $this->config->getKey($this->keys['device']);
+	}
+
+	public function removeDevice(): bool
+	{
+		$this->config->deleteKey($this->keys['device']);
+		
 		return $this->config->write();
 	}
 }
