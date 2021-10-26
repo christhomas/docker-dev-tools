@@ -32,25 +32,39 @@ class DnsMasq
         return false;
     }
 
+    public function getContainer(): DockerContainer 
+    {
+        return container(DockerContainer::class, [
+            'image' => $this->config->getDockerImage(),
+            'name' => $this->config->getContainerName(),
+        ]);
+    }
 
-	public function listDomains(bool $fromContainer=false): array
+	public function listDomains(): array
 	{
         // create a new object for this container, to interact with it
         try{
-            $container = container(DockerContainer::class, [
-                'name' => $this->config->getContainerName(),
-            ]);
+            $container = $this->getContainer();
 
-            $list = array_map('trim', explode("\n", $container->exec("find /etc/dnsmasq.d -name \"*.conf\" -type f")));
+            $list = $container->exec("find /etc/dnsmasq.d -name \"*.conf\" -type f");
+            $list = explode("\n", $list);
+            $list = array_map('trim', $list);
+            $list = array_filter($list);
 
             $domains = [];
 
             foreach($list as $file){
 			    $file = trim($file);
-				$contents = $container->exec("cat $file", true);
-				if(preg_match("/^[^\/]+\/(?P<domain>[^\/]+)\/(?P<ip_address>[^\/]+)/", $contents, $matches)){
-					$domains[] = ['domain' => $matches['domain'], 'ip_address' => $matches['ip_address']];
-				}
+                
+                if(empty($file)){
+                    $this->cli->debug('{red}[DOCKER-CONTAINER]:{end} cannot view file inside container as it was empty string, skipping');
+                    continue;
+                }
+
+                $contents = $container->exec("cat $file", true);
+                if(preg_match("/^[^\/]+\/(?P<domain>[^\/]+)\/(?P<ip_address>[^\/]+)/", $contents, $matches)){
+                    $domains[] = ['domain' => $matches['domain'], 'ip_address' => $matches['ip_address']];
+                }
 			}
         }catch(\Exception $e){
             // TODO: what should I do n this situation?
@@ -62,31 +76,30 @@ class DnsMasq
 
 	public function addDomain(string $domain, string $ipAddress): bool
 	{
-        $container = container(DockerContainer::class, [
-            'name' => $this->config->getContainerName(),
-        ]);
+        $container = $this->getContainer();
 
         $container->exec("/bin/sh -c 'echo 'address=/$domain/$ipAddress' > /etc/dnsmasq.d/$domain.conf'");
-        $container->exec("kill -s SIGHUP 1");
-
-        sleep(2);
 
         return $this->config->addDomain($domain, $ipAddress);
 	}
 
 	public function removeDomain(string $domain, string $ipAddress)
 	{
-        $container = container(DockerContainer::class, [
-            'name' => $this->config->getContainerName(),
-        ]);
+        $container = $this->getContainer();
 
         $container->exec("/bin/sh -c 'f=/etc/dnsmasq.d/$domain.conf && [ -f \$f ] && rm \$f'");
-        $container->exec("kill -s SIGHUP 1");
-
-        sleep(2);
 
         return $this->config->removeDomain($domain, $ipAddress);
 	}
+
+    public function reload()
+    {
+        $container = $this->getContainer();
+
+        $container->exec("kill -s SIGHUP 1");
+
+        sleep(2);
+    }
 
 	public function pull(): void
 	{
@@ -119,26 +132,31 @@ class DnsMasq
     /**
      * @throws UnsupportedDistroException
      */
-	public function stop(bool $delete=true): void
+	public function stop(bool $delete=true): bool
 	{
-        /* UPGRADE CODE
-		$containerId = $this->docker->findRunning($this->config->getDockerImage());
+        try{
+            /** @var DockerContainer $container */
+            $container = $this->getContainer();
 
-		if(!empty($containerId)){
-			$this->docker->deleteContainer($containerId);
-		}
+            if($container->stop()){
+                if($delete === true){
+                    if($container->delete()){
+                        return true;
+                    }else{
+                        $this->cli->print("{red}Container {$container->getId()} has failed to delete{end}");        
+                    }
+                }else{
+                    return true;
+                }
+            }else{
+                $this->cli->print("{red}Container {$container->getId()} has failed to stop{end}");
+                return false;
+            }
+        }catch(\Exception $e){
+            $this->cli->print("Exception: " . $e->getMessage());
+        }
 
-		$containerName = $this->config->getContainerName();
-		$containerId = $this->docker->getContainerId($containerName);
-
-		try{
-			if(!empty($containerId)) {
-				$this->docker->deleteContainer($containerId);
-			}
-		}catch(\Exception $e){
-			$this->cli->print("Exception: ".$e->getMessage());
-		}
-        */
+        return false;
 	}
 
     public function refresh()
