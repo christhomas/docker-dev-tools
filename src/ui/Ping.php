@@ -20,12 +20,12 @@ class Ping
 			$temp[] = "Ping: {red}FAILURE{end}";
 		}
 
-		if($address->hostname !== null){
-			$temp[] = "Hostname: '{yel}{$address->hostname}{end}'";
-		}
-
 		if($address->ip_address !== null){
 			$temp[] = "IP Address: '{yel}{$address->ip_address}{end}'";
+		}
+
+		if($address->hostname !== null){
+			$temp[] = "Hostname: '{yel}{$address->hostname}{end}'";
 		}
 
 		if($address->packet_loss === 0.0 && $address->can_resolve === true){
