@@ -125,6 +125,7 @@ NOTES;
         
         $this->disableCommand();
         $this->enableCommand();
+        $this->dnsMasq->reload();
     }
 
     public function startCommand()
@@ -134,26 +135,17 @@ NOTES;
         $this->dnsMasq->start();
         $this->enableCommand();
 
-        // Configure all the domains to be resolved on this computer
-        $domainList = $this->dnsMasq->listDomains();
+        $domainGroup = $this->dnsConfig->getDomainList();
 
-        foreach($domainList as $domain){
-            $this->dnsMasq->addDomain($domain['domain'], $domain['ip_address']);
+        foreach($domainGroup as $ipAddress => $domainList){
+            foreach($domainList as $domain){
+                $this->dnsMasq->addDomain($domain, $ipAddress);
+            }
         }
 
-        $address = container(Address::class, ['address' => '127.0.0.1']);
-        $address->ping();
-        $this->cli->print(Ping::render($address));
+        $this->dnsMasq->reload();
 
-        $address = container(Address::class, ['address' => 'google.com']);
-        $address->ping();
-        $this->cli->print(Ping::render($address));
-
-        foreach($domainList as $domain){
-            $address = container(Address::class, ['address' => $domain['domain']]);
-            $address->ping();
-            $this->cli->print(Ping::render($address));
-        }
+        $this->pingCommand();
     }
 
     public function stopCommand()
@@ -213,6 +205,8 @@ NOTES;
         $this->cli->print("{blu}Adding domain:{end} '{yel}$domain->hostname{end}' with ip address '{yel}$ipAddress{end}' to Dns Resolver: ");
         
         if($this->dnsMasq->addDomain($domain->hostname, $ipAddress)){
+            $this->dnsMasq->reload();
+
             $this->cli->silenceChannel('stdout', function(){
                 $this->refreshCommand();
             });
@@ -243,6 +237,8 @@ NOTES;
         $this->cli->print("{blu}Removing domain:{end} '{yel}$domain->hostname{end}' with ip address '{yel}$ipAddress{end}' from the Dns Resolver: ");
         
         if($this->dnsMasq->removeDomain($domain->hostname, $ipAddress)){
+            $this->dnsMasq->reload();
+
             $this->cli->silenceChannel('stdout', function(){
                 $this->refreshCommand();
             });
@@ -277,6 +273,23 @@ NOTES;
             $address->ping();
 
             $this->cli->print(Ping::render($address));
+        }
+
+        $address = container(Address::class, ['address' => '127.0.0.1']);
+        $address->ping();
+        $this->cli->print(Ping::render($address));
+
+        $address = container(Address::class, ['address' => 'google.com']);
+        $address->ping();
+        $this->cli->print(Ping::render($address));
+
+        $domainGroup = $this->dnsConfig->getDomainList();
+        foreach($domainGroup as $ipAddress => $domainList){
+            foreach($domainList as $domain){
+                $address = container(Address::class, ['address' => $domain]);
+                $address->ping();
+                $this->cli->print(Ping::render($address));
+            }
         }
     }
 
