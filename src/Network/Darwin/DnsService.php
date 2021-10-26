@@ -21,7 +21,7 @@ class DnsService implements DnsServiceInterface
         $this->cli = $cli;
     }
 
-    private function enumerateNetworkInterfaces()
+    public function getHardwarePorts(): array
 	{
 		$interfaces = [];
 
@@ -49,7 +49,7 @@ class DnsService implements DnsServiceInterface
 
         $this->cli->sudo();
 
-		$interfaces = $this->enumerateNetworkInterfaces();
+		$interfaces = $this->getHardwarePorts();
 		foreach($interfaces as $i){
 			$this->cli->print("Configuring interface '{yel}{$i['name']}{end}'\n");
             $this->cli->exec("networksetup -setdnsservers '{$i['name']}' $ipAddress");
