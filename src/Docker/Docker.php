@@ -151,22 +151,41 @@ class Docker
 		}
 	}
 
-	public function pruneContainer(): void
-	{
-		$this->cli->exec("$this->command container prune -f &>/dev/null");
-	}
-
-    public function deleteContainer(string $container): bool
+	public function stop(string $containerId): bool 
 	{
 		try{
-			$this->cli->exec("$this->command kill $container 1>&2");
-			$this->cli->exec("$this->command container rm $container 1>&2");
+			$this->cli->exec("$this->command kill $containerId 1>&2");
 
 			return true;
 		}catch(\Exception $e){
 			$this->cli->print("{red}".$this->parseErrors($e->getMessage())."{end}\n");
 			return false;
 		}
+	}
+
+	public function delete(string $containerId): bool
+	{
+		try{
+			$this->cli->exec("$this->command container rm $containerId 1>&2");
+
+			return true;
+		}catch(\Exception $e){
+			$this->cli->print("{red}".$this->parseErrors($e->getMessage())."{end}\n");
+			return false;
+		}
+	}
+
+	public function pruneContainer(): void
+	{
+		$this->cli->exec("$this->command container prune -f &>/dev/null");
+	}
+
+	/**
+	 * TODO: I don't think this function is useful anymore
+	 */
+    public function deleteContainer(string $container): bool
+	{
+		return $this->stop($container) && $this->delete($container);
 	}
 
 	public function createNetwork(string $name): string
