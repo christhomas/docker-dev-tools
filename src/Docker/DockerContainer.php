@@ -36,11 +36,6 @@ class DockerContainer
         $this->docker->logsFollow($this->id, $follow, $since);
     }
 
-    public function stop(): bool
-    {
-        return false;
-    }
-
     public function getId(): string
     {
         try{
@@ -55,5 +50,15 @@ class DockerContainer
     public function exec(string $command)
     {
         return $this->docker->exec($this->id, $command, true);
+    }
+
+    public function delete(): bool
+    {
+        return $this->docker->delete($this->getId());
+    }
+
+    public function stop(): bool
+    {
+        return $this->docker->stop($this->getId());
     }
 }
