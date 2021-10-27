@@ -43,6 +43,11 @@ class Proxy
 		return $this->config->getContainerName();
 	}
 
+	public function getContainer(): DockerContainer
+	{
+		return container(DockerContainer::class, ['name' => $this->getContainerName()]);
+	}
+
 	public function getContainerId(): ?string
 	{
         $data = $this->docker->inspect("container", $this->getContainerName());
@@ -53,7 +58,7 @@ class Proxy
 	public function isRunning(): bool
 	{
 		try{
-			$container = container(DockerContainer::class, ['name' => $this->getContainerName()]);
+			$this->getContainer();
 			return true;
 		}catch(\Exception $e){
 			return false;
