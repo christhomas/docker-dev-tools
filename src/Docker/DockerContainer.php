@@ -60,16 +60,16 @@ class DockerContainer
 
     public function exec(string $command)
     {
-        return $this->docker->exec($this->id, $command, true);
+        return $this->docker->exec("exec -it $this->id $command", true);
+    }
+    
+    public function stop(): bool
+    {
+        return $this->docker->stop($this->getId());
     }
 
     public function delete(): bool
     {
         return $this->docker->delete($this->getId());
-    }
-
-    public function stop(): bool
-    {
-        return $this->docker->stop($this->getId());
     }
 }

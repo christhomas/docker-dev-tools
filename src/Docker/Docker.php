@@ -61,7 +61,7 @@ class Docker
         // Default empty profile that uses the machines local docker installation
         $this->setProfile(new DockerRunProfile('default'));
 
-        if($this->cli->isCommand($this->command) === false){
+        if($this->cli->isCommand('docker') === false){
             throw new DockerMissingException();
         }
 
@@ -74,7 +74,7 @@ class Docker
 
 	public function getVersion(): array
     {
-        return json_decode($this->command('version --format "{{json .}}"'), true);
+        return json_decode($this->exec('version --format "{{json .}}"'), true);
     }
 
 	public function isRunning(): bool
@@ -105,7 +105,7 @@ class Docker
     public function pull(string $image): int
     {
         try{
-			return $this->cli->passthru("$this->command pull $image");
+			return $this->passthru("pull $image");
 		}catch(\Exception $e){
 			$this->cli->print("{red}" . $this->parseErrors($e->getMessage()) . "{end}");
 		}
@@ -113,22 +113,35 @@ class Docker
 		return 1;
     }
 
-	public function command(string $command): string
+	public function toCommandLine(string $command): string
 	{
-		$command = implode(' ', array_filter([$this->command, $this->profile->toCommandLine(), $command]));
-
-        return trim(implode("\n", $this->cli->exec($command)));
+		return implode(' ', array_filter([$this->command, $this->profile->toCommandLine(), $command]));
 	}
 
-	public function exec(string $container, string $command, bool $firstLine=false)
+	// public function exec(string $container, string $command, bool $firstLine=false)
+	// {
+	// 	$command = $this->toCommandLine("exec -it $container $command");
+
+	// 	return trim(implode("\n", $this->cli->exec($command)));
+	// }
+
+	public function exec(string $command, bool $firstLine=false)
 	{
-		return $this->command("exec -it $container $command");
-		//return $this->cli->exec("$this->command exec -it $container $command", $firstLine);
+		$command = $this->toCommandLine($command);
+
+		return $this->cli->exec($command);
+	}
+
+	public function passthru(string $command): int
+	{
+		$command = $this->toCommandLine($command);
+
+		return $this->cli->passthru($command);
 	}
 
 	public function run(string $image, string $name, array $ports = [], array $volumes = [], array $options = []): ?string
 	{
-		$command = ["$this->command run -d --restart always"];
+		$command = ["run -d --restart always"];
 
 		$command = array_merge($command, $options);
 
@@ -144,7 +157,7 @@ class Docker
 		$command[] = $image;
 
 		try{
-			return implode("\n", $this->cli->exec(implode(" ", $command)));
+			return $this->exec(implode(' ', $command));
 		}catch(\Exception $e){
 			// FIXME: I don't think this should die here, but return an exception which can be understood by somewhere above in the hierarchy
 			$this->cli->failure($this->parseErrors($e->getMessage(), ["{port}" => $ports]));
@@ -154,7 +167,7 @@ class Docker
 	public function stop(string $containerId): bool 
 	{
 		try{
-			$this->cli->exec("$this->command kill $containerId 1>&2");
+			$this->exec("kill $containerId 1>&2");
 
 			return true;
 		}catch(\Exception $e){
@@ -166,7 +179,7 @@ class Docker
 	public function delete(string $containerId): bool
 	{
 		try{
-			$this->cli->exec("$this->command container rm $containerId 1>&2");
+			$this->exec("container rm $containerId 1>&2");
 
 			return true;
 		}catch(\Exception $e){
@@ -177,7 +190,7 @@ class Docker
 
 	public function pruneContainer(): void
 	{
-		$this->cli->exec("$this->command container prune -f &>/dev/null");
+		$this->exec("container prune -f &>/dev/null");
 	}
 
 	/**
@@ -200,7 +213,7 @@ class Docker
 		}
 
 		try{
-			$r = $this->cli->exec("$this->command network create $name 2>&1");
+			$r = $this->exec("network create $name 2>&1");
 			
 			return $r[0];
 		}catch(\Exception $e){
@@ -214,7 +227,7 @@ class Docker
 		try{
 			// TODO: how can I detect whether the network already has this container before doing this?
 			// TODO: It throws exceptions when this fails for various reasons
-			$this->cli->exec("$this->command network connect $network $containerId");
+			$this->exec("network connect $network $containerId");
 
 			return true;
 		}catch(\Exception $e){
@@ -230,7 +243,7 @@ class Docker
 	{
 		// TODO: how can I detect whether the network does not have this container, before trying to delete it
 		// TODO: It throws exceptions when this fails for various reasons
-		$this->cli->exec("$this->command network disconnect $network $containerId");
+		$this->exec("network disconnect $network $containerId");
 	}
 
     /**
@@ -242,7 +255,7 @@ class Docker
 	public function inspect(string $type, string $name, ?string $filter='-f \'{{json .}}\''): ?array
 	{
 		try{
-			$result = $this->cli->exec("$this->command $type inspect $name $filter");
+			$result = $this->exec("$type inspect $name $filter");
 			$result = implode("\n",$result);
 
 			// attempt to decode the result, it might fail cause some return values are not valid json
@@ -264,6 +277,6 @@ class Docker
 
 		$follow = $follow ? 'logs -f' : 'logs';
 
-		return $this->cli->passthru("$this->command $follow $containerId $since");
+		return $this->passthru("$follow $containerId $since");
 	}
 }
