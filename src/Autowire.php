@@ -103,9 +103,10 @@ class Autowire
             $v = $a['value'];
             if(!empty($type)){
                 settype($v, $type);
+                $v = (string)$a['value'] == (string)$v ? $v : null;
             }
 
-            if(empty($v)){
+            if(strlen((string)$v) === 0){
                 if($p->isOptional()){
                     // if empty, and optional, use defaultValue();
                     $v = $p->getDefaultValue();
