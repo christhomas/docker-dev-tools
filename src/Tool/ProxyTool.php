@@ -105,12 +105,12 @@ OPTIONS;
 
     public function logsCommand(?string $since=null)
     {
-        $this->proxy->logs(true, $since);
+        $this->proxy->logs(false, $since);
     }
 
     public function logsFCommand(?string $since=null)
     {
-        $this->proxy->logs(false, $since);
+        $this->proxy->logs(true, $since);
     }
 
     public function addNetworkCommand(string $network)
