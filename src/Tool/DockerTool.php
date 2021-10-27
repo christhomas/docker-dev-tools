@@ -3,18 +3,25 @@
 namespace DDT\Tool;
 
 use DDT\CLI;
+use DDT\Config\DockerConfig;
 use DDT\Docker\Docker;
+use DDT\Docker\DockerRunProfile;
+use DockerProfile;
 
 class DockerTool extends Tool
 {
     /** @var Docker $docker */
     private $docker;
+
+    /** @var DockerConfig $config */
+    private $config;
     
-    public function __construct(CLI $cli, Docker $docker)
+    public function __construct(CLI $cli, Docker $docker, DockerConfig $config)
     {
         parent::__construct('docker', $cli);
 
         $this->docker = $docker;
+        $this->config = $config;
     }
 
     public function getTitle(): string
@@ -63,7 +70,7 @@ OPTIONS;
     public function getNotes(): string
     {
         return<<<NOTES
-        The parameter {yel}--add-profile{end} depends on: {yel}host, port, tlscacert, tlscert, tlskey{end} options
+        The parameter {yel}--add-profile{end} depends on: {yel}name, host, port, tlscacert, tlscert, tlskey{end} options
         and unfortunately you can't create a profile without all of those paraameters at the moment
         
         If you don't pass a profile to execute under, it'll default to your local docker server. Which means you can use this
@@ -78,69 +85,64 @@ NOTES;
 
         return<<<EXAMPLES
         {yel}Usage Examples: {end}
-        $entrypoint --add-profile=staging --host=mycompany.com --port=2376 --tlscacert=cacert.pem --tlscert=cert.pem --tlskey=key.pem
-        $entrypoint --remove-profile=staging
-        $entrypoint --get-profile=staging
-        $entrypoint --list-profiles
-        $entrypoint --profile=staging exec -it phpfpm sh
+        $entrypoint profile --name=staging exec -it phpfpm sh
+        $entrypoint add-profile --name=staging --host=mycompany.com --port=2376 --tlscacert=cacert.pem --tlscert=cert.pem --tlskey=key.pem
+        $entrypoint remove-profile --name=staging
+        $entrypoint get-profile --name=staging
+        $entrypoint list-profile
 EXAMPLES;
     }
 
-    public function statusCommand()
+    public function addProfileCommand(string $name, string $host, int $port, string $tlscacert, string $tlscert, string $tlskey)
     {
-        var_dump($this->docker->listProfile());
-        $this->cli->failure("showing state");
+        $this->cli->print("{blu}Creating new Docker Run Profile:{end}\n");
+        $this->cli->print(" - name: '$name'\n");
+        $this->cli->print(" - host: '$host'\n");
+        $this->cli->print(" - port: '$port'\n");
+        $this->cli->print(" - tlscacert: '$tlscacert'\n");
+        $this->cli->print(" - tlscert: '$tlscert'\n");
+        $this->cli->print(" - tlskey: '$tlskey'\n");
+
+        $profile = new DockerRunProfile($name, $host, $port, $tlscacert, $tlscert, $tlskey);
+        
+        if($this->config->writeProfile($profile)){
+            $this->cli->success("\nDocker Run Profile '$name' written successfully\n");
+        }else{
+            $this->cli->failure("\nDocker Run Profile '$name' did not write successfully\n");
+        }
     }
 
-    public function addProfile()
+    public function removeProfileCommand(string $name)
     {
-        $this->cli->failure("{red}TODO: Implement: ".__METHOD__."\n");
+        $this->cli->print("{blu}Removing Docker Run Profile '$name'\n");
 
-        /*if(($profile = $cli->getArgWithVal('add-profile')) !== null){
-            $host       = $cli->getArgWithVal('host');
-            $port       = $cli->getArgWithVal('port');
-            $tlscacert  = $cli->getArgWithVal('tlscacert');
-            $tlscert    = $cli->getArgWithVal('tlscert');
-            $tlskey     = $cli->getArgWithVal('tlskey');
-        
-            if($docker->addProfile($profile, $host, (int)$port, $tlscacert, $tlscert, $tlskey)){
-                $this->cli->success("Profile '$profile' written successfully");
-            }else{
-                $this->cli->failure("Profile '$profile' did not write successfully");
-            }
-        }*/
+        if($this->config->deleteProfile($name)){
+            $this->cli->success("\nDocker Run Profile '$name' removed successfully\n");
+        }else{
+            $this->cli->failure("\nDocker Run Profile '$name' could not be removed successfully\n");
+        }
     }
 
-    public function removeProfile()
+    public function listProfileCommand()
     {
-        $this->cli->failure("{red}TODO: Implement: ".__METHOD__."\n");
+        $this->cli->print("{blu}Listing Docker Run Profiles{end}\n");
 
-        /*if(($profile = $cli->getArgWithVal('remove-profile')) !== null){
-            if($docker->removeProfile($profile)){
-                $this->cli->success("Profile '$profile' was removed successfully");
-            }else{
-                $this->cli->failure("Profile '$profile' did not remove successfully");
-            }
-        }*/        
-    }
+        $list = $this->config->listProfile();
 
-    public function listProfile()
-    {
-        $this->cli->failure("{red}TODO: Implement: ".__METHOD__."\n");
-        
-        /*if($cli->hasArg(['list-profile', 'list-profiles'])){
-            $profileList = $docker->listProfiles();
-        
-            $this->cli->print("{blu}Docker Profiles:{end}\n");
-            foreach(array_keys($profileList) as $name){
-                $this->cli->print(" - $name\n");
-            }
-            if(empty($profileList)){
-                $this->cli->print("There are no registered docker profiles\n");
-            }
-        
-            exit(0);
-        }*/
+        foreach($list as $profile){
+            $data = $profile->get();
+
+            $this->cli->print("{blu}Profile:{end} {$data['name']}\n");
+            $this->cli->print(" - host: '{$data['host']}'\n");
+            $this->cli->print(" - port: '{$data['port']}'\n");
+            $this->cli->print(" - tlscacert: '{$data['tlscacert']}'\n");
+            $this->cli->print(" - tlscert: '{$data['tlscert']}'\n");
+            $this->cli->print(" - tlskey: '{$data['tlskey']}'\n\n");
+        }
+
+        if(empty($list)){
+            $this->cli->print("There are no registered Docker Run Profiles\n");
+        }
     }
 
     public function getJson(string $profile)
@@ -168,7 +170,7 @@ EXAMPLES;
         }*/       
     }
 
-    public function runDocker()
+    public function runDocker(string $profile)
     {
         $this->cli->failure("{red}TODO: Implement: ".__METHOD__."\n");
 
@@ -180,5 +182,21 @@ EXAMPLES;
         }catch(Exception $e){
             exit(1);
         }*/       
+    }
+
+    public function profileCommand(string $name)
+    {
+        $profile = $this->config->readProfile($name);
+        $args = $this->cli->getArgList();
+        array_shift($args);
+
+        foreach($args as $index => $item){
+            $args[$index] = $item['value'] !== null ? "{$item['name']}={$item['value']}" : $item['name'];
+        }
+
+        $commandLine = implode(' ', $args);
+
+        $this->docker->setProfile($profile);
+        $this->docker->passthru($commandLine);
     }
 }
