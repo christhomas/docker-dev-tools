@@ -94,7 +94,7 @@ EXAMPLES;
 
     public function addProfileCommand(string $name, string $host, int $port, string $tlscacert, string $tlscert, string $tlskey)
     {
-        $this->cli->print("{blu}Creating new Docker Run Profile:{end}\n");
+        $this->cli->print("{blu}Creating new Docker Run Profile:{end}\n\n");
         $this->cli->print(" - name: '$name'\n");
         $this->cli->print(" - host: '$host'\n");
         $this->cli->print(" - port: '$port'\n");
@@ -113,7 +113,7 @@ EXAMPLES;
 
     public function removeProfileCommand(string $name)
     {
-        $this->cli->print("{blu}Removing Docker Run Profile '$name'\n");
+        $this->cli->print("{blu}Removing Docker Run Profile:{end} '$name'\n\n");
 
         if($this->config->deleteProfile($name)){
             $this->cli->success("\nDocker Run Profile '$name' removed successfully\n");
@@ -124,7 +124,7 @@ EXAMPLES;
 
     public function listProfileCommand()
     {
-        $this->cli->print("{blu}Listing Docker Run Profiles{end}\n");
+        $this->cli->print("{blu}Listing Docker Run Profiles{end}\n\n");
 
         $list = $this->config->listProfile();
 
