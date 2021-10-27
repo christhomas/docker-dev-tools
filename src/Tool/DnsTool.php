@@ -155,15 +155,13 @@ NOTES;
         $this->disableCommand();
         $this->dnsMasq->stop();
 
-        // Format::ping($alias->ping('127.0.0.1'));
-        // Format::ping($alias->ping('google.com'));
+        $address = container(Address::class, ['address' => '127.0.0.1']);
+        $address->ping();
+        $this->cli->print(Ping::render($address));
 
-        // $domainList = $dns->listDomains();
-        // foreach($domainList as $domain){
-        //     Format::ping($alias->ping($domain['domain'], $domain['ip_address']));
-        // }
-
-        // $dns->stop();
+        $address = container(Address::class, ['address' => 'google.com']);
+        $address->ping();
+        $this->cli->print(Ping::render($address));
     }
 
     public function restartCommand(): void
