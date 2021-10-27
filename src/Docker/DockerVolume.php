@@ -31,6 +31,14 @@ class DockerVolume
         }
     }
 
+    static public function instance(string $name, ?bool $autoCreate=true): DockerVolume
+    {
+        return container(DockerVolume::class, [
+            'name' => $name, 
+            'autoCreate' => $autoCreate
+        ]);
+    }
+
     public function getId(): string
     {
         try{

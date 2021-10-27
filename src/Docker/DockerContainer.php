@@ -31,6 +31,17 @@ class DockerContainer
         }
     }
 
+    static public function instance(string $name, ?string $image = null, ?array $ports = [], ?array $volumes = [], ?array $options = []): DockerContainer
+    {
+        return container(DockerContainer::class, [
+            'name' => $name,
+            'image' => $image,
+            'ports' => $ports,
+            'volumes' => $volumes,
+            'options' => $options,
+        ]);
+    }
+
     public function logs(bool $follow, ?string $since=null)
     {   
         $this->docker->logsFollow($this->id, $follow, $since);
