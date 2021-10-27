@@ -34,10 +34,10 @@ class DnsMasq
 
     public function getContainer(): DockerContainer 
     {
-        return container(DockerContainer::class, [
-            'image' => $this->config->getDockerImage(),
-            'name' => $this->config->getContainerName(),
-        ]);
+        return DockerContainer::instance(
+            $this->config->getContainerName(), 
+            $this->config->getDockerImage()
+        );
     }
 
 	public function listDomains(): array
@@ -120,11 +120,11 @@ class DnsMasq
 
 		$this->cli->print("{blu}Starting DNSMasq Container...{end}\n");
 
-        $container = container(DockerContainer::class, [
-            'image' => $this->config->getDockerImage(),
-            'name' => $this->config->getContainerName(),
-            'ports' => ["53:53/udp"]
-        ]);
+        $container = DockerContainer::instance(
+            $this->config->getContainerName(), 
+            $this->config->getDockerImage(), 
+            ["53:53/udp"]
+        );
 
 		sleep(2);
     }
@@ -177,7 +177,7 @@ class DnsMasq
     public function logs(bool $follow, ?string $since=null)
 	{
 		try{
-            $container = container(DockerContainer::class, ['name' => $this->getContainerName()]);
+            $container = DockerContainer::instance($this->getContainerName());
 			$container->logs($follow, $since);
         }catch(\Exception $e){
             throw new \Exception('Could not find docker container view the logs from: ' . $e->getMessage());

@@ -45,7 +45,7 @@ class Proxy
 
 	public function getContainer(): DockerContainer
 	{
-		return container(DockerContainer::class, ['name' => $this->getContainerName()]);
+		return DockerContainer::instance($this->getContainerName());
 	}
 
 	public function getContainerId(): ?string
@@ -181,7 +181,7 @@ class Proxy
 	public function logs(bool $follow, ?string $since=null)
 	{
 		try{
-            $container = container(DockerContainer::class, ['name' => $this->getContainerName()]);
+            $container = DockerContainer::instance($this->getContainerName());
 			$container->logs($follow, $since);
         }catch(\Exception $e){
             throw new \Exception('Could not find docker container view the logs from: ' . $e->getMessage());
