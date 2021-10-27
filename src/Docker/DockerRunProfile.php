@@ -100,7 +100,7 @@ class DockerRunProfile implements \JsonSerializable
 		];
 	}
 
-    public function getDockerOptions(): string
+    public function toCommandLine(): string
     {
         $command = [];
 

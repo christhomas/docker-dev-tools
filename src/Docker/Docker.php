@@ -58,7 +58,7 @@ class Docker
 
         $this->setConfig($config);
 
-        // FIXME: how to di-inject this? 
+        // Default empty profile that uses the machines local docker installation
         $this->setProfile(new DockerRunProfile('default'));
 
         if($this->cli->isCommand($this->command) === false){
@@ -115,7 +115,7 @@ class Docker
 
 	public function command(string $command): string
 	{
-		$command = implode(' ', array_filter([$this->command, $this->profile->getDockerOptions(), $command]));
+		$command = implode(' ', array_filter([$this->command, $this->profile->toCommandLine(), $command]));
 
         return trim(implode("\n", $this->cli->exec($command)));
 	}
