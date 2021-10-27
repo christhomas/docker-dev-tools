@@ -15,21 +15,57 @@ class DockerConfig
 
     public function listProfile(): array
     {
-        return $this->config->getKey("$this->key.profile") ?? [];
+        $list = $this->config->getKey("$this->key.profile") ?? [];
+
+        foreach($list as $index => $profile){
+            $list[$index] = new DockerRunProfile(
+                $profile['name'], 
+                $profile['host'], 
+                $profile['port'], 
+                $profile['tlscacert'], 
+                $profile['tlscert'], 
+                $profile['tlskey']
+            );
+        }
+
+        return $list;
     }
 
     public function readProfile(string $name): DockerRunProfile
     {
-        return new DockerRunProfile($name);
+        $list = $this->listProfile();
+
+        if(array_key_exists($name, $list)){
+            return $list[$name];
+        }
+
+        throw new \Exception("Docker Run Profile named '$name' does not exist");
     }
 
     public function writeProfile(DockerRunProfile $profile): bool
     {
-        return false;
+        $list = $this->listProfile();
+        $data = $profile->get();
+
+        $list[$data['name']] = $data;
+        
+        $this->config->setKey("$this->key.profile", $list);
+
+        return $this->config->write();
     }
 
     public function deleteProfile(string $name): bool
     {
-        return false;
+        $list = $this->listProfile();
+
+        if(array_key_exists($name, $list)){
+            unset($list[$name]);
+        
+            $this->config->setKey("$this->key.profile", $list);
+    
+            return $this->config->write();
+        }
+
+        throw new \Exception("Docker Run Profile named '$name' does not exist");
     }
 }
