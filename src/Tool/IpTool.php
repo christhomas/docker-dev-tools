@@ -137,9 +137,7 @@ NOTES;
 
 	public function pingCommand(): string
 	{
-		/** @var Address */
-		$address = container(Address::class, ['address' => $this->config->get()]);
-		
+		$address = Address::instance($this->config->get());		
 		$address->ping();
 		
 		return Ping::render($address);

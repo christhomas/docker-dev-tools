@@ -86,7 +86,7 @@ class SyncTool extends Tool
 
 /*
 try{
-    $config = container(\DDT\Config\SystemConfig::class);
+    $config = \DDT\Config\SystemConfig::instance()
     $docker = new Docker($config);
     $watcher = new Watcher($cli->getScript(false), $config, $docker);
 }catch(DockerNotRunningException $e){

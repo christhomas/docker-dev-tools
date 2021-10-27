@@ -67,7 +67,7 @@ class ProjectTool extends Tool
 /*
 $this->cli->title("DDT PROJECT", "Quickly manage your projects, push or pull them with various filters, etc");
 
-$config = container(\DDT\Config\SystemConfig::class);
+$config = \DDT\Config\SystemConfig::instance();
 
 function help(CLI $cli)
 {

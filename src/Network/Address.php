@@ -36,6 +36,11 @@ class Address
         }
     }
 
+    static public function instance(string $address): Address
+    {
+        return container(Address::class, ['address' => $address]);
+    }
+
     public function ping()
     {
         try{

@@ -100,7 +100,7 @@ EXAMPLES;
 
 	public function filename(): string
 	{
-		$config = container(SystemConfig::class);
+		$config = SystemConfig::instance();
 
 		return $config->getFilename();
 	}
@@ -153,14 +153,14 @@ EXAMPLES;
 
 	public function getCommand(?string $key='.'): string
 	{
-		$config = container(SystemConfig::class);
+		$config = SystemConfig::instance();
 
 		return '{cyan}'.$config->getKeyAsJson($key)."{end}\n";
 	}
 
 	public function deleteCommand(string $key): void
 	{
-		$config = container(SystemConfig::class);
+		$config = SystemConfig::instance();
 		$config->deleteKey($key);
 		$config->write();
 	}
@@ -170,7 +170,7 @@ EXAMPLES;
 		$value = json_decode($value, true);
 
 		if(!empty($value)){
-			$config = container(SystemConfig::class);
+			$config = SystemConfig::instance();
 			$config->setKey($key, $value);
 			$config->write();
 		}else{
@@ -183,7 +183,7 @@ EXAMPLES;
 		// FIXME: add extensions to this output
 		// FIXME: add projects to this output
 
-		$config = container(SystemConfig::class);
+		$config = SystemConfig::instance();
 
 		return implode("\n", [
 			$this->text->box("The system configuration in file '{$config->getFilename()}' was valid", 'black', 'green'),
@@ -192,7 +192,7 @@ EXAMPLES;
 
 	public function version(): string
 	{
-		$config = container(SystemConfig::class);
+		$config = SystemConfig::instance();
 
 		return $config->getVersion();
 	}

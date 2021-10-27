@@ -155,11 +155,11 @@ NOTES;
         $this->disableCommand();
         $this->dnsMasq->stop();
 
-        $address = container(Address::class, ['address' => '127.0.0.1']);
+        $address = Address::instance('127.0.0.1');
         $address->ping();
         $this->cli->print(Ping::render($address));
 
-        $address = container(Address::class, ['address' => 'google.com']);
+        $address = Address::instance('google.com');
         $address->ping();
         $this->cli->print(Ping::render($address));
     }
@@ -190,7 +190,7 @@ NOTES;
     {
         $this->cli->sudo();
 
-        $domain = container(Address::class, ['address' => $domain]);
+        $domain = Address::instance($domain);
 
         if($domain->hostname === null){
             throw new \Exception('The hostname was not interpreted correctly, if relevant; please use a hostname and not an ip address');
@@ -209,7 +209,7 @@ NOTES;
                 $this->refreshCommand();
             });
 
-            $domain = container(Address::class, ['address' => $domain->hostname]);
+            $domain = Address::instance($domain->hostname);
             if($domain->ping() === true){
                 $this->cli->print("{grn}SUCCESS{end}\n");
             }else{
@@ -222,7 +222,7 @@ NOTES;
     {
         $this->cli->sudo();
 
-        $domain = container(Address::class, ['address' => $domain]);
+        $domain = Address::instance($domain);
 
         if($domain->hostname === null){
             throw new \Exception('The hostname was not interpreted correctly, if relevant; please use a hostname and not an ip address');
@@ -241,7 +241,7 @@ NOTES;
                 $this->refreshCommand();
             });
 
-            $domain = container(Address::class, ['address' => $domain->hostname]);
+            $domain = Address::instance($domain->hostname);
             if($domain->ping() === false){
                 $this->cli->print("{grn}SUCCESS{end}\n");
             }else{
@@ -266,25 +266,25 @@ NOTES;
         $list = $this->dnsService->getIpAddressList();
 
         foreach($list as $ipAddress){
-            $address = container(Address::class, ['address' => $ipAddress]);
+            $address = Address::instance($ipAddress);
 
             $address->ping();
 
             $this->cli->print(Ping::render($address));
         }
 
-        $address = container(Address::class, ['address' => '127.0.0.1']);
+        $address = Address::instance('127.0.0.1');
         $address->ping();
         $this->cli->print(Ping::render($address));
 
-        $address = container(Address::class, ['address' => 'google.com']);
+        $address = Address::instance('google.com');
         $address->ping();
         $this->cli->print(Ping::render($address));
 
         $domainGroup = $this->dnsConfig->getDomainList();
         foreach($domainGroup as $ipAddress => $domainList){
             foreach($domainList as $domain){
-                $address = container(Address::class, ['address' => $domain]);
+                $address = Address::instance($domain);
                 $address->ping();
                 $this->cli->print(Ping::render($address));
             }

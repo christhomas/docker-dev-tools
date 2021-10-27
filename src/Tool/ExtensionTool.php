@@ -67,7 +67,7 @@ class ExtensionTool extends Tool
         $name   = $cli->getArgWithVal('install');
         $url    = $cli->getArgWithVal('url');
 
-        $config = container(\DDT\Config\SystemConfig::class);
+        $config = \DDT\Config\SystemConfig::instance();
 
         if($name && $url){
             $this->cli->print("Installing new ExtensionManager '{yel}$name{end}' from url '{yel}$url{end}'\n");

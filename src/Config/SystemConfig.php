@@ -7,6 +7,11 @@ class SystemConfig extends BaseConfig
     private $extensions;
 	private $projects;
 
+	static public function instance(): SystemConfig
+	{
+		return container(SystemConfig::class);
+	}
+
 	public function getDescription(): string
 	{
 		return $this->getKey('description');

@@ -39,7 +39,7 @@ try{
     $newVersion = '1.0';
 	$cli->exec(__DIR__ . "/ddt-config");
     $cli->exec(__DIR__ . "/ddt-setup --install");
-    $config = container(SystemConfig::class);
+    $config = SystemConfig::instance();
     $config->setVersion($newVersion);
 }catch(Exception $e){
     print($text->red("The upgrade to $newVersion has failed, please report this error\n"));
