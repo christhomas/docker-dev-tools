@@ -74,7 +74,7 @@ class Docker
 
 	public function getVersion(): array
     {
-        return json_decode($this->exec('version --format "{{json .}}"'), true);
+        return json_decode(implode(" ", $this->exec('version --format "{{json .}}"')), true);
     }
 
 	public function isRunning(): bool
@@ -157,7 +157,7 @@ class Docker
 		$command[] = $image;
 
 		try{
-			return $this->exec(implode(' ', $command));
+			return implode("\n", $this->exec(implode(" ", $command)));
 		}catch(\Exception $e){
 			// FIXME: I don't think this should die here, but return an exception which can be understood by somewhere above in the hierarchy
 			$this->cli->failure($this->parseErrors($e->getMessage(), ["{port}" => $ports]));
