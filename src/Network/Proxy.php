@@ -113,9 +113,10 @@ class Proxy
 		try{
 			// Remove the container that was previously built
 			// cause otherwise it'll crash with "The container name /xxx" is already in use by container "xxxx"
-			$container = container(DockerContainer::class, ['name' => $name]);
+			$container = DockerContainer::instance($name);
 			$this->cli->print("Deleting Container with name '$name'\n");
-			$this->docker->deleteContainer($name);
+			$container->stop();
+			$container->delete();
 		}catch(DockerContainerNotFoundException $e){
 			// It's already not started or not found, so we have nothing to do
 		}
@@ -125,16 +126,16 @@ class Proxy
 
 		//	In order to support HTTPS for production servers, we will create three empty volumes for the 
 		//	acme container to possible use, if it's enabled
-		container(DockerVolume::class, ['name' => 'ddt_proxy_certs']);
-		container(DockerVolume::class, ['name' => 'ddt_proxy_vhost']);
-		container(DockerVolume::class, ['name' => 'ddt_proxy_html']);
+		DockerVolume::instance('ddt_proxy_certs');
+		DockerVolume::instance('ddt_proxy_vhost');
+		DockerVolume::instance('ddt_proxy_html');
 
 		try{
-			$container = container(DockerContainer::class, [
-				'name' => $name,
-				'image' => $image,
-				'ports' => ['80:80', '443:443'],
-				'volumes' => [
+			$container = DockerContainer::instance(
+				$name, 
+				$image, 
+				['80:80', '443:443'], 
+				[
 					"ddt_proxy_certs:/etc/nginx/certs",
 					"ddt_proxy_vhost:/etc/nginx/vhost.d",
 					"ddt_proxy_html:/usr/share/nginx/html",
@@ -142,7 +143,7 @@ class Proxy
 					"$path/proxy-config/global.conf:/etc/nginx/conf.d/global.conf",
 					"$path/proxy-config/nginx-proxy.conf:/etc/nginx/proxy.conf",
 				]
-			]);
+			);
 
 			$id = $container->getId();
 
