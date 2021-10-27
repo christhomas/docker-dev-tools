@@ -6,7 +6,6 @@ use DDT\CLI;
 use DDT\Config\DockerConfig;
 use DDT\Docker\Docker;
 use DDT\Docker\DockerRunProfile;
-use DockerProfile;
 
 class DockerTool extends Tool
 {
@@ -143,45 +142,6 @@ EXAMPLES;
         if(empty($list)){
             $this->cli->print("There are no registered Docker Run Profiles\n");
         }
-    }
-
-    public function getJson(string $profile)
-    {
-        $this->cli->failure("{red}TODO: Implement: ".__METHOD__."\n");
-
-        /*if(($profile = $cli->getArgWithVal('get-json')) !== null){
-            $json = (string)$docker->getProfile($profile);
-            if($json !== null){
-                die($json."\n");
-            }else{
-                $this->cli->failure("Profile '$profile' was not found or could not be decoded");
-            }
-        }*/
-    }
-
-    public function useProfile()
-    {
-        $this->cli->failure("{red}TODO: Implement: ".__METHOD__."\n");
-
-        /*if(($profile = $cli->getArgWithVal('profile')) !== null){
-            if($docker->useProfile($profile) === false){
-                $this->cli->failure("Profile '$profile' did not exist");
-            }
-        }*/       
-    }
-
-    public function runDocker(string $profile)
-    {
-        $this->cli->failure("{red}TODO: Implement: ".__METHOD__."\n");
-
-        /*$args = $cli->getArgList(true);
-        unset($args['--profile']);
-        
-        try{
-            $docker->passthru(implode(" ", $args));
-        }catch(Exception $e){
-            exit(1);
-        }*/       
     }
 
     public function profileCommand(string $name)
