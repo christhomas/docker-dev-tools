@@ -60,7 +60,7 @@ class DockerContainer
 
     public function exec(string $command)
     {
-        return $this->docker->exec("exec -it $this->id $command", true);
+        return $this->docker->exec("exec -it $this->id $command");
     }
     
     public function stop(): bool
