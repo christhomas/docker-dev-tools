@@ -6,8 +6,11 @@ use DDT\CLI;
 use DDT\Config\ProxyConfig;
 use DDT\Docker\Docker;
 use DDT\Docker\DockerContainer;
+use DDT\Docker\DockerNetwork;
 use DDT\Docker\DockerVolume;
 use DDT\Exceptions\Docker\DockerContainerNotFoundException;
+use DDT\Exceptions\Docker\DockerNetworkAlreadyAttachedException;
+use DDT\Exceptions\Docker\DockerNetworkCreateException;
 use DDT\Exceptions\Docker\DockerNetworkExistsException;
 
 class Proxy
@@ -154,12 +157,8 @@ class Proxy
 	
 			foreach($networkList as $network){
 				$this->cli->print("Connecting container '$name' to network '$network'\n");
-				try{
-					$this->docker->createNetwork($network);
-				}catch(DockerNetworkExistsException $e){
-					$this->cli->debug("Network '$network' already exists");
-				}
-				$this->docker->networkAttach($network, $id);
+				$network = DockerNetwork::instance($network);
+				$network->attach($id);
 			}
 
 			$this->cli->print("Running image '$image' as '$name' using container id '$id'\n");
@@ -188,36 +187,48 @@ class Proxy
         }
 	}
 
-	public function addNetwork(string $network)
+	public function addNetwork(string $name): bool
 	{
 		try{
-			$this->docker->createNetwork($network);
-		}catch(DockerNetworkExistsException $e){
-			$this->cli->print("{blu}Network:{end} '{yel}$network{end}' already exists\n");
-		}
+			$network = DockerNetwork::instance($name);
 
-		$containerId = $this->getContainerId();
+			$containerId = $this->getContainerId();
 
-		if($this->docker->networkAttach($network, $containerId))
-		{
-			$this->cli->print("{blu}Attaching:{end} '{yel}$network{end}' to proxy so it can listen for containers\n");
-			return $this->config->addNetwork($network);
-		}else{
+			$network->attach($containerId);
+
+			$this->cli->print("{blu}Attaching:{end} '{yel}$name{end}' to proxy so it can listen for containers\n");
+			
+			return $this->config->addNetwork($name);
+		}catch(DockerNetworkCreateException $e){
+			$this->cli->print("{blu}Network:{end} '{yel}$name{end}' was not found, but creating it also failed\n");
+		}catch(DockerNetworkAlreadyAttachedException $e){
+			$this->cli->print("{blu}Network:{end} '{yel}$name{end}' was already attached to container id '$containerId'\n");
+		}catch(\Exception $e){
 			// TODO: should we do anything different here?
-			$this->cli->debug("We have a general failure attaching the proxy to network '$network'");
-			return false;
+			$this->cli->debug("We have a general failure attaching the proxy to network '$name' with message: " . $e->getMessage());	
 		}
+
+		return false;
 	}
 
-	public function removeNetwork(string $network)
+	public function removeNetwork(string $name): bool
 	{
-		if($this->docker->networkDetach($network, $this->getContainerId()))
-		{
-			return $this->config->removeNetwork($network);
-		}else{
+		try{
+			$network = DockerNetwork::instance($name);
+
+			$containerId = $this->getcontainerId();
+
+			$network->detach($containerId);
+
+			$this->cli->print("{blu}Detaching:{end} '{yel}$name{end}' from the proxy so it will stop listening for containers\n");
+
+			return $this->config->removeNetwork($name );
+		}catch(\Exception $e){
 			// TODO: should we do anything different here?
-			return false;
+			$this->cli->debug("We have a general failure detaching the proxy from network '$name' with message: " . $e->getMessage());	
 		}
+
+		return false;
 	}
 
 	public function getUpstreams(): array
