@@ -6,6 +6,9 @@ use DDT\Docker\DockerRunProfile;
 
 class DockerConfig
 {
+    /** @var SystemConfig $config */
+    private $config;
+
     private $key = 'docker';
 
     public function __construct(SystemConfig $config)
