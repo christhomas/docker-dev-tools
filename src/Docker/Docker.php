@@ -4,10 +4,9 @@ namespace DDT\Docker;
 
 use DDT\CLI;
 use DDT\Config\DockerConfig;
+use DDT\Exceptions\Docker\DockerException;
 use DDT\Exceptions\Docker\DockerInspectException;
 use DDT\Exceptions\Docker\DockerMissingException;
-use DDT\Exceptions\Docker\DockerNetworkCreateException;
-use DDT\Exceptions\Docker\DockerNetworkExistsException;
 use DDT\Exceptions\Docker\DockerNotRunningException;
 
 class Docker
@@ -118,25 +117,26 @@ class Docker
 		return implode(' ', array_filter([$this->command, $this->profile->toCommandLine(), $command]));
 	}
 
-	// public function exec(string $container, string $command, bool $firstLine=false)
-	// {
-	// 	$command = $this->toCommandLine("exec -it $container $command");
-
-	// 	return trim(implode("\n", $this->cli->exec($command)));
-	// }
-
 	public function exec(string $command, bool $firstLine=false)
 	{
-		$command = $this->toCommandLine($command);
+		try{
+			$command = $this->toCommandLine($command);
 
-		return $this->cli->exec($command);
+			return $this->cli->exec($command);
+		}catch(\Exception $e){
+			throw new DockerException($e->getMessage(), $e->getCode(), $e->getPrevious());
+		}
 	}
 
 	public function passthru(string $command): int
 	{
-		$command = $this->toCommandLine($command);
+		try{
+			$command = $this->toCommandLine($command);
 
-		return $this->cli->passthru($command);
+			return $this->cli->passthru($command);	
+		}catch(\Exception $e){
+			throw new DockerException($e->getMessage(), $e->getCode(), $e->getPrevious());
+		}
 	}
 
 	public function run(string $image, string $name, array $ports = [], array $volumes = [], array $options = []): ?string
@@ -199,51 +199,6 @@ class Docker
     public function deleteContainer(string $container): bool
 	{
 		return $this->stop($container) && $this->delete($container);
-	}
-
-	public function createNetwork(string $name): string
-	{
-		try{
-			$this->inspect('network', $name);
-
-			// The network already exists, we can't create it again!
-			throw new DockerNetworkExistsException($name);
-		}catch(DockerInspectException $e){
-			// The network does not exist, lets try to create it
-		}
-
-		try{
-			$r = $this->exec("network create $name 2>&1");
-			
-			return $r[0];
-		}catch(\Exception $e){
-			$this->cli->debug("The docker network '$name' failed to create with error:\n".$e->getMessage());
-			throw new DockerNetworkCreateException($name);
-		}
-	}
-
-	public function networkAttach(string $network, string $containerId)
-	{
-		try{
-			// TODO: how can I detect whether the network already has this container before doing this?
-			// TODO: It throws exceptions when this fails for various reasons
-			$this->exec("network connect $network $containerId");
-
-			return true;
-		}catch(\Exception $e){
-			if($this->isError($e->getMessage(), self::DOCKER_NETWORK_ALREADY_ATTACHED)){
-				return true;
-			}
-
-			return false;
-		}
-	}
-
-	public function networkDetach(string $network, string $containerId)
-	{
-		// TODO: how can I detect whether the network does not have this container, before trying to delete it
-		// TODO: It throws exceptions when this fails for various reasons
-		$this->exec("network disconnect $network $containerId");
 	}
 
     /**

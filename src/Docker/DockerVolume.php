@@ -2,10 +2,17 @@
 
 namespace DDT\Docker;
 
+use DDT\CLI;
+use DDT\Exceptions\Docker\DockerInspectException;
+use DDT\Exceptions\Docker\DockerVolumeCreateException;
+use DDT\Exceptions\Docker\DockerVolumeExistsException;
 use DDT\Exceptions\Docker\DockerVolumeNotFoundException;
 
 class DockerVolume
 {
+    /** @var CLI */
+    private $cli;
+
     /** @var Docker */
     private $docker;
 
@@ -15,28 +22,60 @@ class DockerVolume
     /** @var string the docker volume id */
     private $id;
 
-    public function __construct(Docker $docker, string $name, ?bool $autoCreate=true)
+    public function __construct(CLI $cli, Docker $docker, string $name, ?bool $create=true)
     {
+        $this->cli = $cli;
         $this->docker = $docker;
         $this->name = $name;
 
         try{
             $this->id = $this->getId();
         }catch(DockerVolumeNotFoundException $e){
-            if($autoCreate){
-                $this->id = $this->docker->createNetwork($this->name);
-            }else{
+            if($create === false){
                 throw $e;
             }
+
+            $this->id = $this->create($this->name);
         }
     }
 
-    static public function instance(string $name, ?bool $autoCreate=true): DockerVolume
+    static public function instance(string $name, ?bool $create=true): DockerVolume
     {
         return container(DockerVolume::class, [
             'name' => $name, 
-            'autoCreate' => $autoCreate
+            'create' => $create
         ]);
+    }
+
+    public function create(string $name): string
+    {
+        try{
+			$this->docker->inspect('volume', $name);
+
+			// The network already exists, we can't create it again!
+			throw new DockerVolumeExistsException($name);
+		}catch(DockerInspectException $e){
+			// The volume does not exist, lets try to create it
+		}
+		
+		try{
+			$r = $this->docker->exec("volume create $name 2>&1");
+			
+			return $r[0];
+		}catch(\Exception $e){
+			$this->cli->debug("The docker volume '$name' failed to create with error:\n".$e->getMessage());
+
+			throw new DockerVolumeCreateException($name);
+		}
+    }
+
+    public function delete(): bool
+    {
+        // TODO: attempt to delete docker volume
+        // TODO: if fails to delete, throw exception
+        // TODO: if succeeds to delete, return true
+
+        return true;
     }
 
     public function getId(): string
@@ -48,14 +87,5 @@ class DockerVolume
         }catch(\Exception $e){
             throw new DockerVolumeNotFoundException($this->name);
         }
-    }
-
-    public function delete(): bool
-    {
-        // TODO: attempt to delete docker volume
-        // TODO: if fails to delete, throw exception
-        // TODO: if succeeds to delete, return true
-
-        return true;
     }
 }
