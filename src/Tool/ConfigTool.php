@@ -151,11 +151,19 @@ EXAMPLES;
 		*/
 	}
 
-	public function getCommand(?string $key='.'): string
+	public function getCommand(?string $key='.', ?bool $raw=null): string
 	{
 		$config = SystemConfig::instance();
+		$value = $config->getKeyAsJson($key);
 
-		return '{cyan}'.$config->getKeyAsJson($key)."{end}\n";
+		return $value;
+
+		// FIXME: the functionality where it outputs coloured text breaks shell functionality
+		// FIXME: I tried to fix this with the raw parameter
+		// FIXME: However the argument resolver isn't intelligent enough to pass default values yet
+		// FIXME: so I will have to come back to this in the future
+		// var_dump($raw);
+		// return $raw ? $value : "{cyan}$value{end}\n";
 	}
 
 	public function deleteCommand(string $key): void
