@@ -51,11 +51,20 @@ class DockerContainer
     {
         try{
             $id = $this->docker->inspect('container', $this->name, '-f \'{{ .Id }}\'');
+            $id = $id[0];
 
-            return $id[0];
+            return $id;
         }catch(\Exception $e){
             throw new DockerContainerNotFoundException($this->name);
         }
+    }
+
+    public function isRunning(): bool
+    {
+        $status = $this->docker->inspect('container', $this->name, '-f \'{{ .State.Status }}\'');
+        $status = $status[0];
+
+        return $status === 'running';
     }
 
     public function exec(string $command)
