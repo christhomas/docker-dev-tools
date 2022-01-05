@@ -41,7 +41,7 @@ class Address
         return container(Address::class, ['address' => $address]);
     }
 
-    public function ping()
+    public function ping(): bool
     {
         try{
             $count = 20;
@@ -92,5 +92,40 @@ class Address
         }
 
         throw new \Exception("The property named '$name' is not available");
+    }
+
+    public function __toString(): string
+    {
+        $output = '';
+
+        $temp = [];
+
+        if($this->status){
+			$temp[] = "Ping: {grn}SUCCESS{end}";
+		}else{
+			$temp[] = "Ping: {red}FAILURE{end}";
+		}
+
+		if($this->ip_address !== null){
+			$temp[] = "IP Address: '{yel}{$this->ip_address}{end}'";
+		}
+
+		if($this->hostname !== null){
+			$temp[] = "Hostname: '{yel}{$this->hostname}{end}'";
+		}
+
+		if($this->packet_loss === 0.0 && $this->can_resolve === true){
+		    $temp[] = "Status: {grn}SUCCESS{end}";
+		}else{
+			$temp[] = "Status: {red}FAILURE{end}";
+		}
+
+		if($this->can_resolve === true){
+			$temp[] = "Can Resolve: {grn}YES{end}";
+		}else{
+		    $temp[] = "Can Resolve: {red}NO{end}";
+		}
+
+		return $output = implode(", ", $temp) . "\n";
     }
 }
