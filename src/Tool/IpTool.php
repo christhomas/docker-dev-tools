@@ -6,7 +6,6 @@ use DDT\CLI;
 use DDT\Config\IpConfig;
 use DDT\Contract\IpServiceInterface;
 use DDT\Network\Address;
-use DDT\ui\Ping;
 
 class IpTool extends Tool
 {
@@ -140,6 +139,6 @@ NOTES;
 		$address = Address::instance($this->config->get());		
 		$address->ping();
 		
-		return Ping::render($address);
+		return (string)$address;
 	}
 }

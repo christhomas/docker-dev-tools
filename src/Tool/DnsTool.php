@@ -10,7 +10,6 @@ use DDT\Network\Address;
 use DDT\Network\DnsMasq;
 use DDT\Text\Table;
 use DDT\Text\Text;
-use DDT\ui\Ping;
 
 class DnsTool extends Tool
 {
@@ -157,11 +156,11 @@ NOTES;
 
         $address = Address::instance('127.0.0.1');
         $address->ping();
-        $this->cli->print(Ping::render($address));
+        $this->cli->print((string)$address);
 
         $address = Address::instance('google.com');
         $address->ping();
-        $this->cli->print(Ping::render($address));
+        $this->cli->print((string)$address);
     }
 
     public function restartCommand(): void
@@ -270,23 +269,23 @@ NOTES;
 
             $address->ping();
 
-            $this->cli->print(Ping::render($address));
+            $this->cli->print((string)$address);
         }
 
         $address = Address::instance('127.0.0.1');
         $address->ping();
-        $this->cli->print(Ping::render($address));
+        $this->cli->print((string)$address);
 
         $address = Address::instance('google.com');
         $address->ping();
-        $this->cli->print(Ping::render($address));
+        $this->cli->print((string)$address);
 
         $domainGroup = $this->dnsConfig->getDomainList();
         foreach($domainGroup as $ipAddress => $domainList){
             foreach($domainList as $domain){
                 $address = Address::instance($domain);
                 $address->ping();
-                $this->cli->print(Ping::render($address));
+                $this->cli->print((string)$address);
             }
         }
     }

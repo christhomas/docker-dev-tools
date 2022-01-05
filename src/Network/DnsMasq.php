@@ -36,7 +36,8 @@ class DnsMasq
     {
         return DockerContainer::instance(
             $this->config->getContainerName(), 
-            $this->config->getDockerImage()
+            $this->config->getDockerImage(),
+            ["53:53/udp"]
         );
     }
 
@@ -103,7 +104,8 @@ class DnsMasq
 	public function pull(): void
 	{
 		$dockerImage = $this->config->getDockerImage();
-		$this->cli->print("{blu}Docker:{end} Pulling '{yel}$dockerImage{end}' before changing the dns\n");
+		
+        $this->cli->print("{blu}Docker:{end} Pulling '{yel}$dockerImage{end}' before changing the dns\n");
 
 		$this->docker->pull($dockerImage);
 	}
@@ -115,15 +117,19 @@ class DnsMasq
     {
         $this->pull();
 
-		$this->stop();
+        $this->cli->print("{blu}Starting DNSMasq Container...{end}\n");
 
-		$this->cli->print("{blu}Starting DNSMasq Container...{end}\n");
+        $container = $this->getContainer();
+        
+        if($container->isRunning() === false){
+            // we found the container, but it's stopped or exited in some way, so we need to destroy it and recreate it
+            $container->delete();
+        
+            // Now create a brand new container
+            $container = $this->getContainer();
+        }
 
-        $container = DockerContainer::instance(
-            $this->config->getContainerName(), 
-            $this->config->getDockerImage(), 
-            ["53:53/udp"]
-        );
+        $this->cli->print("{blu}Started DNSMasq Container (id: {$container->getId()})...{end}\n");
 
 		sleep(2);
     }
