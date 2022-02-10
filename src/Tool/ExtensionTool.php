@@ -6,6 +6,7 @@ use DDT\CLI;
 use DDT\Config\SystemConfig;
 use DDT\Exceptions\Config\ConfigWrongTypeException;
 use DDT\Extension\ExtensionManager;
+use DDT\Text\Table;
 
 class ExtensionTool extends Tool
 {
@@ -146,7 +147,19 @@ class ExtensionTool extends Tool
         // we should show a table of information about the state of each extension found
         // we do like a venn diagram of configured and installed extensions regarding their status
         try{
-            var_dump($this->extensionManager->list());
+            $extensionList = $this->extensionManager->list();
+
+            /** @var Table $table */
+            $table = container("table");
+            $table->setRightPadding(10);
+            // table headers
+            $table->addRow(["{yel}Name{end}", "{yel}Url{end}", "{yel}Path{end}"]);
+            // table body
+            foreach($extensionList as $name => $e){
+                $table->addRow([$name, $e['url'], $e['path']]);
+            }
+
+            return $table->render(true);
         }catch(ConfigWrongTypeException $e){
             $this->cli->failure($e->getMessage());
         }
