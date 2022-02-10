@@ -1,5 +1,7 @@
 <?php
-class DirectoryExistsException extends Exception
+namespace DDT\Exceptions\Filesystem;
+
+class DirectoryExistsException extends \Exception
 {
     public function __construct(string $dir, int $code = 0, \Throwable $previous = null)
     {
