@@ -320,7 +320,7 @@ NOTES;
 
         $domainList = $this->dnsMasq->listDomains();
 
-        $table = new Table(new Text());
+        $table = container('table');
         $table->setRightPadding(10);
         $table->addRow(['{yel}Domain{end}', '{yel}IP Address{end}']);
 
