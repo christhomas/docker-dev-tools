@@ -135,15 +135,15 @@ class ProjectGroupConfig
 				$config = null;
 
 				if($type === "ddt"){
-					$config = new StandardProjectConfig($path);
+					$config = container(StandardProjectConfig::class, ["filename" => $path]);
 				}
 				
 				if($type === "npm"){
-					$config = new NpmProjectConfig($path);
+					$config = container(NpmProjectConfig::class, ["filename" => $path]);
 				}
 				
 				if($type === "composer"){
-					$config = new ComposerProjectConfig($path);
+					$config = container(ComposerProjectConfig::class, ["filename" => $path]);
 				}
 
 				if($config instanceof StandardProjectConfig){
