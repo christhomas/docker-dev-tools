@@ -5,6 +5,7 @@ namespace DDT\Config;
 use DDT\Helper\Arr;
 use DDT\Exceptions\Config\ConfigMissingException;
 use DDT\Exceptions\Config\ConfigInvalidException;
+
 abstract class BaseConfig implements ConfigInterface
 {
     private $data = [];
@@ -144,7 +145,11 @@ abstract class BaseConfig implements ConfigInterface
             $array = &$array[$part];
         }
         
-        $array[array_shift($parts)] = $value;
+        $topLevelPart = array_shift($parts);
+        
+        if(empty($topLevelPart)) $array = $value;
+        else $array[$topLevelPart] = $value;
+        
         unset($array);
 	}
     
