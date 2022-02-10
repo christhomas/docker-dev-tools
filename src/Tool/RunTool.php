@@ -59,26 +59,18 @@ class RunTool extends Tool
     public function getOptions(): string
 	{
 		return "\t" . implode("\n\t", [
-            "{cyn}Managing Groups{end}:",
-            "--list: List the project groups",
-            "--add-group=group-name: Create a new project group.",
-            "--remove-group=company-name: Remove a project group.",
-
-            "\n\t{cyn}Adding Projects{end}:",
-            "--add-project=project-name: Will add a new project that already exists on the disk.",
-            "--group: (REQUIRED) The group to which this project will be added",
-            "--path: (REQUIRED) The location on the filesystem for this project",
-            "--type: (OPTIONAL: default=ddt) One of the supported project types. {yel}(See Project Type list below){end}",
+            "script: Run a script",
+            "--group=name: The group to select the project from",
+            "--project=name: The project in that group to execute the script from",
+            "--name=script: The script in that project to execute",
 		]);
 	}
 
     public function scriptCommand(string $group, string $project, string $name): void
     {
         try{
-            $projectConfig = $this->config->getProjectConfig($group, $project);
-
             $this->runService->reset();
-            $this->runService->run($projectConfig, $name);
+            $this->runService->run($group, $project, $name);
         }catch(ConfigMissingException $exception){
             $this->cli->failure("The project directory for '$project' in group '$group' was not found");
         }
