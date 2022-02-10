@@ -16,7 +16,7 @@ class SyncTool extends Tool
 
     public function __construct(CLI $cli, Text $text, SystemConfig $config)
     {
-    	parent::__construct('extension', $cli);
+    	parent::__construct('sync', $cli);
 
         $this->text = $text;
         $this->config = $config;
