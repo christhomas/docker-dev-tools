@@ -56,18 +56,18 @@ class ProjectTool extends Tool
 	{
 		return "\t" . implode("\n\t", [
             "{cyn}Managing Groups{end}:",
-            "--list: List the project groups",
-            "--add-group=group-name: Create a new project group.",
-            "--remove-group=company-name: Remove a project group.",
+            "list: List the project groups",
+            "add-group=name: Create a new project group.",
+            "remove-group=name: Remove a project group.",
 
             "\n\t{cyn}Adding Projects{end}:",
-            "--add-project=project-name: Will add a new project that already exists on the disk.",
+            "add-project=name: Will add a new project that already exists on the disk.",
             "--group: (REQUIRED) The group to which this project will be added",
             "--path: (REQUIRED) The location on the filesystem for this project",
             "--type: (OPTIONAL: default=ddt) One of the supported project types. {yel}(See Project Type list below){end}",
 
             "\n\t{cyn}Removing Projects{end}:",
-            "--remove-project=project-name: Remove the project from the group given.",
+            "remove-project=project-name: Remove the project from the group given.",
             "--group: (REQUIRED) The group from which this project will be removed",
             "--delete: (OPTIONAL) {red}**DANGEROUS**{end} This option will not only remove the project from a group, but delete the files from disk",
 
@@ -78,6 +78,11 @@ class ProjectTool extends Tool
             "ddt: {yel}(default if no type given){end} This project will use the 'ddt-project.json' file",
 		]);
 	}
+
+    public function isProjectType(string $type=null): bool
+    {
+        return in_array($type, ['composer', 'npm', 'ddt']);
+    }
 
     public function listCommand(): void
     {
@@ -131,11 +136,6 @@ class ProjectTool extends Tool
         }else{
             $this->cli->print("{red}Removing the group '$name' has failed (maybe it doesn't exist?){end}\n");
         }
-    }
-
-    public function isProjectType(string $type=null): bool
-    {
-        return in_array($type, ['composer', 'npm', 'ddt']);
     }
 
     public function addProjectCommand(string $group, string $dir, ?string $name=null, ?string $type='ddt', ?string $git=null, ?string $remote='origin'): void
