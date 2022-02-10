@@ -22,36 +22,17 @@ class Text
 				$val = hex2bin(implode("", $val));
 			}
 
-			$key = strtoupper($key);
-			if(!defined($key)){
-				define($key, $val);
-			}
-
-			if(!in_array($key, ['chk', 'mss', 'wrn'])){
-				$this->addCode($key, $val);
-
-				$map = [
-					"BLK"=>"BLACK",
-					"RED"=>"RED",
-					"GRN"=>"GREEN",
-					"YEL"=>"YELLOW",
-					"BLU"=>"BLUE",
-					"MAG"=>"MAGENTA",
-					"CYN"=>"CYAN",
-					"WHT"=>"WHITE"
-				];
-
-				$key = str_replace(array_keys($map), array_values($map), $key);
-				$this->addCode($key, $val);
-			}
+			$this->addCode($key, $val);
 		}
 	}
 
 	public function addCode($key, $value): void
 	{
-		$printing = strpos($key, "_I") !== false ? 2 : 0;
+		$key = strtolower($key);
 
-		$this->codes[$key] = ['printing' => $printing, 'value' => $value];
+		$printing = strpos($key, "i_") !== false ? 2 : 0;
+
+		$this->codes[$key] = ['key' => $key, 'printing' => $printing, 'value' => $value, 'length' => strlen($value)];
 	}
 
 	public function findCodes($string): array
@@ -60,13 +41,19 @@ class Text
 
 		foreach($this->codes as $code){
 			$count = substr_count($string, $code['value']);
-			$codes = $codes + array_fill(count($codes),$count, $code);
+			$codes = $codes + array_fill(count($codes), $count, $code);
 		}
 
 		return $codes;
 	}
 
+	/** @deprecated */
 	public function stripColours(string $input): string
+	{
+		return $this->stripCodes($input);
+	}
+
+	public function stripCodes(string $input): string
 	{
 		foreach($this->codes as $key){
 			$input = str_replace($key['value'], '', $input);
@@ -94,25 +81,10 @@ class Text
 		return ob_get_clean();
 	}
 
-	public function checkIcon(): string
-	{
-		return constant('chk_i');
-	}
-
-	public function crossIcon(): string
-	{
-		return constant('mss_i');
-	}
-
-	public function warnIcon(): string
-	{
-		return constant('wrn_i');
-	}
-
 	public function write(string $string): string
 	{
 		foreach($this->codes as $key => $code){
-			$string = str_replace('{'.strtolower($key).'}',$code['value'],$string);
+			$string = str_replace('{'.$key.'}', $code['value'], $string);
 		}
 
 		return $string;
