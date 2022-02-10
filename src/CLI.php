@@ -12,6 +12,8 @@ class CLI
 	private $channels = [];
 	private $isRoot = false;
 
+	// TODO: why are these static? they're never used statically in this class?
+	// NOTE: maybe in external code?
 	public static $exitCode = 0;
 	public static $stdout = "";
 	public static $stderr = "";
