@@ -25,28 +25,28 @@ class ConfigTool extends Tool
 
 		return [
 			'title' => 'Configuration',
-			'description' => 'This tool will manipulate the configuration or query part of it for use in other tools',
-			'options' => [
-				"filename: Returns a single string containing the filename",
-				"exists: Script will exit with {yel}code 0{end} if configuration file exists or {yel}code 1{end} if it's missing",
-				"reset: Will reset your configuration file to the default 'empty' configuration, {red}it will destroy any setup you already have{end}",
-				"get: Will retrieve a specific key, if no key is specified, the entire config is shown",
-				"validate: Only validate the file can be read without errors",
-				"version: Output some information about the configuration that is deemed useful",
-				"help: This information, also if no sub command is given help is automatically shown",
-			],
+			'description' => '  This tool will manipulate the configuration or query part of it for use in other tools',
+			'options' => implode("\n",[
+				"  filename: Returns a single string containing the filename",
+				"  exists: Script will exit with {yel}code 0{end} if configuration file exists or {yel}code 1{end} if it's missing",
+				"  reset: Will reset your configuration file to the default 'empty' configuration, {red}it will destroy any setup you already have{end}",
+				"  get: Will retrieve a specific key, if no key is specified, the entire config is shown",
+				"  validate: Only validate the file can be read without errors",
+				"  version: Output some information about the configuration that is deemed useful",
+				"  help: This information, also if no sub command is given help is automatically shown",
+			]),
 			'examples' => trim(
 				"Basic commands are simple to understand:\n".
-				"	{$entrypoint} filename (will output where the system configuration file is located)\n".
-				"	{$entrypoint} version (will output version information, etc)\n".
+				"  - {$entrypoint} filename (will output where the system configuration file is located)\n".
+				"  - {$entrypoint} version (will output version information, etc)\n".
 				"\n".
 				"To query parts of the configuration:\n".
-				"	{$entrypoint} get (with no specific key mentioned, will output entire configuration)\n".
-				"	{$entrypoint} get=.type\n".
-				"	{$entrypoint} get=.this.0.must.be.3.valid\n".
+				"  - {$entrypoint} get (with no specific key mentioned, will output entire configuration)\n".
+				"  - {$entrypoint} get=.type\n".
+				"  - {$entrypoint} get=.this.0.must.be.3.valid\n".
 				"\n".	
 				"The last one will do a recursive lookup drilling down each level that are split by the dots\n".
-				"	key(this) -> index(0) -> key(must) -> key(be) -> index(3) -> key(valid)\n".
+				"  - key(this) -> index(0) -> key(must) -> key(be) -> index(3) -> key(valid)\n".
 				"\n".
 				"The json for the above example could be:\n".
 				"{cyn}{\n".
@@ -71,11 +71,11 @@ class ConfigTool extends Tool
 				"bash# {$entrypoint} get=.this.0.must.be.3.valid\n".
 				"\"this one! this is index 3\"\n"
 			),
-			'notes' => [
+			'notes' => implode("\n",[
 				"All keys begin with '.' (dot), e.g: '.description'",
 				"Keys are a dotted syntax that allows you to pluck out a segment of the configuration",
 				"If you ask for an invalid heirarchy. This function will return null",
-			]
+			]),
 		];
 	}
 
@@ -86,50 +86,45 @@ class ConfigTool extends Tool
 		return $config->getFilename();
 	}
 
+	private function writeNewConfig(): bool
+	{
+		$newConfig = new SystemConfig(__DIR__ . '/../../default.ddt-system.json');
+		return $newConfig->write(getenv('HOME').'/.ddt-system.json');
+	}
+
 	/**
 	 * I don't think this function does anything useful
 	 */
-	public function exists(): string
+	public function existsCommand(): string
 	{
 		return is_file($this->filename()) ? 'true' : 'false';
 	}
 
-	public function reset(): string
+	public function resetCommand(): string
 	{
-		$reply = $this->cli->ask('Are you sure you want to reset your configuration?', ['yes', 'no']);
-
-		if($reply === 'yes'){
-			return $this->text->box("The request to reset was refused", "black", "green");
-		}else{
-			return $this->text->box("The request to reset was refused", "white", "red");
+		try{
+			// Test if system configuration exists, if yes, it'll pass under the catch and continue as normal
+			$this->existsCommand();
+		}catch(ConfigMissingException $e){
+			// Nope! We need to create the first one, this should only really happen once
+			if($this->writeNewConfig()){
+				return $this->text->box("The file '\$HOME/.ddt-system.json' file was not found, a new one was written", "blk", "grn");
+			}else{
+				return $this->text->box("The file '\$HOME/.ddt-system.json' file was not found, but writing a new one has failed for unknown reasons", "wht", "red");
+			}
 		}
 
-
-		// if(!$cli->hasArg('validate')){
-		// 	if($exists === true && $write === false){
-		// 		$this->cli->print("The configuration file '{yel}$filename{end}' already exists\n"));
-		// 		if($cli->hasArg('break-me')) file_put_contents($filename, file_get_contents($filename)."!@#@#^#$!@#");
-		// 	}else{
-		// 		$this->cli->print($this->text->box("Writing the configuration file: $filename", 'black', 'yellow'));
-		// 		$config = new SystemConfig(DDT\CLI::getToolPath("/defaults.json"));
-		// 		$config->write($filename);
-		// 	}
-		// }
-		
-
-		$this->cli->failure("implement: " . __METHOD__);
-		/*
-		$reset = $cli->hasArg('reset');
-
-		if($exists === true && $reset === true) {
 		$reply = $this->cli->ask('Are you sure you want to reset your configuration?', ['yes', 'no']);
 
 		if($reply !== 'yes'){
-			exit(0);
+			return $this->text->box("The request to reset was refused", "wht", "red");
 		}
 
-		$write = true;
-		*/
+		if($this->writeNewConfig()){
+			return $this->text->box("The file '\$HOME/.ddt-system.json' was overwritten with a default template", "blk", "grn");
+		}
+
+		return $this->text->box("The file '\$HOME/.ddt-system.json' could not be written, the state of the file is unknown, please manually check it", "wht", "red");
 	}
 
 	public function getCommand(?string $key='.', ?bool $raw=null): string
@@ -138,13 +133,6 @@ class ConfigTool extends Tool
 		$value = $config->getKeyAsJson($key);
 
 		return $value . "\n";
-
-		// FIXME: the functionality where it outputs coloured text breaks shell functionality
-		// FIXME: I tried to fix this with the raw parameter
-		// FIXME: However the argument resolver isn't intelligent enough to pass default values yet
-		// FIXME: so I will have to come back to this in the future
-		// var_dump($raw);
-		// return $raw ? $value : "{cyan}$value{end}\n";
 	}
 
 	public function deleteCommand(string $key): void
@@ -167,22 +155,23 @@ class ConfigTool extends Tool
 		}
 	}
 
-	public function validate(): string
+	public function validateCommand(): string
 	{
-		// FIXME: add extensions to this output
-		// FIXME: add projects to this output
-
 		$config = SystemConfig::instance();
 
+		// TODO: the reason this is imploding an array with a string string
+		// TODO: is because it should be validating other things too
 		return implode("\n", [
-			$this->text->box("The system configuration in file '{$config->getFilename()}' was valid", 'black', 'green'),
+			// FIXME: add extensions to this output
+			// FIXME: add projects to this output
+			$this->text->box("The system configuration in file '{$config->getFilename()}' was valid", 'blk', 'grn'),
 		]);
 	}
 
-	public function version(): string
+	public function versionCommand(): string
 	{
 		$config = SystemConfig::instance();
 
-		return $config->getVersion();
+		return $config->getVersion() . "\n";
 	}
 }
