@@ -58,16 +58,19 @@ class SetupTool extends Tool
 
         return [
             'title' => 'Tool Setup and Configuration',
-            'short_description' => 'A tool that manages the installation and upgrade of itself',
-            'description' => 'This tool will setup the basic setup for the docker dev tools',
+            'short_description' => 'A tool that manages the installation and upgrade of the docker dev tools',
+            'description' => 'This tool that manages the installation of the docker dev tools',
             'examples' => implode("\n", [
-                "{yel}Usage Example:{end} $entrypoint {yel}--start --restart --stop{end}",
+                "  - $entrypoint install --path=\$HOME/projects/ddt-tools",
+                "  - $entrypoint uninstall --path=\$HOME/projects/ddt-tools",
+                "  - $entrypoint set-path --path=\$HOME/somewhere/else/if/you/want/ddt-tools",
             ]),
-            'options' => "\t" . implode("\n\t", [
-                "install <path>: Install the tools into the path using the either the optional path given with the parameter or defaults to the current directory",
-                "uninstall: Uninstall the tools, given the path from the configuration",
-                "test: Test whether the tools are installed and can be executed as expected.",
-                "set-path <path>: Update where the tools are installed",
+            'options' => implode("\n", [
+                "  install --path=<path>: Install the tools into the path using the either the optional path given with the parameter or defaults to the current directory",
+                "  uninstall --path=<path>: Uninstall the tools, given the path from the configuration",
+                "  {yel}upgrade{end}: TODO: Should add this functionality",
+                "  set-path --path=<path>: Update where the tools are installed",
+                "  test: Open a new sub shell and test whether scripts work with the current system path.",
             ])
         ];
     }
@@ -175,6 +178,8 @@ class SetupTool extends Tool
 
     public function installCommand(string $path)
     {
+        $path = rtrim($path, "/");
+
         // check if path exists
         if(is_dir($path)){
             $path = realpath($path);
@@ -215,6 +220,8 @@ class SetupTool extends Tool
 
     public function uninstallCommand(string $path)
     {
+        $path = rtrim($path, "/");
+
         // for each shell configuration file we found
         foreach($this->files as $file) {
             // backup the file
@@ -258,6 +265,8 @@ class SetupTool extends Tool
 
     public function setPathCommand(string $path)
     {
+        $path = rtrim($path, "/");
+
         $this->cli->print("{blu}Set Tools Path:{end} updating configuration with path '$path'\n");
         $this->config->setToolsPath($path);
 	    $this->config->write();
