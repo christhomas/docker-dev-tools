@@ -4,6 +4,7 @@ namespace DDT;
 use DDT\CLI;
 use DDT\Config\External\StandardProjectConfig;
 use DDT\Config\ProjectGroupConfig;
+use DDT\Exceptions\Project\ProjectScriptInvalidException;
 
 class RunService
 {
@@ -41,10 +42,11 @@ class RunService
 		return in_array($key, $this->stack);
 	}
 
-	private function push(StandardProjectConfig $projectConfig, string $script): bool
+	private function pushJob(StandardProjectConfig $projectConfig, string $script): bool
 	{
 		// if not, add it to the stack and return true;
 		$key = $this->makeKey($projectConfig, $script);
+
 		// TODO: do I need to keep track of any runtime data here?
 		$this->stack[] = $key;
 		$this->cli->debug("{red}[RUNSERVICE]:{end}\n{cyn}Stack(push = $key):\n".implode("\n", $this->stack)."{end}\n");
@@ -62,29 +64,38 @@ class RunService
 	{
 		try{
 			$this->cli->debug("{red}[RUNSERVICE]:{end} Running: $group, $project, $script\n");
+			// Obtain the project configuration
 			$projectConfig = $this->getProject($group, $project);
 		
+			// Check if script is already running, we refuse to run scripts if 
+			// it's already run since it might lead to infinite loops
 			if($this->isRunning($projectConfig, $script) === false){
-				$this->push($projectConfig, $script);
+				// Push job onto stack, blocking it from future duplicate execution
+				$this->pushJob($projectConfig, $script);
 
+				// Before attempting to run the script required, process it's dependencies
 				if($this->runDependencies($projectConfig, $group, $script) === true){
+					// Now all dependencies are run, obtain the actual commandline to run
 					$path = $projectConfig->getPath();
 					$command = $projectConfig->getKey(".scripts.$script");
 
+					// If the command line is empty, this is a probable bug in the configuration, the value is set incorrectly
 					if(empty($command)){
-						throw new \Exception("The command '$script' (group: $group, project: $project) was found, but the command was empty or not valid");
+						throw new ProjectScriptInvalidException($group, $project, $script);
 					}
 		
+					// Otherwise, cd into the project path and run the script as specified
 					$this->cli->print("\n{blu}Run Script:{end} group: {yel}$group{end}, project: {yel}$project{end}, script: {yel}$script{end}\n");
 					// TODO: how to handle when a script fails?
 					$this->cli->passthru("cd $path; $command");
 				}
 			}else{
-				// show an error about non-entrant scripts
+				// show an error about non-entrant scripts, so we don't do any infinite loops
 				$key = $this->makeKey($projectConfig, $script);
 				$this->cli->debug("{red}[RUNSERVICE]:{end} Script already running: $key\n");
 			}
 		}catch(\Exception $e){
+			// Oh, exception happened :( oopsie
 			$this->cli->print("{red}".get_class($e)."{end} => {$e->getMessage()}\n");
 			return false;
 		}
@@ -92,6 +103,7 @@ class RunService
 
 	public function runDependencies(StandardProjectConfig $projectConfig, string $group, string $script): bool
 	{
+		// First, get all this projects dependencies, so you can loop through them
 		$dependencies = $projectConfig->getDependencies($script);
 
 		foreach($dependencies as $project => $d){
@@ -105,16 +117,19 @@ class RunService
 			$t = array_map(function($k, $v) { return $k===$v ? $k : "$k=$v"; }, array_keys($d['scripts']), array_values($d['scripts']));
 			$this->cli->debug("{red}[RUNSERVICE]{end}: Dependencies($project@$depGroup): [".implode(",", $t)."]\n");
 
+			// Does this dependency overload the script with an alternative script name?
 			if(array_key_exists('scripts', $d)){
 				if(array_key_exists($script, $d['scripts'])){
 					$depScript = $d['scripts'][$script];
 				}
 			}
 
+			// Run the script for this dependency
 			// TODO: how to handle a the return value from this?
 			$this->run($depGroup, $project, $depScript);
 		}
 		
+		// Lol, I don't know how to deal with all the return values yet
 		return true;
 	}
 }
