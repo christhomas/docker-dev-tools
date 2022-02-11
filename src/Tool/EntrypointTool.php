@@ -29,7 +29,13 @@ class EntrypointTool extends Tool
     public function handle()
     {
         try{
-            return $this->cli->print(parent::handle());
+            $response = parent::handle();
+            
+            if(is_string($response)){
+                return $this->cli->print($response);
+            }
+
+            return $response;
         }catch(ConfigMissingException $e){
             $this->cli->failure($this->text->box($e->getMessage(), "white", "red"));
         }catch(ToolNotFoundException $e){
