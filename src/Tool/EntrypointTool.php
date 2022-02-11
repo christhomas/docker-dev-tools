@@ -84,24 +84,7 @@ class EntrypointTool extends Tool
         }
     }
 
-    public function getTitle(): string
-    {
-        return 'Main Help';
-    }
-
-    public function getDescription(): string
-    {
-        return trim("
-The docker dev tools provides multiple tools which will assist you when building a reliable, stable development environment
-See the below options for subcommands that you can run for specific functionality which also provide their own help when run without arguments");
-    }
-
-    public function getShortDescription(): string
-    {
-        return '';
-    }
-
-    public function getOptions(): string
+    public function getToolMetadata(): array
     {
         $list = array_map(function($t){ 
             return ['name' => str_replace(['tool', '.php'], '', strtolower(basename($t))), 'path' => $t];
@@ -110,13 +93,25 @@ See the below options for subcommands that you can run for specific functionalit
         $options = [];
 
         foreach($list as $tool){
+            /** @var Tool */
             $instance = $this->createTool($tool['name']);
 
             if($instance->isTool()){
-                $options[] = $this->text->write("  {$instance->getName()}: {$instance->getShortDescription()}");
+                $metadata = $instance->getToolMetadata();
+                $shortDescription = array_key_exists('short_description', $metadata) ? $metadata['short_description'] : $metadata['description'];
+                
+                $options[] = "  {$instance->getToolName()}: {$shortDescription}";
             }
         }
 
-        return implode("\n", $options);
+        return [
+            'title' => 'Main Help',
+            'description' => trim(
+                "The docker dev tools provides multiple tools which will assist you when building a reliable, \n". 
+                "stable development environment. See the below options for subcommands that you can run for \n". 
+                "specific functionality which also provide their own help when run without arguments"
+            ),
+            'options' => $options
+        ];
     }
 }

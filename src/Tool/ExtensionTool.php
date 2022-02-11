@@ -24,41 +24,29 @@ class ExtensionTool extends Tool
         $this->extensionManager = $extensionManager;
     }
 
-    public function getTitle(): string
+    public function getToolMetadata(): array
     {
-        return 'Extension Management Tool';
+        $entrypoint = $this->cli->getScript(false) . " " . $this->getToolName();
+
+        return [
+            'title' => 'Extension Management Tool',
+            'short_description' => 'A tool to manage tool extensions and update them',
+            'description' => trim(
+                "This tool will manage extensions installed within the tools. It can install, uninstall,\n".
+                "or update them. At this time the tool only supports extensions from GIT repositories\n"
+            ),
+            'examples' => [
+                "{yel}Usage Example:{end} $entrypoint {yel}install --name=example url=https://github.com/something/extension_repo.git{end}",
+                "{yel}Usage Example:{end} $entrypoint {yel}uninstall --name=example{end}",
+            ],
+            'options' => [
+                "install --name=<name> --url=<url>: Will install a new extension, requires two parameters, --name and --url, only git urls are supported",
+                "uninstall --name<name>: Will uninstall an extension with the given name",
+                "list: Will list the installed extensions",
+                "update: Will update all extensions from their repository urls given during installation",
+            ]
+        ];
     }
-
-    public function getShortDescription(): string
-    {
-        return 'A tool to manage tool extensions and update them';
-    }
-
-    public function getDescription(): string
-    {
-		return "This tool will manage extensions installed within the tools. It can install, uninstall, or update them. At this time
-        the tool only supports extensions from GIT repositories";
-    }
-
-    public function getExamples(): string
-    {
-        $entrypoint = $this->cli->getScript(false) . " " . $this->getName();
-
-        return implode("\n", [
-            "{yel}Usage Example:{end} $entrypoint {yel}install --name=example url=https://github.com/something/extension_repo.git{end}",
-            "{yel}Usage Example:{end} $entrypoint {yel}uninstall --name=example{end}"
-        ]);   
-    }
-
-    public function getOptions(): string
-	{
-		return "\t" . implode("\n\t", [
-            "install --name=<name> --url=<url>: Will install a new extension, requires two parameters, --name and --url, only git urls are supported",
-            "uninstall --name<name>: Will uninstall an extension with the given name",
-            "list: Will list the installed extensions",
-            "update: Will update all extensions from their repository urls given during installation",
-		]);
-	}
 
     public function installCommand(string $name, string $url)
     {

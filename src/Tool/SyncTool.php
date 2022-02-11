@@ -22,65 +22,49 @@ class SyncTool extends Tool
         $this->config = $config;
     }
 
-    public function getTitle(): string
+    public function getToolMetadata(): array
     {
-        return 'Container File Sync Tool';
-    }
+        $entrypoint = $this->cli->getScript(false) . " " . $this->getToolName();
 
-    public function getShortDescription(): string
-    {
-        return 'A tool to sync your local project with a docker container';
-    }
-
-    public function getDescription(): string
-    {
-		return "This tool will watch and sync changes from your local file system into a docker container.
-        {yel}It does not handle file changes inside the container and syncing them back to your local setup{end}
-        This tool only syncs in one direction from your local system to the docker container.";
-    }
-
-    public function getExamples(): string
-    {
-        $entrypoint = $this->cli->getScript(false) . " " . $this->getName();
-
-        return implode("\n", [
-            "{cyn}Managing Sync Profiles{end}",
-            "$entrypoint  --docker=company-staging --add-profile=phpfpm --local-dir=/a/directory/path --remote-dir=/www",
-            "$entrypoint  --docker=company-staging --remove-profile=phpfpm",
-            "{cyn}Watching Changes{end}",
-            "$entrypoint --docker=company-staging --profile=phpfpm --watch",
-            "$entrypoint --docker=company-staging --profile=phpfpm --write=filename.txt",
-        ]);   
-    }
-
-    public function getOptions(): string
-	{
-		$alias = $this->config->getKey('.ip_address') ?? 'unknown';
-
-		return "\t" . implode("\n\t", [
-            "--docker: Which docker configuration to use",
-            "--add-profile: The name of the profile to create",
-            "--remove-profile: The name of the profile to remove",
-            "--list-profile: List all the sync profiles for this specified docker configuration",
-            "--container: (Optional: defaults to profile name) The name of the container to connect to",
-            "--local-dir: The local directory to watch for modifications",
-            "--remote-dir: The directory inside the container to sync the changed files into",
-            "--profile: The name of the profile to use",
-            "--watch: To create a new 'fswatch' on the selected profile",
-            "--write=filename.txt: Which file was modified and should be uploaded",
-            "{cyn}Ignore Rules{end}: Ignore Rules are global and apply to all projects",
-            "--add-ignore-rule=^.git",
-            "--remove-ignore-rule=^.git",    
-		]);
-	}
-
-    public function getNotes(): string
-    {
-        return "The parameter {yel}--add-profile{end} depends on: {yel}local-dir, remote-dir{end} options in 
-        order to create the profile.
-        
-        {yel}Please remember, any changes inside the container are not respected here, 
-        everything is overwritten{end}";
+        return [
+            'title' => 'Container File Sync Tool',
+            'short_description' => 'A tool to sync your local project with a docker container',
+            'description' => trim(implode("\n", [
+                "This tool will watch and sync changes from your local file system into a docker container.",
+                "{yel}It does not handle file changes inside the container and syncing them back to your local setup{end}",
+                "This tool only syncs in one direction from your local system to the docker container.",
+            ])),
+            'examples' => implode("\n", [
+                "{cyn}Managing Sync Profiles{end}",
+                "$entrypoint  --docker=company-staging --add-profile=phpfpm --local-dir=/a/directory/path --remote-dir=/www",
+                "$entrypoint  --docker=company-staging --remove-profile=phpfpm",
+                "{cyn}Watching Changes{end}",
+                "$entrypoint --docker=company-staging --profile=phpfpm --watch",
+                "$entrypoint --docker=company-staging --profile=phpfpm --write=filename.txt",
+            ]),
+            'options' => implode("\n\t", [
+                "--docker: Which docker configuration to use",
+                "--add-profile: The name of the profile to create",
+                "--remove-profile: The name of the profile to remove",
+                "--list-profile: List all the sync profiles for this specified docker configuration",
+                "--container: (Optional: defaults to profile name) The name of the container to connect to",
+                "--local-dir: The local directory to watch for modifications",
+                "--remote-dir: The directory inside the container to sync the changed files into",
+                "--profile: The name of the profile to use",
+                "--watch: To create a new 'fswatch' on the selected profile",
+                "--write=filename.txt: Which file was modified and should be uploaded",
+                "{cyn}Ignore Rules{end}: Ignore Rules are global and apply to all projects",
+                "--add-ignore-rule=^.git",
+                "--remove-ignore-rule=^.git",    
+            ]),
+            'notes' => trim(implode("\n", [
+                "The parameter {yel}--add-profile{end} depends on: {yel}local-dir, remote-dir{end}",
+                "options in order to create the profile.",
+                "",                
+                "{yel}Please remember, any changes inside the container are not respected here,",
+                "everything is overwritten{end}",
+            ]))
+        ];
     }
 }
 

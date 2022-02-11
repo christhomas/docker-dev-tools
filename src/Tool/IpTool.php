@@ -24,46 +24,34 @@ class IpTool extends Tool
 		$this->ipService = $ipService;
     }
 
-    public function getTitle(): string
-    {
-        return 'IP Address Tool';
-    }
-
-    public function getShortDescription(): string
-    {
-        return 'A tool to configure and control local ip addresses used to enable the dns server';
-    }
-
-    public function getDescription(): string
-    {
-		return "This tool creates an alias for {yel}localhost{end}/{yel}127.0.0.1{end} on your machine which is 
-addressable from your local machine and from inside docker containers. This is useful when wanting 
-to connect xdebug from your software running inside a container, to your local machine where your 
-IDE Is listening for incoming connections";
-    }
-
-    public function getOptions(): string
+	public function getToolMetadata(): array
 	{
 		$alias = $this->config->get() ?? 'unknown';
 
-		return "\t" . implode("\n\t", [
-			"set <ip-address>: Add an IP Address to your configuration stack, this value will be remembered and used in the future",
-			"get: Get the Currently configured IP Address.",
-			"add: Add '{yel}$alias{end}' as an ip alias for '{yel}127.0.0.1{end}'",
-			"remove: Remove '{yel}$alias{end}' from your computer",
-			"reset: Remove and Add the configuration again, just in case it broke somehow",
-			"ping: Ping the configured ip address",
-		]);
-	}
-
-    public function getNotes(): string
-	{
-		return<<<NOTES
-Please don't use '{yel}localhost{end}' or '{yel}127.0.0.1{end}'
-
-The problem is that inside a docker container, '{yel}localhost{end}' and '{yel}127.0.0.1{end}' resolves to itself. 
-This means you have no ip address which is addressable from your local machine, or inside docker containers.
-NOTES;
+		return [
+			'title' => 'IP Address Tool',
+			'short_description' => 'A tool to configure and control local ip addresses used to enable the dns server',
+			'description' => trim(
+				"This tool creates an alias for {yel}localhost{end}/{yel}127.0.0.1{end} on your machine which is\n".
+				"addressable from your local machine and from inside docker containers. This is useful when wanting\n".
+				"to connect xdebug from your software running inside a container, to your local machine where your\n".
+				"IDE Is listening for incoming connections\n"
+			),
+			'options' => [
+				"set <ip-address>: Add an IP Address to your configuration stack, this value will be remembered and used in the future",
+				"get: Get the Currently configured IP Address.",
+				"add: Add '{yel}$alias{end}' as an ip alias for '{yel}127.0.0.1{end}'",
+				"remove: Remove '{yel}$alias{end}' from your computer",
+				"reset: Remove and Add the configuration again, just in case it broke somehow",
+				"ping: Ping the configured ip address",
+			],
+			'notes' => trim(
+				"Please don't use '{yel}localhost{end}' or '{yel}127.0.0.1{end}'\n".
+				"\n".
+				"The problem is that inside a docker container, '{yel}localhost{end}' and '{yel}127.0.0.1{end}' resolves to itself.\n".
+				"This means you have no ip address which is addressable from your local machine, or inside docker containers.\n"
+			)
+		];
 	}
 
 	public function setCommand(): void

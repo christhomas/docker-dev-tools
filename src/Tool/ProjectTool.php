@@ -22,62 +22,41 @@ class ProjectTool extends Tool
         $this->repoService = $repoService;
     }
 
-    public function getTitle(): string
+    public function getToolMetadata(): array
     {
-        return 'Project Management Tool';
+        return [
+            'tool' => 'Project Management Tool',
+            'short_description' => 'A tool to manage projects installed and control them using scripts and hooks',
+            'description' => trim(
+                "This tool allows projects to be installed and managed by the tooling system.\n".
+                "It can run scripts, and perform actions upon the projects, using functionality\n".
+                "or scripts installed within the projects themselves\n"
+            ),
+            'options' => trim(
+                "{cyn}Managing Groups{end}:\n".
+                "list: List the project groups\n".
+                "add-group=name: Create a new project group.\n".
+                "remove-group=name: Remove a project group.\n".
+                "\n".
+                "\n\t{cyn}Adding Projects{end}:\n".
+                "add-project=name: Will add a new project that already exists on the disk.\n".
+                "--group: (REQUIRED) The group to which this project will be added\n".
+                "--path: (REQUIRED) The location on the filesystem for this project\n".
+                "--type: (OPTIONAL: default=ddt) One of the supported project types. {yel}(See Project Type list below){end}\n".
+                "\n".
+                "\n\t{cyn}Removing Projects{end}:\n".
+                "remove-project=project-name: Remove the project from the group given.\n".
+                "--group: (REQUIRED) The group from which this project will be removed\n".
+                "--delete: (OPTIONAL) {red}**DANGEROUS**{end} This option will not only remove the project from a group, but delete the files from disk\n".
+                "\n".
+                "\n\t{cyn}Project Types{end}:\n".
+                "These just define where the configuration will be stored, it has one of the following values:\n\n".
+                "npm: This project type will use the 'package.json' file.\n".
+                "composer: This project type will use the 'composer.json' file.\n".
+                "ddt: {yel}(default if no type given){end} This project will use the 'ddt-project.json' file\n"
+            ),
+        ];
     }
-
-    public function getShortDescription(): string
-    {
-        return 'A tool to manage projects installed and control them using scripts and hooks';
-    }
-
-    public function getDescription(): string
-    {
-		return "\t" . implode("\n\t", [
-            "This tool allows projects to be installed and managed by the tooling system.",
-            "It can run scripts, and perform actions upon the projects, using functionality",
-            "or scripts installed within the projects themselves",
-        ]);
-    }
-
-    public function getExamples(): string
-    {
-        /*$entrypoint = $this->cli->getScript(false) . " " . $this->getName();
-
-        return implode("\n", [
-            "{yel}Usage Example:{end} $entrypoint {yel}install name url=https://github.com/something/extension_repo.git{end}",
-            "{yel}Usage Example:{end} $entrypoint {yel}uninstall plista{end}"
-        ]);*/
-        return "";
-    }
-
-    public function getOptions(): string
-	{
-		return "\t" . implode("\n\t", [
-            "{cyn}Managing Groups{end}:",
-            "list: List the project groups",
-            "add-group=name: Create a new project group.",
-            "remove-group=name: Remove a project group.",
-
-            "\n\t{cyn}Adding Projects{end}:",
-            "add-project=name: Will add a new project that already exists on the disk.",
-            "--group: (REQUIRED) The group to which this project will be added",
-            "--path: (REQUIRED) The location on the filesystem for this project",
-            "--type: (OPTIONAL: default=ddt) One of the supported project types. {yel}(See Project Type list below){end}",
-
-            "\n\t{cyn}Removing Projects{end}:",
-            "remove-project=project-name: Remove the project from the group given.",
-            "--group: (REQUIRED) The group from which this project will be removed",
-            "--delete: (OPTIONAL) {red}**DANGEROUS**{end} This option will not only remove the project from a group, but delete the files from disk",
-
-            "\n\t{cyn}Project Types{end}:",
-            "These just define where the configuration will be stored, it has one of the following values:\n",
-            "npm: This project type will use the 'package.json' file.",
-            "composer: This project type will use the 'composer.json' file.",
-            "ddt: {yel}(default if no type given){end} This project will use the 'ddt-project.json' file",
-		]);
-	}
 
     public function isProjectType(string $type=null): bool
     {

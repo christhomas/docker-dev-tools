@@ -3,7 +3,6 @@
 namespace DDT\Tool;
 
 use DDT\CLI;
-use DDT\Config\SystemConfig;
 
 class ComposerTool extends Tool
 {
@@ -11,12 +10,16 @@ class ComposerTool extends Tool
     {
     	parent::__construct('composer', $cli);
     }
+    
+    public function getToolMetadata(): array
+    {
+        return [
+            'title' => 'A totally useless composer handler',
+            'short_description' => 'A docker wrapper for composer for people who cannot install dependencies because of insufficient php version',
+        ];
+    }
 
-    public function getTitle(): string{ return ''; }
-    public function getShortDescription(): string{ return ''; }
-    public function getDescription(): string{ return ''; }
-
-    protected function help(): string
+    public function help(): string
     {
         $this->runComposer();
 

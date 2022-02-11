@@ -19,83 +19,64 @@ class ConfigTool extends Tool
 		$this->text = $text;
     }
 
-    public function getTitle(): string
-    {
-        return 'Configuration';
-    }
-
-    public function getShortDescription(): string
-    {
-        return 'A tool to manage the configuration of the overall system, setting and getting parameters from the main system config';
-    }
-
-    public function getDescription(): string
-    {
-		return "This tool will manipulate the configuration or query part of it for use in other tools";
-    }
-
-	public function getOptions(): string
+	public function getToolMetadata(): array
 	{
-		return "\t" . implode("\n\t", [
-			"filename: Returns a single string containing the filename",
-			"exists: Script will exit with {yel}code 0{end} if configuration file exists or {yel}code 1{end} if it's missing",
-			"reset: Will reset your configuration file to the default 'empty' configuration, {red}it will destroy any setup you already have{end}",
-			"get: Will retrieve a specific key, if no key is specified, the entire config is shown",
-			"validate: Only validate the file can be read without errors",
-			"version: Output some information about the configuration that is deemed useful",
-			"help: This information, also if no sub command is given help is automatically shown",
-		]);
-	}
+		$entrypoint = $this->entrypoint . " " . $this->getToolName();
 
-	public function getExamples(): string
-	{
-		$entrypoint = $this->entrypoint . " " . $this->getName();
-
-		return<<<EXAMPLES
-Basic commands are simple to understand:
-	{$entrypoint} filename (will output where the system configuration file is located)
-	{$entrypoint} version (will output version information, etc)
-	
-To query parts of the configuration: 
-	{$entrypoint} get (with no specific key mentioned, will output entire configuration)
-	{$entrypoint} get=.type
-	{$entrypoint} get=.this.0.must.be.3.valid
-		
-The last one will do a recursive lookup drilling down each level that are split by the dots
-	key(this) -> index(0) -> key(must) -> key(be) -> index(3) -> key(valid)
-	
-The json for the above example could be:
-{cyn}{
-	"this": [
-		{
-			"must": {
-				"be": [
-					"not this",
-					"or this",
-					"neither this",
-					{
-						"valid": "this one! this is index 3",
-						"json": "doesn't care if you mix strings with objects or sub-arrays"
-					},
-					"ignore this"
-				]
-			}   
-		}
-	]
-}
-{end}
-bash# {$entrypoint} get=.this.0.must.be.3.valid
-"this one! this is index 3"
-EXAMPLES;
-	}
-
-	public function getNotes(): string
-	{
-		return "\t- " . implode("\n\t- ", [
-			"All keys begin with '.' (dot), e.g: '.description'",
-			"Keys are a dotted syntax that allows you to pluck out a segment of the configuration",
-			"If you ask for an invalid heirarchy. This function will return null",
-		]);
+		return [
+			'title' => 'Configuration',
+			'description' => 'This tool will manipulate the configuration or query part of it for use in other tools',
+			'options' => [
+				"filename: Returns a single string containing the filename",
+				"exists: Script will exit with {yel}code 0{end} if configuration file exists or {yel}code 1{end} if it's missing",
+				"reset: Will reset your configuration file to the default 'empty' configuration, {red}it will destroy any setup you already have{end}",
+				"get: Will retrieve a specific key, if no key is specified, the entire config is shown",
+				"validate: Only validate the file can be read without errors",
+				"version: Output some information about the configuration that is deemed useful",
+				"help: This information, also if no sub command is given help is automatically shown",
+			],
+			'examples' => trim(
+				"Basic commands are simple to understand:\n".
+				"	{$entrypoint} filename (will output where the system configuration file is located)\n".
+				"	{$entrypoint} version (will output version information, etc)\n".
+				"\n".
+				"To query parts of the configuration:\n".
+				"	{$entrypoint} get (with no specific key mentioned, will output entire configuration)\n".
+				"	{$entrypoint} get=.type\n".
+				"	{$entrypoint} get=.this.0.must.be.3.valid\n".
+				"\n".	
+				"The last one will do a recursive lookup drilling down each level that are split by the dots\n".
+				"	key(this) -> index(0) -> key(must) -> key(be) -> index(3) -> key(valid)\n".
+				"\n".
+				"The json for the above example could be:\n".
+				"{cyn}{\n".
+				"  \"this\": [\n".
+				"    {\n".
+				"      \"must\": {\n".
+				"        \"be\": [\n".
+				"          \"not this\",\n".
+				"          \"or this\",\n".
+				"          \"neither this\",\n".
+				"          {\n".
+				"            \"valid\": \"this one! this is index 3\",\n".
+				"            \"json\": \"doesn't care if you mix strings with objects or sub-arrays\"\n".
+				"          },\n".
+				"          \"ignore this\"\n".
+				"        ]\n".
+				"      }\n".   
+				"    }\n".
+				"  ]\n".
+				"}\n".
+				"{end}\n".
+				"bash# {$entrypoint} get=.this.0.must.be.3.valid\n".
+				"\"this one! this is index 3\"\n"
+			),
+			'notes' => [
+				"All keys begin with '.' (dot), e.g: '.description'",
+				"Keys are a dotted syntax that allows you to pluck out a segment of the configuration",
+				"If you ask for an invalid heirarchy. This function will return null",
+			]
+		];
 	}
 
 	public function filename(): string
@@ -156,7 +137,7 @@ EXAMPLES;
 		$config = SystemConfig::instance();
 		$value = $config->getKeyAsJson($key);
 
-		return $value;
+		return $value . "\n";
 
 		// FIXME: the functionality where it outputs coloured text breaks shell functionality
 		// FIXME: I tried to fix this with the raw parameter

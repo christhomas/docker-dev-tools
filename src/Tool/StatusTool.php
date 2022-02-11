@@ -5,7 +5,6 @@ namespace DDT\Tool;
 use DDT\CLI;
 use DDT\Config\SystemConfig;
 use DDT\Text\Text;
-use DDT\Text\Table;
 
 class StatusTool extends Tool
 {
@@ -21,31 +20,26 @@ class StatusTool extends Tool
 
         $this->text = $text;
         $this->config = $config;
+        $this->registerCommand('main', null, true);
     }
 
-    public function getTitle(): string
+    public function getToolMetadata(): array
     {
-        return 'Status';
-    }
+        $entrypoint = $this->cli->getScript(false) . " " . $this->getToolName();
 
-    public function getShortDescription(): string
-    {
-        return 'A tool to provide a quick status breakdown of resources';
-    }
-
-    public function getDescription(): string
-    {
-		return "This tool will provide a series of status feedbacks from various tools like the proxy, the dns, and various installed projects, with the ability to call specific groups of projects";
-    }
-
-    public function getExamples(): string
-    {
-        $entrypoint = $this->cli->getScript(false) . " " . $this->getName();
-
-        return implode("\n", [
-            "{yel}Usage Example:{end} $entrypoint - Will return status information the proxy, the dns, and for every project in every group (could be a large list)",
-            "{yel}Usage Example:{end} $entrypoint <group> - Will return status information for the proxy, the dns, and a specific group of projects",
-        ]);   
+        return [
+            'title' => 'System Status',
+            'short_description' => 'A tool to provide a quick status breakdown of resources',
+            'description' => trim(implode("\n", [
+                "This tool will provide a series of status feedbacks from various tools like".
+                "the proxy, the dns, and various installed projects, with the ability to call". 
+                "specific groups of projects"
+            ])),
+            'examples' => implode("\n", [
+                "{yel}Usage Example:{end} $entrypoint - Will return status information the proxy, the dns, and for every project in every group (could be a large list)",
+                "{yel}Usage Example:{end} $entrypoint <group> - Will return status information for the proxy, the dns, and a specific group of projects",
+            ])
+        ];
     }
 
     public function main()

@@ -4,7 +4,6 @@ namespace DDT\Tool;
 
 use DDT\CLI;
 use DDT\Config\SystemConfig;
-use DDT\Docker\Docker;
 use DDT\Network\Proxy;
 
 class ProxyTool extends Tool
@@ -23,53 +22,41 @@ class ProxyTool extends Tool
         $this->proxy = $proxy;
     }
 
-    public function getTitle(): string
+    public function getToolMetadata(): array
     {
-        return 'Frontend Proxy Tool';
-    }
-
-    public function getShortDescription(): string
-    {
-        return 'A tool to control how the local proxy is configured and control whether it is running or not';
-    }
-
-    public function getDescription(): string
-    {
-        return "This tool will start a docker container and listen on DNS Port 53 and handle
-        requests for your local development networks. Whilst pushing upstream all
-        other requests it can't resolve to an online DNS server";
-    }
-
-    public function getOptions(): string
-    {
-        return<<<OPTIONS
-{cyn}Running of the NGINX Front End Proxy Container:{end}
-start: Run the Nginx proxy, with an optional assignment for the network name to use
-stop: Stop the Nginx proxy
-restart: Restart the proxy
-
-{cyn}Logging:{end}
-logs: View the logs from the Nginx proxy container
-logs-f: View and follow the logs from the Nginx proxy container
-
-{cyn}Network Configuration:{end}
-add-network=XXX: Add a new network to a running proxy without needing to restart it
-remove-network=XXX: Remove an existing network from the proxy container so it stops monitoring it
-
-{cyn}Configuration:{end}
-nginx-config: Output the raw /etc/nginx/conf.d/default.conf which is generated when containers start and stop
-status: Show the domains that the Nginx proxy will respond to
-container-name: Get/Set the name to give to this container
-docker-image: Get/Set the docker image name to run
-OPTIONS;
-    }
-
-    public function getExamples(): string
-    {
-        return implode("\n", [
-            "{yel}Usage Example:{end} ddt proxy logs-f {grn}- follow the log output for the proxy{end}",
-            "{yel}Usage Example:{end} ddt proxy start {grn}- start the proxy{end}"
-        ]);
+        return [
+            'title' => 'Frontend Proxy Tool',
+            'short_description' => 'A tool to control how the local proxy is configured and control whether it is running or not',
+            'description' => trim(
+                "This tool will start a docker container and listen on DNS Port 53 and handle\n".
+                "requests for your local development networks. Whilst pushing upstream all\n".
+                "other requests it can't resolve to an online DNS server\n"
+            ),
+            'options' => trim(
+                "{cyn}Running of the NGINX Front End Proxy Container:{end}\n".
+                "start: Run the Nginx proxy, with an optional assignment for the network name to use\n".
+                "stop: Stop the Nginx proxy\n".
+                "restart: Restart the proxy\n".
+                "\n".
+                "{cyn}Logging:{end}\n".
+                "logs: View the logs from the Nginx proxy container\n".
+                "logs-f: View and follow the logs from the Nginx proxy container\n".
+                "\n".
+                "{cyn}Network Configuration:{end}\n".
+                "add-network=XXX: Add a new network to a running proxy without needing to restart it\n".
+                "remove-network=XXX: Remove an existing network from the proxy container so it stops monitoring it\n".
+                "\n".
+                "{cyn}Configuration:{end}\n".
+                "nginx-config: Output the raw /etc/nginx/conf.d/default.conf which is generated when containers start and stop\n".
+                "status: Show the domains that the Nginx proxy will respond to\n".
+                "container-name: Get/Set the name to give to this container\n".
+                "docker-image: Get/Set the docker image name to run\n"
+            ),
+            'examples' => trim(
+                "{yel}Usage Example:{end} ddt proxy logs-f {grn}- follow the log output for the proxy{end}\n".
+                "{yel}Usage Example:{end} ddt proxy start {grn}- start the proxy{end}\n"
+            )
+        ];
     }
 
     public function isRunning(): bool 

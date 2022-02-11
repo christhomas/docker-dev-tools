@@ -18,21 +18,69 @@ abstract class Tool
     /** @var string The main entrypoint from the terminal */
     protected $entrypoint;
 
+    /** @var array The registered commands for this tool */
+    private $commands = [];
+
+    /** @var array A list of functions which cannot be used as tool commands */
+    private $protectedFunctions = [
+        'registerCommand',
+        'isTool',
+        'getToolMetaData',
+        'getToolName',
+    ];
+
     public function __construct(string $name, CLI $cli)
 	{
 		$this->name = $name;
 		$this->cli = $cli;
         $this->entrypoint = $this->cli->getScript(false);
+        
+        $this->registerCommand('help');
 	}
+
+    public function registerCommand(string $name, ?callable $callable=null, bool $isDefault=false): void
+    {
+        $this->command[$name] = [
+            'callable' => $callable ?? $name,
+            'is_default' => $isDefault
+        ];
+    }
 
     public function isTool(): bool
     {
         return true;
     }
 
-    public function getName(): string
+    public function getToolName(): string
     {
         return $this->name;
+    }
+
+    public function getToolMetadata(): array
+    {
+        var_dump(__METHOD__);
+        return [
+            'title' => 'A sample Tool Title',
+            'description' => 'Please add getToolMetadata to your tool',
+            'commands' => [
+                'set: this will set some data',
+                'get: this will get some data',
+                'add: this will add some data',
+                'help: this command is available in all tools'
+            ],
+            'options' => [
+                'TODO: I think I should phase this element out'
+            ],
+            'examples' => [
+                'ddt mytool set some-data'
+            ],
+            'notes' => [
+                'This should be an array of notes',
+                'Which can help your users understand your tool',
+                'Leave an empty array if you do not want notes to be shown',
+                'They are formatted as bulletpoints'
+            ],
+        ];
     }
 
     protected function getCommandMethod(array $command)
@@ -104,41 +152,32 @@ abstract class Tool
         return $autowire->callMethod($this, $command, $args);
     }
 
-    // The next three methods are required for basic help functionality, they can't be provided generically
-    abstract public function getTitle(): string;
-    abstract public function getDescription(): string;
-    abstract public function getShortDescription(): string;
-
-    // It's reasonable that these three methods don't exist in every tool, so we let them return empty by default so they can be safely skipped
-    public function getOptions(): string{ return ''; }
-    public function getExamples(): string{ return ''; }
-    public function getNotes(): string{ return ''; }
-
-    protected function help(): string
+    public function help(): string
     {
         $section = [];
+        $metadata = $this->getToolMetadata();
 
-        $title = $this->getTitle();
+        $title = array_key_exists('title', $metadata) ? $metadata['title'] : null;
         if(!empty($title)){
             $section[] = "{grn}Docker Dev Tools: $title{end}";
         }
 
-        $description = $this->getDescription();
+        $description = array_key_exists('description', $metadata) ? $metadata['description'] : null;
         if(!empty($description)){
             $section[] = "{blu}Description:{end}\n$description";
         }
         
-        $options = $this->getOptions();
+        $options = array_key_exists('options', $metadata) ? $metadata['options'] : null;
         if(!empty($options)){
             $section[] = "{blu}Options:{end}\n$options";
         }
 
-        $examples = $this->getExamples();
+        $examples = array_key_exists('examples', $metadata) ? $metadata['examples'] : null;
         if(!empty($examples)){
             $section[] = "{blu}Examples:{end}\n$examples";
         }
 
-        $notes = $this->getNotes();
+        $notes = array_key_exists('notes', $metadata) ? $metadata['notes'] : null;
         if(!empty($notes)) {
             $section[] = "{blu}Notes:{end}\n$notes";
         }
