@@ -298,6 +298,13 @@ class CLI
 		$this->die($string, 1);
 	}
 
+	public function box(string $string, string $foreground, string $background): string
+	{
+		if(empty($string)) return '';
+
+		return $this->writeChannel('stdout', $this->text->box($string, $foreground, $background));
+	}
+
 	public function die(?string $string=null, int $exitCode=0)
 	{
 		$colour	= $exitCode === 0 ? "{grn}" : "{red}";
