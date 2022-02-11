@@ -70,8 +70,12 @@ class RunService
 				if($this->runDependencies($projectConfig, $group, $script) === true){
 					$path = $projectConfig->getPath();
 					$command = $projectConfig->getKey(".scripts.$script");
+
+					if(empty($command)){
+						throw new \Exception("The command '$script' (group: $group, project: $project) was found, but the command was empty or not valid");
+					}
 		
-					$this->cli->print("{blu}Run Script:{end} group[{yel}$group{end}], project[{yel}$project{end}], script[{yel}$script{end}]\n");
+					$this->cli->print("\n{blu}Run Script:{end} group: {yel}$group{end}, project: {yel}$project{end}, script: {yel}$script{end}\n");
 					// TODO: how to handle when a script fails?
 					$this->cli->passthru("cd $path; $command");
 				}
@@ -81,7 +85,7 @@ class RunService
 				$this->cli->debug("{red}[RUNSERVICE]:{end} Script already running: $key\n");
 			}
 		}catch(\Exception $e){
-			$this->cli->debug("{red}[RUNSERVICE]:{end} {red}Exception@run:{end} ".get_class($e)." => {$e->getMessage()}\n");
+			$this->cli->print("{red}".get_class($e)."{end} => {$e->getMessage()}\n");
 			return false;
 		}
 	}
@@ -91,19 +95,24 @@ class RunService
 		$dependencies = $projectConfig->getDependencies($script);
 
 		foreach($dependencies as $project => $d){
-			$group = array_key_exists('group', $d) ? $d['group'] : $group;
+			// We make copies of these variables because they can be overridden per dependency
+			// We don't want to alter the original variables, 
+			// because each dependency can have a different group and script to the parent
+			$depGroup = array_key_exists('group', $d) ? $d['group'] : $group;
+			$depScript = $script;
 
+			// Make some debugging text easier to read like this
 			$t = array_map(function($k, $v) { return $k===$v ? $k : "$k=$v"; }, array_keys($d['scripts']), array_values($d['scripts']));
-			$this->cli->debug("{red}[RUNSERVICE]{end}: Dependencies($project@$group): [".implode(",", $t)."]\n");
+			$this->cli->debug("{red}[RUNSERVICE]{end}: Dependencies($project@$depGroup): [".implode(",", $t)."]\n");
 
 			if(array_key_exists('scripts', $d)){
 				if(array_key_exists($script, $d['scripts'])){
-					$script = $d['scripts'][$script];
+					$depScript = $d['scripts'][$script];
 				}
 			}
 
 			// TODO: how to handle a the return value from this?
-			$this->run($group, $project, $script);
+			$this->run($depGroup, $project, $depScript);
 		}
 		
 		return true;
