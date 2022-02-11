@@ -6,6 +6,7 @@ use DDT\Autowire;
 use DDT\CLI;
 use DDT\Exceptions\Tool\CommandInvalidException;
 use DDT\Exceptions\Tool\CommandNotFoundException;
+use DDT\Exceptions\Tool\ToolNotFoundException;
 
 abstract class Tool
 {
@@ -25,6 +26,7 @@ abstract class Tool
     private $protectedFunctions = [
         'registerCommand',
         'isTool',
+        'getTool',
         'getToolMetaData',
         'getToolName',
     ];
@@ -51,6 +53,18 @@ abstract class Tool
         return true;
     }
 
+    public function getTool(string $name): Tool
+    {
+        try{
+            if(empty($name)) throw new \Exception('Tool name cannot be empty');
+            
+            return container('DDT\\Tool\\'.ucwords($name).'Tool');
+        }catch(\Exception $e){
+            $this->cli->debug("{red}".$e->getMessage()."{end}");
+            throw new ToolNotFoundException($name, 0, $e);
+        }
+    }
+
     public function getToolName(): string
     {
         return $this->name;
@@ -58,7 +72,6 @@ abstract class Tool
 
     public function getToolMetadata(): array
     {
-        var_dump(__METHOD__);
         return [
             'title' => 'A sample Tool Title',
             'description' => 'Please add getToolMetadata to your tool',

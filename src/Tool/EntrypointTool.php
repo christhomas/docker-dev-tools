@@ -65,23 +65,13 @@ class EntrypointTool extends Tool
 
     public function handleCommand(array $command)
     {
-        $tool = $this->createTool($command['name']);
+        $tool = $this->getTool($command['name']);
         
         if($tool->isTool()){
             return $tool->handle();
         }
         
         throw new ToolNotFoundException($command['name']);
-    }
-
-    public function createTool(string $name)
-    {
-        try{
-            return container('DDT\\Tool\\'.ucwords($name).'Tool');
-        }catch(\Exception $e){
-            $this->cli->debug("{red}".$e->getMessage()."{end}");
-            throw new ToolNotFoundException($name, 0, $e);
-        }
     }
 
     public function getToolMetadata(): array
@@ -94,7 +84,7 @@ class EntrypointTool extends Tool
 
         foreach($list as $tool){
             /** @var Tool */
-            $instance = $this->createTool($tool['name']);
+            $instance = $this->getTool($tool['name']);
 
             if($instance->isTool()){
                 $metadata = $instance->getToolMetadata();
