@@ -100,7 +100,7 @@ class EntrypointTool extends Tool
                 $metadata = $instance->getToolMetadata();
                 $shortDescription = array_key_exists('short_description', $metadata) ? $metadata['short_description'] : $metadata['description'];
                 
-                $options[] = "  {$instance->getToolName()}: {$shortDescription}";
+                $options[] = "  {yel}{$instance->getToolName()}{end}: {$shortDescription}";
             }
         }
 
@@ -111,7 +111,7 @@ class EntrypointTool extends Tool
                 "stable development environment. See the below options for subcommands that you can run for \n". 
                 "specific functionality which also provide their own help when run without arguments"
             ),
-            'options' => $options
+            'options' => implode("\n", $options),
         ];
     }
 }
