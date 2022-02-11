@@ -11,9 +11,6 @@ class SetupTool extends Tool
     /** @var Text */
     private $text;
 
-    /** @var SystemConfig  */
-    private $config;
-
     /** @var $home */
     private $home;
 
@@ -27,12 +24,11 @@ class SetupTool extends Tool
 		".zshrc",
 	];
 
-    public function __construct(CLI $cli, Text $text, SystemConfig $config, ?string $home=null)
+    public function __construct(CLI $cli, Text $text, ?string $home=null)
     {
     	parent::__construct('setup', $cli);
 
         $this->text = $text;
-        $this->config = $config;
 
         $this->home = $home ?? $_SERVER['HOME'];
         $this->files = $this->getExistingFiles($this->files);
@@ -214,8 +210,11 @@ class SetupTool extends Tool
         // TODO: handle installation of extension bin paths
         
         //  write into the config the tools path and save file
-		$this->config->setToolsPath($path);
-		$this->config->write();
+        $config = SystemConfig::instance();
+		$config->setToolsPath($path);
+		$config->write();
+
+        $this->testCommand();
     }
 
     public function uninstallCommand(string $path)
@@ -237,7 +236,8 @@ class SetupTool extends Tool
 
     public function testCommand(): bool
     {
-        $toolPath = $this->config->getToolsPath();
+        $config = SystemConfig::instance();
+        $toolPath = $config->getToolsPath();
         $script = $this->cli->getScript(false);
 
         $path = implode("\n",$this->cli->exec("bash --login -c 'echo \$PATH'"));
@@ -268,7 +268,8 @@ class SetupTool extends Tool
         $path = rtrim($path, "/");
 
         $this->cli->print("{blu}Set Tools Path:{end} updating configuration with path '$path'\n");
-        $this->config->setToolsPath($path);
-	    $this->config->write();
+        $config = SystemConfig::instance();
+        $config->setToolsPath($path);
+	    $config->write();
     }
 }
