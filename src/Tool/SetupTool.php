@@ -174,6 +174,8 @@ class SetupTool extends Tool
 
     public function installCommand(string $path)
     {
+        $this->cli->print("{blu}Docker Dev Tools Installer{end}\n");
+
         $path = rtrim($path, "/");
 
         // check if path exists
@@ -207,7 +209,17 @@ class SetupTool extends Tool
         // add the installation path from the file
         $this->add("$path/bin");
 
+        // You must write a default ddt-system.json file to the $HOME directory
+        // This is to store configuration from the tool system in a predictable 
+        // place. It's not optional because without it, nothing else will run
+        // Use the ConfigTool to get the job done
+        /** @var ConfigTool */
+        $configTool = $this->getTool('config');
+        $this->cli->print($configTool->resetCommand());
+
+        //////////////////////////////////////////////////////////////////
         // TODO: handle installation of extension bin paths
+        //////////////////////////////////////////////////////////////////
         
         //  write into the config the tools path and save file
         $config = SystemConfig::instance();
@@ -219,6 +231,8 @@ class SetupTool extends Tool
 
     public function uninstallCommand(string $path)
     {
+        $this->cli->print("{blu}Docker Dev Tools Uninstaller{end}\n");
+
         $path = rtrim($path, "/");
 
         // for each shell configuration file we found
