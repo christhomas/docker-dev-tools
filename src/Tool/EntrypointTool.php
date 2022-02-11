@@ -37,7 +37,7 @@ class EntrypointTool extends Tool
 
             return $response;
         }catch(ConfigMissingException $e){
-            $this->cli->failure($this->text->box($e->getMessage(), "white", "red"));
+            $this->cli->failure($this->text->box($e->getMessage(), "wht", "red"));
         }catch(ToolNotFoundException $e){
             $this->cli->failure($e->getMessage());
         }catch(ToolNotSpecifiedException $e){
