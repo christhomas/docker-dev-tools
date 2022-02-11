@@ -28,7 +28,6 @@ class ConfigTool extends Tool
 			'description' => '  This tool will manipulate the configuration or query part of it for use in other tools',
 			'options' => implode("\n",[
 				"  filename: Returns a single string containing the filename",
-				"  exists: Script will exit with {yel}code 0{end} if configuration file exists or {yel}code 1{end} if it's missing",
 				"  reset: Will reset your configuration file to the default 'empty' configuration, {red}it will destroy any setup you already have{end}",
 				"  get: Will retrieve a specific key, if no key is specified, the entire config is shown",
 				"  validate: Only validate the file can be read without errors",
@@ -86,26 +85,26 @@ class ConfigTool extends Tool
 		return $config->getFilename();
 	}
 
+	public function exists(): bool
+	{
+		try{
+			return is_file($this->filename());
+		}catch(ConfigMissingException $e){
+			return false;
+		}
+	}
+
 	private function writeNewConfig(): bool
 	{
 		$newConfig = new SystemConfig(__DIR__ . '/../../default.ddt-system.json');
+		
 		return $newConfig->write(getenv('HOME').'/.ddt-system.json');
-	}
-
-	/**
-	 * I don't think this function does anything useful
-	 */
-	public function existsCommand(): string
-	{
-		return is_file($this->filename()) ? 'true' : 'false';
 	}
 
 	public function resetCommand(): string
 	{
-		try{
-			// Test if system configuration exists, if yes, it'll pass under the catch and continue as normal
-			$this->existsCommand();
-		}catch(ConfigMissingException $e){
+		// Test if system configuration exists, if yes, it'll pass under the catch and continue as normal
+		if($this->exists() === false){
 			// Nope! We need to create the first one, this should only really happen once
 			if($this->writeNewConfig()){
 				return $this->text->box("The file '\$HOME/.ddt-system.json' file was not found, a new one was written", "blk", "grn");
