@@ -45,7 +45,11 @@ try{
 
 	$container = new Container($cli);
 	$container->singleton(CLI::class, $cli);
-	$container->singleton(SystemConfig::class, new SystemConfig($_SERVER['HOME']));
+	$container->singleton(SystemConfig::class, function() {
+		static $c = null;
+		if($c === null) $c = new SystemConfig($_SERVER['HOME']);
+		return $c;
+	});
 
 	// Set the container to have some default values which can be extracted on demand
 	// This just centralises all the defaults in one place, there are other ways to do it
@@ -77,9 +81,9 @@ try{
 	$tool = container(EntrypointTool::class);
 	$tool->handle();
 }catch(\Exception $e){
-	$cli->failure($text->box('The tool has a non-specified exception: ' . $e->getMessage(), "white", "red"));
+	$cli->failure($text->box('The tool has a non-specified exception: ' . $e->getMessage(), "wht", "red"));
 }catch(ConfigMissingException $e){
-	$cli->failure($text->box($e->getMessage(), "white", "red"));
+	$cli->failure($text->box($e->getMessage(), "wht", "red"));
 }catch(ConfigInvalidException $e){
-	$cli->failure($text->box($e->getMessage(), "white", "red"));
+	$cli->failure($text->box($e->getMessage(), "wht", "red"));
 }
