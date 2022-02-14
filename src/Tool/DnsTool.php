@@ -49,9 +49,9 @@ class DnsTool extends Tool
             ),
             'options' => trim(
                 "{cyn}Configuring IP Address and domains:{end}\n".
-                "    add-domain=yourdomain.com: Add a domain to the running DNS server\n".
-                "    remove-domain=yourdomain.com: Remove a domain to the running DNS server\n".
-                "    ip=xxx.xxx.xxx.xxx: Use this ip address when configuring the server instead of the default one\n".
+                "    add-domain --domain=yourdomain.com: Add a domain to the running DNS server\n".
+                "    remove-domain --domain=yourdomain.com: Remove a domain to the running DNS server\n".
+                "    ip --address=xxx.xxx.xxx.xxx: Use this ip address when configuring the server instead of the default one\n".
                 "\n".
                 "{cyn}Toggling the DNS Server:{end}\n".
                 "    enable: Enable the DNS Server\n".
@@ -279,27 +279,21 @@ class DnsTool extends Tool
         }
     }
 
-    public function containerNameCommand(): string
+    public function containerNameCommand(?string $name=null): string
     {
-        $containerName = $this->cli->shiftArg();
-
-        if(empty($containerName)){
+        if(empty($name)){
             return $this->dnsConfig->getContainerName();
         }else{
-            $containerName = $containerName['name'];
-            return $this->dnsConfig->setContainerName($containerName);
+            return $this->dnsConfig->setContainerName($name);
         }
     }
 
-    public function dockerImageCommand(): string
+    public function dockerImageCommand(?string $name=null): string
     {
-        $dockerImage = $this->cli->shiftArg();
-
-        if(empty($dockerImage)){
+        if(empty($name)){
             return $this->dnsConfig->getDockerImage();
         }else{
-            $dockerImage = $dockerImage['name'];
-            return $this->dnsConfig->setDockerImage($dockerImage);
+            return $this->dnsConfig->setDockerImage($name);
         }
     }
 
