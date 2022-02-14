@@ -41,8 +41,8 @@ class ConfigTool extends Tool
 				"\n".
 				"To query parts of the configuration:\n".
 				"  - {$entrypoint} get (with no specific key mentioned, will output entire configuration)\n".
-				"  - {$entrypoint} get=.type\n".
-				"  - {$entrypoint} get=.this.0.must.be.3.valid\n".
+				"  - {$entrypoint} get --key=.type\n".
+				"  - {$entrypoint} get --key=.this.0.must.be.3.valid\n".
 				"\n".	
 				"The last one will do a recursive lookup drilling down each level that are split by the dots\n".
 				"  - key(this) -> index(0) -> key(must) -> key(be) -> index(3) -> key(valid)\n".
