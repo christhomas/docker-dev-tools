@@ -3,7 +3,6 @@
 namespace DDT;
 
 use DDT\Exceptions\Container\CannotAutowireParameterException;
-use ReflectionClass;
 
 class Autowire
 {
@@ -26,23 +25,23 @@ class Autowire
 
     public function callMethod(object $class, string $method, ?array $args=[])
     {
-        $rClass= new \ReflectionClass($class);
+        $classMetadata = new \ReflectionClass($class);
 
-        if($rClass->hasMethod($method) === true || $rClass->hasMethod('__call') === false){
-            $rMethod = $rClass->getMethod($method);
+        if($classMetadata->hasMethod($method) === true || $classMetadata->hasMethod('__call') === false){
+            $rMethod = $classMetadata->getMethod($method);
             $finalArgs = $this->getMethodArgsFromCLI($rMethod, $args);
 
             return $rMethod->invoke($class, ...$finalArgs);
         }
 
-        $rMethod = $rClass->getMethod('__call');
+        $rMethod = $classMetadata->getMethod('__call');
 
         return $rMethod->invoke($class, $method, $args);
     }
 
-    public function getMethodArgsFromAssocArray(?\ReflectionFunctionAbstract $method = null, array $input): array
+    public function getMethodArgsFromAssocArray(\ReflectionFunctionAbstract $method, array $input): array
     {
-        $parameters = $method ? $method->getParameters() : [];
+        $parameters = $method->getParameters();
     
         $output = [];
         
@@ -68,10 +67,10 @@ class Autowire
         return $output;
     }
 
-    public function getMethodArgsFromCLI(?\ReflectionFunctionAbstract $method = null, array $input): array
+    public function getMethodArgsFromCLI(\ReflectionFunctionAbstract $method, array $input): array
     {
         // the method might not have any arguments, default to empty list
-        $parameters = $method->getParameters() ?? [];
+        $parameters = $method->getParameters();
 
         $output = [];
 
