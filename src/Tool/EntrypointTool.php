@@ -32,7 +32,7 @@ class EntrypointTool extends Tool
             $response = parent::handle();
             
             if(is_string($response)){
-                return $this->cli->print($response);
+                return $this->cli->print($response."\n");
             }
 
             return $response;
