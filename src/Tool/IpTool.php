@@ -37,14 +37,14 @@ class IpTool extends Tool
 				"to connect xdebug from your software running inside a container, to your local machine where your\n".
 				"IDE Is listening for incoming connections\n"
 			),
-			'options' => [
+			'options' => implode("\n",[
 				"set <ip-address>: Add an IP Address to your configuration stack, this value will be remembered and used in the future",
 				"get: Get the Currently configured IP Address.",
 				"add: Add '{yel}$alias{end}' as an ip alias for '{yel}127.0.0.1{end}'",
 				"remove: Remove '{yel}$alias{end}' from your computer",
 				"reset: Remove and Add the configuration again, just in case it broke somehow",
 				"ping: Ping the configured ip address",
-			],
+			]),
 			'notes' => trim(
 				"Please don't use '{yel}localhost{end}' or '{yel}127.0.0.1{end}'\n".
 				"\n".
