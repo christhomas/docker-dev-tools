@@ -2,21 +2,22 @@
 
 namespace DDT;
 
+use Exception;
 use DDT\Exceptions\Autowire\CannotAutowireParameterException;
 
 class Autowire
 {
-    /** @var Container */
-    private $container;
+    /** @var callable $resolver A callback to return a type that the autowire class wants resolved to an argument to pass */
+    private $resolver;
 
-    public function __construct(Container $container)
+    public function __construct(callable $resolver)
     {
-        $this->container = $container;
+        $this->resolver = $resolver;
     }
 
-    static public function instantiator(Container $container, string $ref, array $args)
+    static public function instantiator(callable $resolver, string $ref, array $args)
     {
-        $autowire = new Autowire($container);
+        $autowire = new Autowire($resolver);
 
         // Special case for the autowire class
         if($ref === Autowire::class){
@@ -66,8 +67,15 @@ class Autowire
                 $output[] = $input[$name];
             }else{
                 // var_dump(['class-exists' => [$type, class_exists($type)]]);
-                if($this->container->has($type)){
-                    $output[] = $this->container->get($type);
+
+                try{
+                    $instance = call_user_func($this->resolver, $type);
+                }catch(Exception $e){
+                    $instance = null;
+                }
+
+                if($instance){
+                    $output[] = $instance;
                 }else if ($p->isOptional()) {
                     $output[] = $p->getDefaultValue();
                 }else{

@@ -43,7 +43,7 @@ try{
 	$text = new Text();
 	$cli = new CLI($argv, $text);
 
-	$container = new Container($cli);
+	$container = new Container($cli, [Autowire::class, 'instantiator']);
 	$container->singleton(CLI::class, $cli);
 	$container->singleton(SystemConfig::class, function() {
 		static $c = null;

@@ -84,7 +84,8 @@ class Container {
         $this->cli->debug("{red}[CONTAINER]:{end} '$ref' was bound as class");
 
         if($this->instantiator){
-            return call_user_func_array($this->instantiator, [$this, $ref, $args]);
+            $resolver = [$this, "get"];
+            return call_user_func_array($this->instantiator, [$resolver, $ref, $args]);
         }
         
         $rc = new ReflectionClass($ref);
