@@ -141,6 +141,9 @@ class Text
 
 	public function box(string $string, string $foreground, string $background): string
 	{
+		$string = explode("\n", $string);
+		$string = implode("\n\t", $string);
+
 		return $this->write("{" . $foreground . "}{" . $background . "_b}\n\t\n\t" . trim($string) . "\n{end}\n");
 	}
 }
