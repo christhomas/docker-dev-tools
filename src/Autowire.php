@@ -27,115 +27,151 @@ class Autowire
         return $autowire->getInstance($ref, $args);
     }
 
-    public function getInstance(string $ref, ?array $args=[])
+    private function reformatArgs($input): array
     {
-        $reflectionClass = new \ReflectionClass($ref);
-        $constructor = $reflectionClass->getConstructor();
-        $finalArgs = $this->getMethodArgsFromAssocArray($constructor, $args);
+        // Don't do anything if the array if empty
+        if(count($input) === 0) return $input;
 
-        return $reflectionClass->newInstanceArgs($finalArgs);
-    }
-
-    public function callMethod(object $class, string $method, ?array $args=[])
-    {
-        $classMetadata = new \ReflectionClass($class);
-
-        if($classMetadata->hasMethod($method) === true || $classMetadata->hasMethod('__call') === false){
-            $rMethod = $classMetadata->getMethod($method);
-            $finalArgs = $this->getMethodArgsFromCLI($rMethod, $args);
-
-            return $rMethod->invoke($class, ...$finalArgs);
-        }
-
-        $rMethod = $classMetadata->getMethod('__call');
-
-        return $rMethod->invoke($class, $method, $args);
-    }
-
-    public function getMethodArgsFromAssocArray(\ReflectionFunctionAbstract $method, array $input): array
-    {
-        $parameters = $method->getParameters();
-    
         $output = [];
-        
-        foreach($parameters as $p){
-            $name = $p->getName();
-            $type = trim((string)$p->getType(), '?');
-            // var_dump(['param' => $name, 'type' => $type]);
 
-            if(array_key_exists($name, $input)){
-                $output[] = $input[$name];
+        foreach($input as $name => $value){
+            if(is_array($value) && array_key_exists('name', $value) && array_key_exists('value', $value)){
+                $output[] = ['name' => trim($value['name'], " -"), 'value' => $value['value']];
+            }else if(is_string($value)){
+                $output[] = ['name' => trim($name, " -"), 'value' => $value];
             }else{
-                // var_dump(['class-exists' => [$type, class_exists($type)]]);
-
-                try{
-                    $instance = call_user_func($this->resolver, $type);
-                }catch(Exception $e){
-                    $instance = null;
-                }
-
-                if($instance){
-                    $output[] = $instance;
-                }else if ($p->isOptional()) {
-                    $output[] = $p->getDefaultValue();
-                }else{
-                    throw new CannotAutowireParameterException($name, $type);
-                }
+                throw new Exception("Unexpected argument format, don't know how to fix it");
             }
         }
 
         return $output;
     }
 
-    public function getMethodArgsFromCLI(\ReflectionFunctionAbstract $method, array $input): array
+    public function getInstance(string $ref, ?array $args=[])
     {
-        // the method might not have any arguments, default to empty list
-        $parameters = $method->getParameters();
+        $rc = new \ReflectionClass($ref);
+        $constructor = $rc->getConstructor();
+        
+        $args = $this->reformatArgs($args);
+        $args = $this->resolveArgs($constructor, $args);
+
+        return $rc->newInstanceArgs($args);
+    }
+
+    public function callMethod(object $class, string $method, ?array $args=[])
+    {
+        $rc = new \ReflectionClass($class);
+
+        if($rc->hasMethod($method) === true || $rc->hasMethod('__call') === false){
+            $rMethod = $rc->getMethod($method);
+
+            $args = $this->reformatArgs($args);
+            $args = $this->resolveArgs($rMethod, $args);
+
+            return $rMethod->invoke($class, ...$args);
+        }
+
+        $rMethod = $rc->getMethod('__call');
+
+        return $rMethod->invoke($class, $method, $args);
+    }
+
+    private function resolveArgs(\ReflectionFunctionAbstract $method, array $input): array
+    {
+        $signatureParameters = $method->getParameters();
 
         $output = [];
 
-        // loop through them to pull out the information from the cli
-        foreach($parameters as $p){
-            $name = $p->getName();
-            $type = trim((string)$p->getType(), '?');
+        // var_dump("STARTING AUTOWIRING....................");
+        foreach($signatureParameters as $search){
+            $name = $search->getName();
+            $type = trim((string)$search->getType(), '?');
+            // var_dump(['param' => $name, 'type' => $type]);
 
-            // all named arguments are prefixed with double dash
-            $a = null;
-            foreach($input as $key => $item){
-                if($item['name'] === "--{$name}"){
-                    unset($input[$key]);
-                    $a = $item;
+            // var_dump(['SEARCH PARAMETER' => [$name, $type]]);
+
+            if(class_exists($type)){
+                // When the type is a class, 
+                foreach($input as $index => $data){
+                    if($data['name']  === $name && is_object($data['value']) && get_class($data['value']) === $type){
+                        $output[] = $data['value'];
+                        unset($input[$index]);
+                        // var_dump(['FOUND OBJECT ARG' => $name]);
+                        continue 2;
+                    }
+                }
+
+                $output[] = call_user_func($this->resolver, $type);
+                // var_dump(["FOUND CONTAINER ARG" => $type]);
+                continue;
+            }else{
+                // When the type is a string, we look in the input array for matches
+
+                // for every named parameter, we must look for an input parameter with the same name AND HAS A VALUE
+                foreach($input as $index => $data){
+                    if($data['name'] === $name){
+                        // var_dump(["TYPE CHECK($name)", is_numeric($data['value']) && is_int($data['value'] + 0), $data['value']]);
+                        if($type === 'bool' && is_bool($data['value'])){
+                            $output[] = (bool)$data['value'];
+                            unset($input[$index]);
+                            // var_dump(['FOUND NAMED BOOL' => $data]);
+                            continue 2;
+                        }else if($type === 'int' && is_numeric($data['value']) && is_int($data['value'] + 0)){
+                            $output[] = (int)$data['value'];
+                            unset($input[$index]);
+                            // var_dump(['FOUND NAMED INT' => $data]);
+                            continue 2;
+                        }else if($type === 'float' && is_numeric($data['value']) && is_float($data['value'] + 0)){
+                            $output[] = (float)$data['value'];
+                            unset($input[$index]);
+                            // var_dump(['FOUND NAMED FLOAT' => $data]);
+                            continue 2;
+                        }else if($type === 'string' && !empty($data['value'])){
+                            $output[] = $data['value'];
+                            unset($input[$index]);
+                            // var_dump(['FOUND NAMED STRING' => $data]);
+                            continue 2;
+                        }
+                    }
+                }
+
+                // We did not find a named parameter, therefore lets pick the first anonymous parameter
+                foreach($input as $index => $data){
+                    if(!empty($data['value'])){
+                        continue;
+                    }
+                    // var_dump(["TYPE CHECK($type / {$data['name']})", 'numeric' => is_numeric($data['name']) && is_int($data['name'] + 0), 'value' => $data['name']]);
+                    if($type === 'bool' && is_bool($data['name'])){
+                        $output[] = (bool)$data['name'];
+                        unset($input[$index]);
+                        // var_dump(["FOUND ANON BOOL" => $data['name']]);
+                        continue 2;
+                    }else if($type === 'int' && is_numeric($data['name']) && is_int($data['name'] + 0)){
+                        $output[] = (int)$data['name'];
+                        unset($input[$index]);
+                        // var_dump(["FOUND ANON INT" => $data['name']]);
+                        continue 2;
+                    }else if($type === 'float' && is_numeric($data['name']) && is_float($data['name'] + 0)){
+                        $output[] = (float)$data['name'];
+                        unset($input[$index]);
+                        // var_dump(["FOUND ANON FLOAT" => $data['name']]);
+                        continue 2;
+                    }else if($type === 'string' && !empty($data['name'])){
+                        $output[] = $data['name'];
+                        unset($input[$index]);
+                        // var_dump(["FOUND ANON STRING" => $data['name']]);
+                        continue 2;
+                    }
+                }
+
+                if ($search->isOptional()) {
+                    // var_dump(["FOUND DEFAULT VALUE($name)" => $search->getDefaultValue()]);
+                    $output[] = $search->getDefaultValue();
+                    continue;
                 }
             }
 
-            // named arguments can't be found, then this is an error
-            if(empty($a)){
-                if($p->isOptional()){
-                    $a = ['name' => $name, 'value' => $p->getDefaultValue()];
-                }else{
-                    throw new \Exception("This command required a parameter --{$name}, see help for more information");
-                }
-            }
-
-            // cast the value to the correct type according to reflection
-            $v = null;
-            $v = $a['value'];
-            if(!empty($type)){
-                settype($v, $type);
-                $v = (string)$a['value'] == (string)$v ? $v : null;
-            }
-
-            if(strlen((string)$v) === 0){
-                if($p->isOptional()){
-                    // if empty, and optional, use defaultValue();
-                    $v = $p->getDefaultValue();
-                }else{
-                    // if empty, but not optional, throw exception, this is an error
-                    throw new \Exception("The parameter --{$name} is not optional, has no default value, and must be provided");
-                }
-            }
-
-            $output[] = $v;
+            throw new CannotAutowireParameterException($name, $type);
         }
 
         return $output;

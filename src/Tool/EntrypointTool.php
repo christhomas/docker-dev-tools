@@ -2,76 +2,91 @@
 
 namespace DDT\Tool;
 
+use DDT\Autowire;
 use DDT\CLI;
-use DDT\Text\Text as Text;
 use DDT\Exceptions\Tool\ToolNotFoundException;
-use DDT\Exceptions\Tool\ToolNotSpecifiedException;
-use DDT\Exceptions\Tool\CommandNotFoundException;
-use DDT\Exceptions\Config\ConfigMissingException;
 
 class EntrypointTool extends Tool
 {
-    /** @var Text */
-    private $text;
-
-    public function __construct(CLI $cli, Text $text)
+    public function __construct(CLI $cli)
     {
-        parent::__construct($cli->getScript(false), $cli);
+        parent::__construct('entrypoint', $cli);
 
-        $this->text = $text;
+        $this->setDebug((bool)$cli->getArg('--debug', false, true));
+        $this->setQuiet((bool)$cli->getArg('--quiet', false, true));
     }
 
-    public function isTool(): bool
+    public function setDebug(bool $enable): void
     {
-        return false;
+        $this->debug = $enable;
+        $this->cli->enableErrors($enable);
+        $this->cli->listenChannel('debug', $enable);
+        
+        if($enable){
+            $state = $enable ? 'enabled' : 'disabled';
+            $this->cli->print("{yel}[SYSTEM]:{end} Errors $state\n");
+        }
+    }
+
+    public function getDebug(): bool
+    {
+        return $this->debug;
+    }
+
+    public function setQuiet(bool $enable): void
+    {
+        $this->quiet = $enable;
+        $this->cli->listenChannel('quiet', $enable);
+
+        if($enable){
+            $this->cli->print("{yel}[SYSTEM]:{end} Quiet output enabled\n");
+        }
+    }
+
+    public function getQuiet(): bool 
+    {
+        return $this->quiet;
     }
 
     public function handle()
-    {
-        try{
-            $response = parent::handle();
+    {        
+        $arg = $this->cli->shiftArg();
+        $tool = null;
+
+        if(!empty($arg)){
+            $name = strtolower($arg['name']);
             
-            if(is_string($response)){
-                return $this->cli->print($response."\n");
+            // We check if the tool requested is the entrypoint, which would be weird
+            // But we block this stupid thing from happening anyway
+            if($name !== $this->name) {
+                $tool = $this->getTool($name);
             }
+        }
 
+        if($tool instanceof Tool){                       
+            if($this->cli->countArgs() === 0){
+                // There were no commands or arguments, show help
+                $response = $tool->help();
+            }else if($method = $tool->getToolDefaultCommand()){
+                // There is a default command, call it with all the args passed
+                $autowire = container(Autowire::class);
+                $response = $autowire->callMethod($tool, $method, $this->cli->getArgList());
+            }else{
+                $method = $this->cli->shiftArg();
+                $method = $tool->getToolCommand($method['name']);
+
+                $autowire = container(Autowire::class);
+                $response = $autowire->callMethod($tool, $method, $this->cli->getArgList());
+            }
+    
+            if(is_string($response)){
+                $response = $this->cli->print($response."\n");
+            }
+    
             return $response;
-        }catch(ConfigMissingException $e){
-            $this->cli->failure($this->text->box($e->getMessage(), "wht", "red"));
-        }catch(ToolNotFoundException $e){
-            $this->cli->failure($e->getMessage());
-        }catch(ToolNotSpecifiedException $e){
-            $this->cli->failure($e->getMessage());
-        }catch(CommandNotFoundException $e){
-            $this->cli->failure($e->getMessage());
         }
-    }
 
-    public function handleArg(array $arg): void
-    {
-        switch(true){
-            case $arg['name'] === '--debug':
-                $this->cli->print("{yel}[SYSTEM]:{end} Errors enabled\n");
-                $this->cli->enableErrors(true);
-                $this->cli->listenChannel('debug');
-                break;
-            
-            case $arg['name'] === '--quiet':
-                $this->cli->print("{yel}[SYSTEM]:{end} Quiet output enabled\n");
-                $this->cli->listenChannel('quiet', false);
-                break;
-        }
-    }
-
-    public function handleCommand(array $command)
-    {
-        $tool = $this->getTool($command['name']);
-        
-        if($tool->isTool()){
-            return $tool->handle();
-        }
-        
-        throw new ToolNotFoundException($command['name']);
+        return $this->cli->print($this->help());
     }
 
     public function getToolMetadata(): array
@@ -83,15 +98,18 @@ class EntrypointTool extends Tool
         $options = [];
 
         foreach($list as $tool){
+            // Don't process 'itself' or 'entrypoint'
+            if($tool['name'] === $this->name){
+                continue;
+            }
+
             /** @var Tool */
             $instance = $this->getTool($tool['name']);
 
-            if($instance->isTool()){
-                $metadata = $instance->getToolMetadata();
-                $shortDescription = array_key_exists('short_description', $metadata) ? $metadata['short_description'] : $metadata['description'];
-                
-                $options[] = "  {yel}{$instance->getToolName()}{end}: {$shortDescription}";
-            }
+            $metadata = $instance->getToolMetadata();
+            $shortDescription = array_key_exists('short_description', $metadata) ? $metadata['short_description'] : $metadata['description'];
+            
+            $options[] = "  {yel}{$instance->getToolName()}{end}: {$shortDescription}";
         }
 
         return [

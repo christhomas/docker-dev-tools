@@ -2,6 +2,7 @@
 
 namespace DDT\Tool;
 
+use Exception;
 use DDT\Autowire;
 use DDT\CLI;
 use DDT\Exceptions\Tool\CommandInvalidException;
@@ -16,8 +17,8 @@ abstract class Tool
 	/** @var CLI */
     protected $cli;
 
-    /** @var string The main entrypoint from the terminal */
-    protected $entrypoint;
+    /** @var string $entrypoint The name of the script which acts as the entrypoint */
+    private $entrypoint;
 
     /** @var array The registered commands for this tool */
     private $commands = [];
@@ -31,35 +32,75 @@ abstract class Tool
         'getToolName',
     ];
 
+    /** @var bool $debug Whether to write or process any extra debugging info */
+    private $debug = false;
+
+    /** @var bool $quiet Whether or not to silence any output that shouldn't hit the terminal cause it's not wanted */
+    private $quiet = false;
+
     public function __construct(string $name, CLI $cli)
 	{
 		$this->name = $name;
 		$this->cli = $cli;
-        $this->entrypoint = $this->cli->getScript(false);
         
+        $this->setEntrypoint($this->cli->getScript(false));
         $this->registerCommand('help');
 	}
 
-    public function registerCommand(string $name, ?callable $callable=null, bool $isDefault=false): void
+    public function setEntrypoint(string $script): void 
     {
-        $this->command[$name] = [
-            'callable' => $callable ?? $name,
-            'is_default' => $isDefault
-        ];
+        $this->entrypoint = $script;
+    }
+    
+    public function getEntrypoint(): string 
+    {
+        return $this->entrypoint;
     }
 
-    public function isTool(): bool
+    public function setDebug(bool $enable): void
     {
-        return true;
+        $this->debug = $enable;
+    }
+
+    public function setQuiet(bool $enable): void
+    {
+        $this->quiet = $enable;
+    }
+
+    public function registerCommand(string $name, ?string $method=null, bool $isDefault=false): void
+    {
+        // TODO: block registering protected functions
+
+        $this->command[$name] = ['method' => $method ?? $name, 'is_default' => $isDefault];
+    }
+
+    public function getToolDefaultCommand(): ?string
+    {
+        foreach($this->command as $c){
+            if($c['is_default'] === true){
+                return $c['method'];
+            }
+        }
+
+        return null;
+    }
+
+    public function getToolCommand(string $name): ?string
+    {
+        if(array_key_exists($name, $this->command)){
+            return $this->command[$name]['method'];
+        }
+
+        throw new Exception("The requested command '$name' was not registered");
     }
 
     public function getTool(string $name): Tool
     {
         try{
-            if(empty($name)) throw new \Exception('Tool name cannot be empty');
+            if(empty($name)) throw new Exception('Tool name cannot be empty');
             
             return container('DDT\\Tool\\'.ucwords($name).'Tool');
-        }catch(\Exception $e){
+        }catch(Exception $e){
             $this->cli->debug("{red}".$e->getMessage()."{end}");
             throw new ToolNotFoundException($name, 0, $e);
         }
@@ -94,75 +135,6 @@ abstract class Tool
                 'They are formatted as bulletpoints'
             ],
         ];
-    }
-
-    protected function getCommandMethod(array $command)
-    {
-        if(empty($command) || !array_key_exists('name', $command) || empty($command['name'])){
-            throw new CommandInvalidException();
-        }
-
-        $name = strtolower($command['name']);
-
-        $command = $name;
-        $command = str_replace(['-', '_'], ' ', $command);
-        $command = ucwords($command);
-        $command = str_replace(' ', '', $command);
-        $command = lcfirst($command);
-        $command = $command . "Command";
-
-        if(!is_callable([$this, $command])){
-            throw new CommandNotFoundException("$this->entrypoint $this->name", $name);
-        }
-
-        return $command;
-    }
-
-    /**
-     * Handle the command line parameters
-     * 
-     * This is generic since it delegates it's work to handleArg/handleCommand to do the specifics
-     */
-    public function handle()
-    {
-        while($this->cli->countArgs() > 0){
-            $arg = $this->cli->shiftArg();
-
-            if(strpos($arg['name'], '--') === 0){
-                $this->handleArg($arg);
-            }else{
-                return $this->handleCommand($arg);
-            }
-        }
-
-        return $this->help();
-    }
-
-    /**
-     * Handle what to do with the current argument being processed
-     * 
-     * The tool must overload this method with it's own custom implementation based on how it processed arguments
-     * into a meaningful way inside the tool
-     */
-    public function handleArg(array $arg): void
-    {
-        $this->cli->debug(get_class($this). " - Unhandled argument named '{$arg['name']}' with value '{$arg['value']}'");
-    }
-    
-    /**
-     * Handle what to do with the current command being processed
-     * 
-     * All tools do the same thing, they search for a method called cmdCommand where cmd is what was on the command line
-     * and if found, it's executed and
-     */
-    public function handleCommand(array $command)
-    {
-        $command = $this->getCommandMethod($command);
-
-        $args = $this->cli->getArgList();
-
-        $autowire = new Autowire(container());
-        return $autowire->callMethod($this, $command, $args);
     }
 
     public function help(): string
