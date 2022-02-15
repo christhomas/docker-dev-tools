@@ -33,10 +33,10 @@ class SetupTool extends Tool
         $this->home = $home ?? $_SERVER['HOME'];
         $this->files = $this->getExistingFiles($this->files);
 
-        $this->registerCommand('install');
-        $this->registerCommand('uninstall');
-        $this->registerCommand('test');
-        $this->registerCommand('setPath');
+        $this->registerCommand('install', 'installCommand');
+        $this->registerCommand('uninstall', 'uninstallCommand');
+        $this->registerCommand('test', 'testCommand');
+        $this->registerCommand('setPath', 'setPathCommand');
     }
 
     public function getExistingFiles(array $files): array
@@ -262,8 +262,8 @@ class SetupTool extends Tool
 		foreach($path as $segment){
 			if($toolPath === $segment){
 				try {
-					$this->cli->exec("bash --login -c '$script --help'");
-					$this->cli->exec("bash -c '$toolPath/$script --help'");
+					$this->cli->exec("bash --login -c '$script'");
+					$this->cli->exec("bash -c '$toolPath/$script'");
                     $this->cli->box("The path was successfully installed, you might need to open a new terminal to see the effects", "blk", "grn");
 					return true;
 				}catch(\Exception $e){

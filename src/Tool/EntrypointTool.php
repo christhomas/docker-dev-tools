@@ -63,7 +63,7 @@ class EntrypointTool extends Tool
             }
         }
 
-        if($tool instanceof Tool){                       
+        if($tool instanceof Tool){
             if($this->cli->countArgs() === 0){
                 // There were no commands or arguments, show help
                 $response = $tool->help();

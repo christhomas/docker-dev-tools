@@ -23,6 +23,13 @@ class ConfigTool extends Tool
 		$this->systemConfig = container('config.file.system');
 
 		$this->text = $text;
+
+		$this->registerCommand('reset', 'resetCommand');
+		$this->registerCommand('get', 'getCommand');
+		$this->registerCommand('delete', 'deleteCommand');
+		$this->registerCommand('set', 'setCommand');
+		$this->registerCommand('validate', 'validateCommand');
+		$this->registerCommand('version', 'versionCommand');
     }
 
 	public function getToolMetadata(): array

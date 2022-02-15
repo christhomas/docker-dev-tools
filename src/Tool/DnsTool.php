@@ -34,6 +34,25 @@ class DnsTool extends Tool
 
         $this->dnsMasq = $dnsMasq;
         $this->dnsService = $dnsService;
+
+        $this->registerCommand('enable', 'enableCommand');
+        $this->registerCommand('disable', 'disableCommand');
+        $this->registerCommand('refresh', 'refreshCommand');
+        $this->registerCommand('start', 'startCommand');
+        $this->registerCommand('stop', 'stopCommand');
+        $this->registerCommand('restart', 'restartCommand');
+        $this->registerCommand('logs', 'logsCommand');
+        $this->registerCommand('logsF', 'logsFCommand');
+        $this->registerCommand('addDomain', 'addDomainCommand');
+        $this->registerCommand('removeDomain', 'removeDomainCommand');
+        $this->registerCommand('ip', 'ipCommand');
+        $this->registerCommand('ping', 'pingCommand');
+        $this->registerCommand('containerName', 'containerNameCommand');
+        $this->registerCommand('dockerImage', 'dockerImageCommand');
+        $this->registerCommand('status', 'statusCommand');
+        $this->registerCommand('listDevices', 'listDevicesCommand');
+        $this->registerCommand('setDevice', 'setDeviceCommand');
+        $this->registerCommand('removeDevice', 'removeDeviceCommand');
     }
 
     public function getToolMetadata(): array

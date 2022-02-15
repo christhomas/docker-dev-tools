@@ -20,6 +20,18 @@ class ProxyTool extends Tool
 
         $this->config = $config;
         $this->proxy = $proxy;
+
+        $this->registerCommand('start', 'startCommand');
+        $this->registerCommand('stop', 'stopCommand');
+        $this->registerCommand('restart', 'restartCommand');
+        $this->registerCommand('logs', 'logsCommand');
+        $this->registerCommand('logsF', 'logsFCommand');
+        $this->registerCommand('addNetwork', 'addNetworkCommand');
+        $this->registerCommand('removeNetwork', 'removeNetworkCommand');
+        $this->registerCommand('nginxConfig', 'nginxConfigCommand');
+        $this->registerCommand('status', 'statusCommand');
+        $this->registerCommand('containerName', 'containerNameCommand');
+        $this->registerCommand('dockerImage', 'dockerImageCommand');
     }
 
     public function getToolMetadata(): array
