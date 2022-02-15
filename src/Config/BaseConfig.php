@@ -5,14 +5,17 @@ namespace DDT\Config;
 use DDT\Helper\Arr;
 use DDT\Exceptions\Config\ConfigMissingException;
 use DDT\Exceptions\Config\ConfigInvalidException;
+use DDT\Exceptions\Config\ConfigReadonlyException;
 
 abstract class BaseConfig implements ConfigInterface
 {
     private $data = [];
 	private $filename = null;
+    private $readonly = false;
 
-    public function __construct(string $filename)
+    public function __construct(string $filename, bool $readonly=false)
 	{
+        $this->readonly = $readonly;
 		$this->setFilename($filename);
         $this->read();
     }
@@ -98,6 +101,10 @@ abstract class BaseConfig implements ConfigInterface
 
 	public function write(?string $filename=null): bool
 	{
+        if($this->readonly){
+            throw new ConfigReadonlyException();
+        }
+
 		$filename = $filename ?: $this->getFilename();
 
 		$data = json_encode($this->data, JSON_PRETTY_PRINT);
