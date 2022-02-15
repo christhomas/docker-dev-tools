@@ -2,25 +2,15 @@
 
 namespace DDT\Tool;
 
-use DDT\Config\ProjectGroupConfig;
 use DDT\CLI;
 use DDT\Exceptions\Config\ConfigMissingException;
 use DDT\RunService;
 
 class RunTool extends Tool
 {
-    /** @var \DDT\Config\ProjectGroupConfig  */
-    private $config;
-
-    /** @var \DDT\RunService */
-    private $runService;
-
-    public function __construct(CLI $cli, ProjectGroupConfig $config, RunService $runService)
+    public function __construct(CLI $cli)
     {
     	parent::__construct('run', $cli);
-
-        $this->config = $config;
-        $this->runService = $runService;
         $this->registerCommand('script', null, true);
     }
 
@@ -46,11 +36,11 @@ class RunTool extends Tool
         ];
     }
 
-    public function scriptCommand(string $group, string $project, string $name): void
+    public function script(RunService $runService, string $name, string $group, string $project): void
     {
         try{
-            $this->runService->reset();
-            $this->runService->run($group, $project, $name);
+            $runService->reset();
+            $runService->run($group, $project, $name);
         }catch(ConfigMissingException $exception){
             $this->cli->failure("The project directory for '$project' in group '$group' was not found");
         }

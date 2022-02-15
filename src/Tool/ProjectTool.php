@@ -20,6 +20,11 @@ class ProjectTool extends Tool
 
         $this->config = $config;
         $this->repoService = $repoService;
+        $this->registerCommand('list', 'listCommand');
+        $this->registerCommand('add-group', 'addGroupCommand');
+        $this->registerCommand('remove-group', 'removeGroupCommand');
+        $this->registerCommand('add-project', 'addProjectCommand');
+        $this->registerCommand('remove-project', 'removeProjectCommand');
     }
 
     public function getToolMetadata(): array
@@ -34,26 +39,26 @@ class ProjectTool extends Tool
             ),
             'options' => trim(
                 "{cyn}Managing Groups{end}:\n".
-                "list: List the project groups\n".
-                "add-group --name=group-name: Create a new project group.\n".
-                "remove-group --name=group-name: Remove a project group.\n".
+                "\tlist: List the project groups\n".
+                "\tadd-group --name=group-name: Create a new project group.\n".
+                "\tremove-group --name=group-name: Remove a project group.\n".
                 "\n".
-                "\n\t{cyn}Adding Projects{end}:\n".
-                "add-project --name=<project-name>: Will add a new project that already exists on the disk.\n".
-                "--group=<group>: (REQUIRED) The group to which this project will be added\n".
-                "--dir=<path>: (REQUIRED) The location on the filesystem for this project\n".
-                "--type=<npm|composer|ddt>: (OPTIONAL: default=ddt) One of the supported project types. {yel}(See Project Type list below){end}\n".
+                "{cyn}Adding Projects{end}:\n".
+                "\tadd-project --name=<project-name>: Will add a new project that already exists on the disk.\n".
+                "\t--group=<group>: (REQUIRED) The group to which this project will be added\n".
+                "\t--dir=<path>: (REQUIRED) The location on the filesystem for this project\n".
+                "\t--type=<npm|composer|ddt>: (OPTIONAL: default=ddt) One of the supported project types. {yel}(See Project Type list below){end}\n".
                 "\n".
-                "\n\t{cyn}Removing Projects{end}:\n".
-                "remove-project --name=project-name: Remove the project from the group given.\n".
-                "--group: (REQUIRED) The group from which this project will be removed\n".
-                "--delete: (OPTIONAL) {red}**DANGEROUS**{end} This option will not only remove the project from a group, but delete the files from disk\n".
+                "{cyn}Removing Projects{end}:\n".
+                "\tremove-project --name=project-name: Remove the project from the group given.\n".
+                "\t--group: (REQUIRED) The group from which this project will be removed\n".
+                "\t--delete: (OPTIONAL) {red}**DANGEROUS**{end} This option will not only remove the project from a group, but delete the files from disk\n".
                 "\n".
-                "\n\t{cyn}Project Types{end}:\n".
-                "These just define where the configuration will be stored, it has one of the following values:\n\n".
-                "npm: This project type will use the 'package.json' file.\n".
-                "composer: This project type will use the 'composer.json' file.\n".
-                "ddt: {yel}(default if no type given){end} This project will use the 'ddt-project.json' file\n"
+                "{cyn}Project Types{end}:\n".
+                "\tThese just define where the configuration will be stored, it has one of the following values:\n\n".
+                "\tnpm: This project type will use the 'package.json' file.\n".
+                "\tcomposer: This project type will use the 'composer.json' file.\n".
+                "\tddt: {yel}(default if no type given){end} This project will use the 'ddt-project.json' file\n"
             ),
         ];
     }
