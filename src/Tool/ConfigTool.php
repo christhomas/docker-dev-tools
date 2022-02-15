@@ -12,16 +12,22 @@ class ConfigTool extends Tool
 	/** @var Text */
 	private $text;
 
+	private $defaultConfig;
+	private $homeConfig;
+
     public function __construct(CLI $cli, Text $text)
     {
     	parent::__construct('config', $cli);
+
+		$this->defaultConfig = container('config.file.default');
+		$this->systemConfig = container('config.file.system');
 
 		$this->text = $text;
     }
 
 	public function getToolMetadata(): array
 	{
-		$entrypoint = $this->entrypoint . " " . $this->getToolName();
+		$entrypoint = $this->getEntrypoint() . " " . $this->getToolName();
 
 		return [
 			'title' => 'Configuration',
@@ -96,34 +102,27 @@ class ConfigTool extends Tool
 
 	private function writeNewConfig(): bool
 	{
-		$newConfig = new SystemConfig(__DIR__ . '/../../default.ddt-system.json');
+		$newConfig = container(SystemConfig::class, ['filename' => $this->defaultConfig]);
 		
-		return $newConfig->write(getenv('HOME').'/.ddt-system.json');
+		return $newConfig->write($this->homeConfig);
 	}
 
 	public function resetCommand(): string
 	{
-		// Test if system configuration exists, if yes, it'll pass under the catch and continue as normal
-		if($this->exists() === false){
-			// Nope! We need to create the first one, this should only really happen once
-			if($this->writeNewConfig()){
-				return $this->text->box("The file '\$HOME/.ddt-system.json' file was not found, a new one was written", "blk", "grn");
-			}else{
-				return $this->text->box("The file '\$HOME/.ddt-system.json' file was not found, but writing a new one has failed for unknown reasons", "wht", "red");
-			}
-		}
+		// Test if system configuration exists, if yes then you'll be asked to reset it
+		if($this->exists()){
+			$reply = $this->cli->ask('Are you sure you want to reset your configuration?', ['yes', 'no']);
 
-		$reply = $this->cli->ask('Are you sure you want to reset your configuration?', ['yes', 'no']);
-
-		if($reply !== 'yes'){
-			return $this->text->box("The request to reset was refused", "wht", "red");
+			if($reply !== 'yes'){
+				return $this->text->box("The request to reset was refused", "wht", "red");
+			}	
 		}
 
 		if($this->writeNewConfig()){
-			return $this->text->box("The file '\$HOME/.ddt-system.json' was overwritten with a default template", "blk", "grn");
+			return $this->text->box("The file '{$this->homeConfig}' file was not found, a new one was written", "blk", "grn");
 		}
 
-		return $this->text->box("The file '\$HOME/.ddt-system.json' could not be written, the state of the file is unknown, please manually check it", "wht", "red");
+		return $this->text->box("The file '{$this->homeConfig}' could not be written, the state of the file is unknown, please manually check it", "wht", "red");
 	}
 
 	public function getCommand(?string $key='.', ?bool $raw=null): string
