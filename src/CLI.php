@@ -2,6 +2,7 @@
 
 namespace DDT;
 
+use Exception;
 use DDT\Text\Text;
 
 class CLI
@@ -136,6 +137,7 @@ class CLI
 		return array_shift($this->args);
 	}
 
+	// USELESS FUNCTIONALITY
 	public function removeArg(string $name): ?array
 	{
 		foreach($this->args as $k => $v){
@@ -158,21 +160,37 @@ class CLI
 		return $this->args;
 	}
 
-	public function getArg(string $name, $default=null): ?string
+	/**
+	 * Obtain the value of a named argument
+	 * 
+	 * @param $name the argument to find
+	 * @param $default the value to return when not found
+	 * @param $remove whether to remove the argument from the list afterwards
+	 * @return null when argument is not found but no alternative default is set
+	 * @return true when argument is set without value
+	 * @return string when argument is set with value
+	 */
+	public function getArg(string $name, $default=null, bool $remove=false)
 	{
-		foreach($this->args as $arg){
+		$value = $default;
+
+		foreach($this->args as $index => $arg){
 			if($arg['name'] === $name){
-				return empty($arg['value']) ? "true" : $arg['value'];
+				$value = empty($arg['value']) ? true : $arg['value'];
+
+				if($remove){
+					unset($this->args[$index]);
+				}
 			}
 		}
 
-		return $default;
+		return $value;
 	}
 
 	public function hasArg($name): ?bool
 	{
 		if(is_string($name)) $name = [$name];
-		if(!is_array($name)) throw new \Exception("name parameter must be string or array");
+		if(!is_array($name)) throw new Exception("name parameter must be string or array");
 
 		foreach($name as $test){
 			if($this->getArg($test) === null){
@@ -188,7 +206,7 @@ class CLI
 		try{
 			$this->exec("command -v $command");
 			return true;
-		}catch(\Exception $e){
+		}catch(Exception $e){
 			return false;
 		}
 	}
@@ -216,8 +234,6 @@ class CLI
 
 	public function exec(string $command, bool $firstLine=false, bool $throw=true)
 	{
-		$debug = "{red}[EXEC]:{end} $command";
-
 		unset($pipes);
 		$pipes = [];
 
@@ -236,13 +252,13 @@ class CLI
 
 		self::$exitCode = $code;
 
+		$debug = "{red}[EXEC]:{end} $command";
 		$debug = "$debug, {blu}Return Code:{end} $code";
 		$debug = "$debug, {blu}Error Output:{end} '".self::$stderr."'";
-
 		$this->debug($debug);
 
 		if($code !== 0 && $throw === true){
-			throw new \Exception(self::$stdout." ".self::$stderr, $code);
+			throw new Exception(self::$stdout." ".self::$stderr, $code);
 		}
 
 		$output = empty(self::$stdout) ? [""] : explode("\n", self::$stdout);
@@ -261,7 +277,7 @@ class CLI
 		self::$exitCode = $code;
 
 		if ($code !== 0 && $throw === true){
-			throw new \Exception(__METHOD__.": error with command '$command'\n");
+			throw new Exception(__METHOD__.": error with command '$command'\n");
 		}
 
 		return $code;
@@ -315,45 +331,5 @@ class CLI
 		}
 
 		exit($exitCode);
-	}
-
-	// DEPRECATED FUNCTIONALITY BELOW, TRY TO NOT USE ANY OF THE FOLLOWING METHODS
-
-	/**
-	 *	FIXME: I don't like that this function is here, it's a copy of another function in the base config object
-	 * 	NOTE: it's also nothing to do with the CLI really, so it's awkward to have it here
-	 * @param string|null $subpath
-	 * @return string
-	 * @deprecated
-	 */
-	static public function getToolPath(string $subpath=null): string
-	{
-		return dirname(__DIR__) . $subpath;
-	}
-
-	/**
-	 * @deprecated
-	 */
-	public function setArg(string $name, $value=null): void
-	{
-		$this->args[] = ['name' => $name, 'value' => $value];
-	}
-
-	/**
-	 * @deprecated
-	 */
-	public function getArgWithVal(string $name, $default=null): ?string
-	{
-		$arg = $this->getArg($name, $default);
-
-		return $arg != "true" ? $arg : $default;
-	}
-
-	/**
-	 * @deprecated
-	 */
-	public function getArgByIndex(int $index): ?string
-	{
-		return array_key_exists($index, $this->args) ? $this->args[$index]['value'] : null;
 	}
 }
