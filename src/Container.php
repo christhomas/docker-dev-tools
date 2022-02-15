@@ -2,21 +2,24 @@
 
 namespace DDT;
 
+use ReflectionClass;
 use DDT\Exceptions\Container\NotClassReferenceException;
 
 class Container {
     static public $instance = null;
 
     private $cli;
+    private $instantiator = null;
     private $bind = [];
     private $singleton = [];
     private $singletonCache = [];
 
-    public function __construct(CLI $cli)
+    public function __construct(CLI $cli, ?callable $instantiator=null)
     {
         self::$instance = $this;
 
         $this->cli = $cli;
+        $this->instantiator = $instantiator;
     }
 
     public function bind(string $ref, $func){
@@ -79,11 +82,13 @@ class Container {
 
     private function createClass(string $ref, array $args = []) {
         $this->cli->debug("{red}[CONTAINER]:{end} '$ref' was bound as class");
+
+        if($this->instantiator){
+            return call_user_func_array($this->instantiator, [$this, $ref, $args]);
+        }
         
-        // NOTE: You can't use the container to get this class, infinite loop!
-        $autowire = new Autowire($this);
-        
-        return $autowire->getInstance($ref, $args);
+        $rc = new ReflectionClass($ref);
+        return $rc->newInstanceArgs($args);
     }
 
     public function isSingleton(string $ref): bool {
