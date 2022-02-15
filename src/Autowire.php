@@ -27,26 +27,6 @@ class Autowire
         return $autowire->getInstance($ref, $args);
     }
 
-    private function reformatArgs($input): array
-    {
-        // Don't do anything if the array if empty
-        if(count($input) === 0) return $input;
-
-        $output = [];
-
-        foreach($input as $name => $value){
-            if(is_array($value) && array_key_exists('name', $value) && array_key_exists('value', $value)){
-                $output[] = ['name' => trim($value['name'], " -"), 'value' => $value['value']];
-            }else if(is_string($value)){
-                $output[] = ['name' => trim($name, " -"), 'value' => $value];
-            }else{
-                throw new Exception("Unexpected argument format, don't know how to fix it");
-            }
-        }
-
-        return $output;
-    }
-
     public function getInstance(string $ref, ?array $args=[])
     {
         $rc = new \ReflectionClass($ref);
@@ -77,6 +57,26 @@ class Autowire
         $rMethod = $rc->getMethod('__call');
 
         return $rMethod->invoke($class, $method, $args);
+    }
+
+    private function reformatArgs($input): array
+    {
+        // Don't do anything if the array if empty
+        if(count($input) === 0) return $input;
+
+        $output = [];
+
+        foreach($input as $name => $value){
+            if(is_array($value) && array_key_exists('name', $value) && array_key_exists('value', $value)){
+                $output[] = ['name' => trim($value['name'], " -"), 'value' => $value['value']];
+            }else if(is_string($value)){
+                $output[] = ['name' => trim($name, " -"), 'value' => $value];
+            }else{
+                throw new Exception("Unexpected argument format, don't know how to fix it");
+            }
+        }
+
+        return $output;
     }
 
     private function resolveArgs(\ReflectionFunctionAbstract $method, array $input): array
