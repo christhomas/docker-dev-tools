@@ -6,7 +6,7 @@ class ComposerProjectConfig extends StandardProjectConfig
 {
 	protected function initDataStore(): void
 	{
-		$this->setKey('.', $this->getKey('ddt-tools') ?? []);
+		$this->setKey('.', $this->getKey('docker-dev-tools') ?? []);
 	}
 
     public function getDefaultFilename(): string
