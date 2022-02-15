@@ -35,17 +35,17 @@ class ProjectTool extends Tool
             'options' => trim(
                 "{cyn}Managing Groups{end}:\n".
                 "list: List the project groups\n".
-                "add-group=name: Create a new project group.\n".
-                "remove-group=name: Remove a project group.\n".
+                "add-group --name=group-name: Create a new project group.\n".
+                "remove-group --name=group-name: Remove a project group.\n".
                 "\n".
                 "\n\t{cyn}Adding Projects{end}:\n".
-                "add-project=name: Will add a new project that already exists on the disk.\n".
-                "--group: (REQUIRED) The group to which this project will be added\n".
-                "--path: (REQUIRED) The location on the filesystem for this project\n".
-                "--type: (OPTIONAL: default=ddt) One of the supported project types. {yel}(See Project Type list below){end}\n".
+                "add-project --name=<project-name>: Will add a new project that already exists on the disk.\n".
+                "--group=<group>: (REQUIRED) The group to which this project will be added\n".
+                "--dir=<path>: (REQUIRED) The location on the filesystem for this project\n".
+                "--type=<npm|composer|ddt>: (OPTIONAL: default=ddt) One of the supported project types. {yel}(See Project Type list below){end}\n".
                 "\n".
                 "\n\t{cyn}Removing Projects{end}:\n".
-                "remove-project=project-name: Remove the project from the group given.\n".
+                "remove-project --name=project-name: Remove the project from the group given.\n".
                 "--group: (REQUIRED) The group from which this project will be removed\n".
                 "--delete: (OPTIONAL) {red}**DANGEROUS**{end} This option will not only remove the project from a group, but delete the files from disk\n".
                 "\n".
