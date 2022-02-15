@@ -2,7 +2,7 @@
 
 namespace DDT;
 
-use DDT\Exceptions\Container\CannotAutowireParameterException;
+use DDT\Exceptions\Autowire\CannotAutowireParameterException;
 
 class Autowire
 {
