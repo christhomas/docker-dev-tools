@@ -71,6 +71,9 @@ class Autowire
             return $rMethod->invoke($class, ...$args);
         }
 
+        // TODO: how will this reformat/resolve argument code work 
+        // against __call interfaces which typically have no arguments
+        // and work like magic? Surely this will fail?
         $rMethod = $rc->getMethod('__call');
 
         return $rMethod->invoke($class, $method, $args);
