@@ -1,5 +1,6 @@
 <?php declare(strict_types=1);
 
+use DDT\Autowire;
 use DDT\CLI;
 use DDT\Text\Text;
 use DDT\Container;
@@ -11,6 +12,9 @@ use DDT\Contract\DnsServiceInterface;
 use DDT\Exceptions\Config\ConfigInvalidException;
 use DDT\Exceptions\Config\ConfigMissingException;
 use DDT\Exceptions\Container\ContainerNotInstantiatedException;
+use DDT\Exceptions\Tool\CommandNotFoundException;
+use DDT\Exceptions\Tool\ToolNotFoundException;
+use DDT\Exceptions\Tool\ToolNotSpecifiedException;
 
 try{
 	if (version_compare(phpversion(), '7.2', '<')) {
@@ -44,16 +48,36 @@ try{
 	$cli = new CLI($argv, $text);
 
 	$container = new Container($cli, [Autowire::class, 'instantiator']);
+
+	// Set these two important locations for either the system configuration
+	// This is the default system configuration that is the basic template for any new installation
+	$container->singleton('config.file.default', __DIR__ . '/../default.ddt-system.json');
+	// This is the currently installed system configuration
+	$container->singleton('config.file.system', $_SERVER['HOME'] . '/.ddt-system.json');
+
 	$container->singleton(CLI::class, $cli);
+	
 	$container->singleton(SystemConfig::class, function() {
 		static $c = null;
-		if($c === null) $c = new SystemConfig($_SERVER['HOME']);
+		
+		if($c === null) {
+			$installConfig = container('config.file.system');
+			$defaultConfig = container('config.file.default');
+
+			if(file_exists($installConfig)){
+				$c = new SystemConfig($installConfig, false);
+			}else{
+				$c = new SystemConfig($defaultConfig, true);
+			}
+		}
+
 		return $c;
 	});
 
 	// Set the container to have some default values which can be extracted on demand
 	// This just centralises all the defaults in one place, there are other ways to do it
 	// But this just seems to be a nice place since you're also setting up the rest of the di-container
+	// TODO: This is already stored in the default.ddt-system.json file and should be used instead of duplicating this here
 	$container->singleton('defaults.ip_address',			'10.254.254.254');
 	$container->singleton('defaults.proxy.docker_image',	'christhomas/nginx-proxy:alpine');
 	$container->singleton('defaults.proxy.container_name',	'ddt-proxy');
@@ -80,10 +104,16 @@ try{
 
 	$tool = container(EntrypointTool::class);
 	$tool->handle();
-}catch(\Exception $e){
-	$cli->failure($text->box('The tool has a non-specified exception: ' . $e->getMessage(), "wht", "red"));
 }catch(ConfigMissingException $e){
-	$cli->failure($text->box($e->getMessage(), "wht", "red"));
+	$cli->failure(get_class($e) . $text->box($e->getMessage(), "wht", "red"));
 }catch(ConfigInvalidException $e){
 	$cli->failure($text->box($e->getMessage(), "wht", "red"));
+}catch(ToolNotFoundException $e){
+	$cli->failure($text->box($e->getMessage(), "wht", "red"));
+}catch(ToolNotSpecifiedException $e){
+	$cli->failure($text->box($e->getMessage(), "wht", "red"));
+}catch(CommandNotFoundException $e){
+	$cli->failure($text->box($e->getMessage(), "wht", "red"));
+}catch(Exception $e){
+	$cli->failure($text->box(get_class($e) . ":\nThe tool has a non-specified exception: " . $e->getMessage(), "wht", "red"));
 }
