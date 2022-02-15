@@ -14,6 +14,18 @@ class Autowire
         $this->container = $container;
     }
 
+    static public function instantiator(Container $container, string $ref, array $args)
+    {
+        $autowire = new Autowire($container);
+
+        // Special case for the autowire class
+        if($ref === Autowire::class){
+            return $autowire;
+        }
+        
+        return $autowire->getInstance($ref, $args);
+    }
+
     public function getInstance(string $ref, ?array $args=[])
     {
         $reflectionClass = new \ReflectionClass($ref);
@@ -47,7 +59,7 @@ class Autowire
         
         foreach($parameters as $p){
             $name = $p->getName();
-            $type = (string)$p->getType();
+            $type = trim((string)$p->getType(), '?');
             // var_dump(['param' => $name, 'type' => $type]);
 
             if(array_key_exists($name, $input)){
@@ -77,7 +89,7 @@ class Autowire
         // loop through them to pull out the information from the cli
         foreach($parameters as $p){
             $name = $p->getName();
-            $type = (string)$p->getType();
+            $type = trim((string)$p->getType(), '?');
 
             // all named arguments are prefixed with double dash
             $a = null;
