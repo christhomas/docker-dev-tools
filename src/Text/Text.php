@@ -4,6 +4,8 @@ namespace DDT\Text;
 
 class Text
 {
+	private $tab = "  ";
+	
 	private $codes = [
 		// foreground colours
 		'blk' => "\033[30m",
@@ -111,7 +113,8 @@ class Text
 			$string = str_replace('{'.$key.'}', $code['value'], $string);
 		}
 
-		return $string;
+		// Replace all tabs with the configured replacement
+		return str_replace("\t", $this->tab, $string);
 	}
 
 	public function white(string $string): string
