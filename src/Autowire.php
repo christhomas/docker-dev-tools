@@ -69,10 +69,15 @@ class Autowire
         foreach($input as $name => $value){
             if(is_array($value) && array_key_exists('name', $value) && array_key_exists('value', $value)){
                 $output[] = ['name' => trim($value['name'], " -"), 'value' => $value['value']];
-            }else if(is_string($value)){
-                $output[] = ['name' => trim($name, " -"), 'value' => $value];
             }else{
-                throw new Exception("Unexpected argument format, don't know how to fix it");
+                $output[] = ['name' => trim($name, " -"), 'value' => $value];
+            // }else{
+            //     throw new Exception(implode("\n",[
+            //         "Unexpected argument format, don't know how to fix it",
+            //         "Json Formatted input: ".json_encode($input),
+            //         "Stack:",
+            //         (new Exception)->getTraceAsString(),
+            //     ]));
             }
         }
 
@@ -89,7 +94,10 @@ class Autowire
         foreach($signatureParameters as $search){
             $name = $search->getName();
             $type = trim((string)$search->getType(), '?');
-            // var_dump(['param' => $name, 'type' => $type]);
+
+            if(empty($type)){
+                $type = 'string';
+            }
 
             // var_dump(['SEARCH PARAMETER' => [$name, $type]]);
 
@@ -107,6 +115,17 @@ class Autowire
                 $output[] = call_user_func($this->resolver, $type);
                 // var_dump(["FOUND CONTAINER ARG" => $type]);
                 continue;
+            }else if($type === 'array'){
+                foreach($input as $index => $data){
+                    if($data['name'] == $name){
+                        if(is_array($data['value'])){
+                            $output[] = $data['value'];
+                            unset($input[$index]);
+                            // var_dump(['FOUND NAMED ARRAY' => $data]);
+                            continue 2;
+                        }
+                    }
+                }
             }else{
                 // When the type is a string, we look in the input array for matches
 
