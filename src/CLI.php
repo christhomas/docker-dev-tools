@@ -125,8 +125,12 @@ class CLI
 
 		foreach($argv as $v){
 			$v = explode('=', $v);
+			$a = [];
+			
+			if(count($v)) $a['name'] = array_shift($v);
+			if(count($v)) $a['value'] = array_shift($v);
 
-			$this->args[] = ['name' => array_shift($v), 'value' => array_shift($v)];
+			$this->args[] = $a;
 		}
 
 		return $this->args;
