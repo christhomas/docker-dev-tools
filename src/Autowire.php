@@ -4,6 +4,8 @@ namespace DDT;
 
 use Exception;
 use DDT\Exceptions\Autowire\CannotAutowireParameterException;
+use ReflectionClass;
+use ReflectionMethod;
 
 class Autowire
 {
@@ -29,34 +31,52 @@ class Autowire
 
     public function getInstance(string $ref, ?array $args=[])
     {
-        $rc = new \ReflectionClass($ref);
-        $constructor = $rc->getConstructor();
+        $rc = new ReflectionClass($ref);
+        $rm = $rc->getConstructor();
+        $params = $this->getReflectionParameters($rm);
         
         $args = $this->reformatArgs($args);
-        $args = $this->resolveArgs($constructor, $args);
+        $args = $this->resolveArgs($params, $args);
 
         return $rc->newInstanceArgs($args);
     }
 
+    private function getReflectionParameters(ReflectionMethod $method): array
+    {
+        $params = $method->getParameters();
+            
+        // Resolve parameter data to a simple array
+        $params = array_map(function($p) {
+            $temp = ['name' => $p->getName(), 'type' => $p->getType()];
+            if($p->isOptional){
+                $temp['default'] = $p->getDefaultValue();
+            }
+            return $temp;
+        }, $params);
+
+        return $params;
+    }
+
     public function callMethod(object $class, string $method, ?array $args=[])
     {
-        $rc = new \ReflectionClass($class);
+        $rc = new ReflectionClass($class);
 
         if($rc->hasMethod($method) === true || $rc->hasMethod('__call') === false){
-            $rMethod = $rc->getMethod($method);
+            $rm = $rc->getMethod($method);
+            $params = $this->getReflectionParameters($rm);
 
             $args = $this->reformatArgs($args);
-            $args = $this->resolveArgs($rMethod, $args);
+            $args = $this->resolveArgs($params, $args);
 
-            return $rMethod->invoke($class, ...$args);
+            return $rm->invoke($class, ...$args);
         }
 
         // TODO: how will this reformat/resolve argument code work 
         // against __call interfaces which typically have no arguments
         // and work like magic? Surely this will fail?
-        $rMethod = $rc->getMethod('__call');
+        $rm = $rc->getMethod('__call');
 
-        return $rMethod->invoke($class, $method, $args);
+        return $rm->invoke($class, $method, $args);
     }
 
     private function reformatArgs($input): array
@@ -84,16 +104,19 @@ class Autowire
         return $output;
     }
 
-    private function resolveArgs(\ReflectionFunctionAbstract $method, array $input): array
+    private function resolveArgs(array $signatureParameters, array $inputParameters): array
     {
-        $signatureParameters = $method->getParameters();
-
         $output = [];
 
-        // var_dump("STARTING AUTOWIRING....................");
+        $vd = function (){
+            var_dump(func_get_args());
+        };
+
+        $vd("STARTING AUTOWIRING....................");
+        $vd("INPUT WAS", $inputParameters);
         foreach($signatureParameters as $search){
-            $name = $search->getName();
-            $type = trim((string)$search->getType(), '?');
+            $name = $search['name'];
+            $type = trim((string)$search['type'], '?');
 
             if(empty($type)){
                 $type = 'string';
@@ -186,9 +209,9 @@ class Autowire
                     }
                 }
 
-                if ($search->isOptional()) {
-                    // var_dump(["FOUND DEFAULT VALUE($name)" => $search->getDefaultValue()]);
-                    $output[] = $search->getDefaultValue();
+                if(array_key_exists('default', $search)){
+                    $vd(["FOUND DEFAULT VALUE($name)" => $search['default']]);
+                    $output[] = $search['default'];
                     continue;
                 }
             }
