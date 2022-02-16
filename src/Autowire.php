@@ -139,29 +139,29 @@ class Autowire
                 $type = 'string';
             }
 
-            // var_dump(['SEARCH PARAMETER' => [$name, $type]]);
+            $vd(['SEARCH PARAMETER' => [$name, $type]]);
 
             if(class_exists($type)){
                 // When the type is a class, 
-                foreach($input as $index => $data){
+                foreach($inputParameters as $index => $data){
                     if($data['name']  === $name && is_object($data['value']) && get_class($data['value']) === $type){
                         $output[] = $data['value'];
                         unset($input[$index]);
-                        // var_dump(['FOUND OBJECT ARG' => $name]);
+                        $vd(['FOUND OBJECT ARG' => $name]);
                         continue 2;
                     }
                 }
 
                 $output[] = call_user_func($this->resolver, $type);
-                // var_dump(["FOUND CONTAINER ARG" => $type]);
+                $vd(["FOUND CONTAINER ARG" => $type]);
                 continue;
             }else if($type === 'array'){
-                foreach($input as $index => $data){
+                foreach($inputParameters as $index => $data){
                     if($data['name'] == $name){
                         if(is_array($data['value'])){
                             $output[] = $data['value'];
                             unset($input[$index]);
-                            // var_dump(['FOUND NAMED ARRAY' => $data]);
+                            $vd(['FOUND NAMED ARRAY' => $data]);
                             continue 2;
                         }
                     }
@@ -170,58 +170,58 @@ class Autowire
                 // When the type is a string, we look in the input array for matches
 
                 // for every named parameter, we must look for an input parameter with the same name AND HAS A VALUE
-                foreach($input as $index => $data){
+                foreach($inputParameters as $index => $data){
                     if($data['name'] === $name){
-                        // var_dump(["TYPE CHECK($name)", is_numeric($data['value']) && is_int($data['value'] + 0), $data['value']]);
+                        $vd(["TYPE CHECK($name)", is_numeric($data['value']) && is_int($data['value'] + 0), $data['value']]);
                         if($type === 'bool' && is_bool($data['value'])){
                             $output[] = (bool)$data['value'];
                             unset($input[$index]);
-                            // var_dump(['FOUND NAMED BOOL' => $data]);
+                            $vd(['FOUND NAMED BOOL' => $data]);
                             continue 2;
                         }else if($type === 'int' && is_numeric($data['value']) && is_int($data['value'] + 0)){
                             $output[] = (int)$data['value'];
                             unset($input[$index]);
-                            // var_dump(['FOUND NAMED INT' => $data]);
+                            $vd(['FOUND NAMED INT' => $data]);
                             continue 2;
                         }else if($type === 'float' && is_numeric($data['value']) && is_float($data['value'] + 0)){
                             $output[] = (float)$data['value'];
                             unset($input[$index]);
-                            // var_dump(['FOUND NAMED FLOAT' => $data]);
+                            $vd(['FOUND NAMED FLOAT' => $data]);
                             continue 2;
-                        }else if($type === 'string' && !empty($data['value'])){
+                        }else if($type === 'string' && array_key_exists('value', $data)){
                             $output[] = $data['value'];
                             unset($input[$index]);
-                            // var_dump(['FOUND NAMED STRING' => $data]);
+                            $vd(['FOUND NAMED STRING' => $data]);
                             continue 2;
                         }
                     }
                 }
 
                 // We did not find a named parameter, therefore lets pick the first anonymous parameter
-                foreach($input as $index => $data){
-                    if(!empty($data['value'])){
+                foreach($inputParameters as $index => $data){
+                    if(is_array($data) && array_key_exists('value', $data)){
                         continue;
                     }
-                    // var_dump(["TYPE CHECK($type / {$data['name']})", 'numeric' => is_numeric($data['name']) && is_int($data['name'] + 0), 'value' => $data['name']]);
+                    $vd(["TYPE CHECK($type / {$data['name']})", 'numeric' => is_numeric($data['name']) && is_int($data['name'] + 0), 'value' => $data['name']]);
                     if($type === 'bool' && is_bool($data['name'])){
                         $output[] = (bool)$data['name'];
                         unset($input[$index]);
-                        // var_dump(["FOUND ANON BOOL" => $data['name']]);
+                        $vd(["FOUND ANON BOOL" => $data['name']]);
                         continue 2;
                     }else if($type === 'int' && is_numeric($data['name']) && is_int($data['name'] + 0)){
                         $output[] = (int)$data['name'];
                         unset($input[$index]);
-                        // var_dump(["FOUND ANON INT" => $data['name']]);
+                        $vd(["FOUND ANON INT" => $data['name']]);
                         continue 2;
                     }else if($type === 'float' && is_numeric($data['name']) && is_float($data['name'] + 0)){
                         $output[] = (float)$data['name'];
                         unset($input[$index]);
-                        // var_dump(["FOUND ANON FLOAT" => $data['name']]);
+                        $vd(["FOUND ANON FLOAT" => $data['name']]);
                         continue 2;
                     }else if($type === 'string' && !empty($data['name'])){
                         $output[] = $data['name'];
                         unset($input[$index]);
-                        // var_dump(["FOUND ANON STRING" => $data['name']]);
+                        $vd(["FOUND ANON STRING" => $data['name']]);
                         continue 2;
                     }
                 }
@@ -235,6 +235,10 @@ class Autowire
 
             throw new CannotAutowireParameterException($name, $type);
         }
+
+        $vd("FINAL OUTPUT = ", array_map(function($a){ 
+            return is_object($a) ? get_class($a) : $a;
+        },$output));
 
         return $output;
     }
