@@ -21,17 +21,12 @@ class ProxyTool extends Tool
         $this->config = $config;
         $this->proxy = $proxy;
 
-        $this->registerCommand('start', 'startCommand');
-        $this->registerCommand('stop', 'stopCommand');
-        $this->registerCommand('restart', 'restartCommand');
-        $this->registerCommand('logs', 'logsCommand');
-        $this->registerCommand('logsF', 'logsFCommand');
-        $this->registerCommand('addNetwork', 'addNetworkCommand');
-        $this->registerCommand('removeNetwork', 'removeNetworkCommand');
-        $this->registerCommand('nginxConfig', 'nginxConfigCommand');
-        $this->registerCommand('status', 'statusCommand');
-        $this->registerCommand('containerName', 'containerNameCommand');
-        $this->registerCommand('dockerImage', 'dockerImageCommand');
+        foreach([
+            'start', 'stop', 'restart', 'logs', 'logsF', 'addNetwork', 
+            'removeNetwork', 'nginxConfig', 'status', 'containerName', 'dockerImage'
+        ] as $command){
+            $this->registerCommand($command);
+        }
     }
 
     public function getToolMetadata(): array
@@ -76,9 +71,9 @@ class ProxyTool extends Tool
         throw new \Exception('Proxy is not running');
     }
 
-    public function startCommand()
+    public function start()
     {
-        $this->cli->print("{blu}Starting the Frontend Proxy:{end} ".$this->proxy->getDockerImage()."\n");
+        $this->cli->print("{blu}Starting the Frontend Proxy:{end} ".$this->dockerImage()."\n");
         $this->proxy->start();
 
         // FIXME: perhaps this should call the docker object to do this
@@ -86,9 +81,9 @@ class ProxyTool extends Tool
         $this->cli->passthru('docker ps');
     }
 
-    public function stopCommand()
+    public function stop()
     {
-        $this->cli->print("{blu}Stopping the Frontend Proxy:{end} ".$this->proxy->getDockerImage()."\n");
+        $this->cli->print("{blu}Stopping the Frontend Proxy:{end} ".$this->dockerImage()."\n");
         $this->proxy->stop();
 
         // FIXME: perhaps this should call the docker object to do this
@@ -96,23 +91,23 @@ class ProxyTool extends Tool
         $this->cli->passthru('docker ps');
     }
 
-    public function restartCommand()
+    public function restart()
     {
-        $this->stopCommand();
-        $this->startCommand();
+        $this->stop();
+        $this->start();
     }
 
-    public function logsCommand(?string $since=null)
+    public function logs(?string $since=null)
     {
         $this->proxy->logs(false, $since);
     }
 
-    public function logsFCommand(?string $since=null)
+    public function logsF(?string $since=null)
     {
         $this->proxy->logs(true, $since);
     }
 
-    public function addNetworkCommand(string $network)
+    public function addNetwork(string $network)
     {
         if(empty($network)){
             throw new \Exception('Network must be a non-empty string');
@@ -120,14 +115,14 @@ class ProxyTool extends Tool
 
         $network = $network;
 
-        $this->cli->print("{blu}Connecting to a new network '$network' to the proxy container '{$this->proxy->getContainerName()}'{end}\n");
+        $this->cli->print("{blu}Connecting to a new network '$network' to the proxy container '{$this->containerName()}'{end}\n");
 
         $this->proxy->addNetwork($network);
-        $this->statusCommand();
+        $this->status();
         // Format::networkList($proxy->getNetworks());
     }
 
-    public function removeNetworkCommand(string $network)
+    public function removeNetwork(string $network)
     {
         if(empty($network)){
             throw new \Exception('Network must be a non-empty string');
@@ -135,14 +130,14 @@ class ProxyTool extends Tool
 
         $network = $network;
 
-        $this->cli->print("{blu}Disconnecting the network '$network' from the proxy container '{$this->proxy->getContainerName()}'{end}\n");
+        $this->cli->print("{blu}Disconnecting the network '$network' from the proxy container '{$this->containerName()}'{end}\n");
 
         $this->proxy->removeNetwork($network);
-        $this->statusCommand();
+        $this->status();
         // Format::networkList($proxy->getNetworks());
     } 
 
-    public function nginxConfigCommand()
+    public function nginxConfig()
     {
         if($this->proxy->isRunning()){
             $this->cli->print("\n{cyan}".$this->proxy->getConfig()."{end}\n\n");
@@ -151,7 +146,7 @@ class ProxyTool extends Tool
         }
     }
 
-    public function statusCommand()
+    public function status()
     {
         // Just for now, dump this list like this
         // TODO: what are listning networks?
@@ -171,7 +166,7 @@ class ProxyTool extends Tool
         // }
     }
 
-    public function containerNameCommand(?string $name=null)
+    public function containerName(?string $name=null)
     {
         if(empty($name)){
             return $this->proxy->getContainerName();
@@ -180,7 +175,7 @@ class ProxyTool extends Tool
         $this->proxy->setContainerName($name);
     }
 
-    public function dockerImageCommand(?string $image=null)
+    public function dockerImage(?string $image=null)
     {
         if(empty($image)){
             return $this->proxy->getDockerImage();
