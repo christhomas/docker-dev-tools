@@ -79,18 +79,34 @@ class Autowire
         return $rm->invoke($class, $method, $args);
     }
 
-    private function reformatArgs($input): array
+    private function reformatArgs($inputParameters): array
     {
         // Don't do anything if the array if empty
-        if(count($input) === 0) return $input;
+        if(count($inputParameters) === 0) return $inputParameters;
 
         $output = [];
+        $vd = function (){
+            var_dump(func_get_args());
+        };
+        $vd("REFORMAT ARGS = ",$inputParameters);
 
-        foreach($input as $name => $value){
-            if(is_array($value) && array_key_exists('name', $value) && array_key_exists('value', $value)){
-                $output[] = ['name' => trim($value['name'], " -"), 'value' => $value['value']];
-            }else{
-                $output[] = ['name' => trim($name, " -"), 'value' => $value];
+        foreach($inputParameters as $name => $arg){
+            if(is_string($name)){
+                // Take care of string key-ed arrays
+                $output[] = ['name' => trim($name, " -"), 'value' => $arg];
+            }else if(is_int($name) && is_array($arg)){
+                // Take care of numerically indexed arrays with array like data (such as command line arguments)
+                if(array_key_exists('name', $arg)){
+                    $arg['name'] = trim($arg['name'], " -");
+                    $output[] = $arg;
+                }else{
+                    // I'm not sure what other formats to take care of right now
+                }
+            }
+            // if(is_array($arg) && array_key_exists('name', $arg) && array_key_exists('value', $arg)){
+            //     $output[] = ['name' => trim($arg['name'], " -"), 'value' => $arg['value']];
+            // }else{
+            //     $output[] = ['name' => trim($name, " -"), 'value' => $arg];
             // }else{
             //     throw new Exception(implode("\n",[
             //         "Unexpected argument format, don't know how to fix it",
@@ -98,8 +114,9 @@ class Autowire
             //         "Stack:",
             //         (new Exception)->getTraceAsString(),
             //     ]));
-            }
+            // }
         }
+        $vd("FINAL OUTPUT = ", $output);
 
         return $output;
     }
