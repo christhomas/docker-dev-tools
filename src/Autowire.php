@@ -41,22 +41,6 @@ class Autowire
         return $rc->newInstanceArgs($args);
     }
 
-    private function getReflectionParameters(ReflectionMethod $method): array
-    {
-        $params = $method->getParameters();
-            
-        // Resolve parameter data to a simple array
-        $params = array_map(function($p) {
-            $temp = ['name' => $p->getName(), 'type' => $p->getType()];
-            if($p->isOptional){
-                $temp['default'] = $p->getDefaultValue();
-            }
-            return $temp;
-        }, $params);
-
-        return $params;
-    }
-
     public function callMethod(object $class, string $method, ?array $args=[])
     {
         $rc = new ReflectionClass($class);
@@ -77,6 +61,22 @@ class Autowire
         $rm = $rc->getMethod('__call');
 
         return $rm->invoke($class, $method, $args);
+    }
+
+    private function getReflectionParameters(ReflectionMethod $method): array
+    {
+        $params = $method->getParameters();
+            
+        // Resolve parameter data to a simple array
+        $params = array_map(function($p) {
+            $temp = ['name' => $p->getName(), 'type' => $p->getType()];
+            if($p->isOptional){
+                $temp['default'] = $p->getDefaultValue();
+            }
+            return $temp;
+        }, $params);
+
+        return $params;
     }
 
     private function reformatArgs($inputParameters): array
