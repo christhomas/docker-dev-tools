@@ -23,8 +23,7 @@ class EntrypointTool extends Tool
         $this->cli->listenChannel('debug', $enable);
         
         if($enable){
-            $state = $enable ? 'enabled' : 'disabled';
-            $this->cli->print("{yel}[SYSTEM]:{end} Errors $state\n");
+            $this->cli->print("{yel}[SYSTEM]:{end} Errors enabled\n");
         }
     }
 

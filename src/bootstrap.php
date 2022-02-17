@@ -48,6 +48,13 @@ try{
 	$cli = new CLI($argv, $text);
 
 	$container = new Container($cli, [Autowire::class, 'instantiator']);
+	
+	// We have to set this value really early so it's useful when the autowirer starts using it
+	if((bool)$cli->getArg('--debug', false)){
+		function debugVar($a){ is_scalar($a) ? print("$a\n") : var_dump($a); }
+	}else{
+		function debugVar($a){}
+	}
 
 	// Set these two important locations for either the system configuration
 	// This is the default system configuration that is the basic template for any new installation
@@ -115,5 +122,5 @@ try{
 }catch(CommandNotFoundException $e){
 	$cli->failure($text->box($e->getMessage(), "wht", "red"));
 }catch(Exception $e){
-	$cli->failure($text->box(get_class($e) . ":\nThe tool has a non-specified exception: " . $e->getMessage(), "wht", "red"));
+	$cli->failure($text->box(get_class($e) . ":\nThe tool has a non-specified error: " . $e->getMessage(), "wht", "red"));
 }
