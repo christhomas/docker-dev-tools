@@ -15,9 +15,8 @@ abstract class BaseConfig implements ConfigInterface
 
     public function __construct(string $filename, bool $readonly=false)
 	{
-        $this->readonly = $readonly;
-		$this->setFilename($filename);
-        $this->read();
+        $this->setReadonly($readonly);
+        $this->read($filename);
     }
     
     public function setFilename(string $filename): void
@@ -80,9 +79,14 @@ abstract class BaseConfig implements ConfigInterface
         return $version;
 	}
 
-	private function read(): void
+    public function setReadonly(bool $readonly): void
+    {
+        $this->readonly = $readonly;
+    }
+
+	public function read(string $filename): void
 	{
-        $filename = $this->getFilename();
+        $this->setFilename($filename);
 
 		if(file_exists($filename) === false){
             throw new ConfigMissingException($filename);
