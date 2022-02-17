@@ -112,7 +112,7 @@ abstract class BaseConfig implements ConfigInterface
 
 	public function write(?string $filename=null): bool
 	{
-        if($this->readonly){
+        if($this->isReadonly()){
             throw new ConfigReadonlyException();
         }
 
