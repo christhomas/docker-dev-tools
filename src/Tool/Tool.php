@@ -156,6 +156,20 @@ abstract class Tool
         ];
     }
 
+    /**
+     * Automatically autowire a function for any method on this object 
+     * called manually by the code rather than by the container or entrypoint
+     * 
+     * @param string $method The method to call on this object
+     * @param array $args An optional set of arguments to pass this method
+     * @return mixed Can be anything the method returns
+     */
+    public function invoke(string $method, ?array $args=[])
+    {
+        $autowire = container(Autowire::class);
+        return $autowire->callMethod($this, $method, $args);
+    }
+
     public function help(): string
     {
         $section = [];
