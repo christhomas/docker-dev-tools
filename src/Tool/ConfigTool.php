@@ -24,12 +24,12 @@ class ConfigTool extends Tool
 
 		$this->text = $text;
 
-		$this->registerCommand('reset', 'resetCommand');
-		$this->registerCommand('get', 'getCommand');
-		$this->registerCommand('delete', 'deleteCommand');
-		$this->registerCommand('set', 'setCommand');
-		$this->registerCommand('validate', 'validateCommand');
-		$this->registerCommand('version', 'versionCommand');
+		$this->setToolCommand('reset', 'resetCommand');
+		$this->setToolCommand('get', 'getCommand');
+		$this->setToolCommand('delete', 'deleteCommand');
+		$this->setToolCommand('set', 'setCommand');
+		$this->setToolCommand('validate', 'validateCommand');
+		$this->setToolCommand('version', 'versionCommand');
     }
 
 	public function getToolMetadata(): array

@@ -20,7 +20,7 @@ class StatusTool extends Tool
 
         $this->text = $text;
         $this->config = $config;
-        $this->registerCommand('main', null, true);
+        $this->setToolCommand('main', null, true);
     }
 
     public function getToolMetadata(): array

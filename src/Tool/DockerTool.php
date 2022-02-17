@@ -22,10 +22,10 @@ class DockerTool extends Tool
         $this->docker = $docker;
         $this->config = $config;
 
-        $this->registerCommand('addProfile', 'addProfileCommand');
-        $this->registerCommand('removeProfile', 'removeProfileCommand');
-        $this->registerCommand('listProfile', 'listProfileCommand');
-        $this->registerCommand('profile', 'profileCommand');
+        $this->setToolCommand('addProfile', 'addProfileCommand');
+        $this->setToolCommand('removeProfile', 'removeProfileCommand');
+        $this->setToolCommand('listProfile', 'listProfileCommand');
+        $this->setToolCommand('profile', 'profileCommand');
     }
 
     public function getToolMetadata(): array

@@ -11,7 +11,7 @@ class RunTool extends Tool
     public function __construct(CLI $cli)
     {
     	parent::__construct('run', $cli);
-        $this->registerCommand('script', null, true);
+        $this->setToolCommand('script', null, true);
     }
 
     public function getToolMetadata(): array

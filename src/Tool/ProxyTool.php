@@ -25,7 +25,7 @@ class ProxyTool extends Tool
             'start', 'stop', 'restart', 'logs', 'logsF', 'addNetwork', 
             'removeNetwork', 'nginxConfig', 'status', 'containerName', 'dockerImage'
         ] as $command){
-            $this->registerCommand($command);
+            $this->setToolCommand($command);
         }
     }
 

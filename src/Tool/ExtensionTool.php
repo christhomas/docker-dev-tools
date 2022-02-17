@@ -23,10 +23,10 @@ class ExtensionTool extends Tool
         $this->config = $config;
         $this->extensionManager = $extensionManager;
 
-        $this->registerCommand('install', 'installCommand');
-        $this->registerCommand('uninstall', 'uninstallCommand');
-        $this->registerCommand('update', 'updateCommand');
-        $this->registerCommand('list', 'listCommand');
+        $this->setToolCommand('install', 'installCommand');
+        $this->setToolCommand('uninstall', 'uninstallCommand');
+        $this->setToolCommand('update', 'updateCommand');
+        $this->setToolCommand('list', 'listCommand');
     }
 
     public function getToolMetadata(): array

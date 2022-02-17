@@ -33,10 +33,10 @@ class SetupTool extends Tool
         $this->home = $home ?? $_SERVER['HOME'];
         $this->files = $this->getExistingFiles($this->files);
 
-        $this->registerCommand('install', 'installCommand');
-        $this->registerCommand('uninstall', 'uninstallCommand');
-        $this->registerCommand('test', 'testCommand');
-        $this->registerCommand('setPath', 'setPathCommand');
+        $this->setToolCommand('install', 'installCommand');
+        $this->setToolCommand('uninstall', 'uninstallCommand');
+        $this->setToolCommand('test', 'testCommand');
+        $this->setToolCommand('setPath', 'setPathCommand');
     }
 
     public function getExistingFiles(array $files): array

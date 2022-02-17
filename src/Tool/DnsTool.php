@@ -35,24 +35,16 @@ class DnsTool extends Tool
         $this->dnsMasq = $dnsMasq;
         $this->dnsService = $dnsService;
 
-        $this->registerCommand('enable', 'enableCommand');
-        $this->registerCommand('disable', 'disableCommand');
-        $this->registerCommand('refresh', 'refreshCommand');
-        $this->registerCommand('start', 'startCommand');
-        $this->registerCommand('stop', 'stopCommand');
-        $this->registerCommand('restart', 'restartCommand');
-        $this->registerCommand('logs', 'logsCommand');
-        $this->registerCommand('logsF', 'logsFCommand');
-        $this->registerCommand('addDomain', 'addDomainCommand');
-        $this->registerCommand('removeDomain', 'removeDomainCommand');
-        $this->registerCommand('ip', 'ipCommand');
-        $this->registerCommand('ping', 'pingCommand');
-        $this->registerCommand('containerName', 'containerNameCommand');
-        $this->registerCommand('dockerImage', 'dockerImageCommand');
-        $this->registerCommand('status', 'statusCommand');
-        $this->registerCommand('listDevices', 'listDevicesCommand');
-        $this->registerCommand('setDevice', 'setDeviceCommand');
-        $this->registerCommand('removeDevice', 'removeDeviceCommand');
+        foreach([
+            'enable', 'disable', 'refresh', 'start', 'stop', 'restart',
+            'logs', 'logsF',
+            'addDomain', 'removeDomain',
+            'ip', 'ping', 'status',
+            'containerName', 'dockerImage',
+            'listDevices', 'setDevice', 'removeDevice'
+        ] as $command){
+            $this->setToolCommand($command);
+        }
     }
 
     public function getToolMetadata(): array
@@ -107,7 +99,7 @@ class DnsTool extends Tool
         ];
     }
 
-    public function enableCommand()
+    public function enable()
     {
         $this->cli->print("{grn}Enabling:{end} DNS...\n");
 
@@ -120,27 +112,27 @@ class DnsTool extends Tool
         $this->dnsService->enable($dnsIpAddress);
     }
 
-    public function disableCommand()
+    public function disable()
     {
         $this->cli->print("{red}Disabling:{end} DNS...\n");
         $this->dnsService->disable();
     }
 
-    public function refreshCommand()
+    public function refresh()
     {
         $this->cli->print("{yel}Refreshing:{end} DNS...\n");
         
-        $this->disableCommand();
-        $this->enableCommand();
+        $this->disable();
+        $this->enable();
         $this->dnsMasq->reload();
     }
 
-    public function startCommand()
+    public function start()
     {
         $this->cli->print("{blu}Starting:{end} DNS...\n");
 
         $this->dnsMasq->start();
-        $this->enableCommand();
+        $this->enable();
 
         $domainGroup = $this->dnsConfig->getDomainList();
 
@@ -152,14 +144,14 @@ class DnsTool extends Tool
 
         $this->dnsMasq->reload();
 
-        $this->pingCommand();
+        $this->ping();
     }
 
-    public function stopCommand()
+    public function stop()
     {
         $this->cli->print("{red}Stopping:{end} DNS...\n");
 
-        $this->disableCommand();
+        $this->disable();
         $this->dnsMasq->stop();
 
         $address = Address::instance('127.0.0.1');
@@ -171,29 +163,29 @@ class DnsTool extends Tool
         $this->cli->print((string)$address);
     }
 
-    public function restartCommand(): void
+    public function restart(): void
     {
         $this->cli->print("{yel}Restarting:{end} DNS...\n");
 
         if($this->dnsMasq->isRunning()){
-            $this->stopCommand();
-            $this->startCommand();
+            $this->stop();
+            $this->start();
         }else{
-            $this->startCommand();
+            $this->start();
         }
     }
 
-    public function logsCommand(?string $since=null): void
+    public function logs(?string $since=null): void
     {
         $this->dnsMasq->logs(false, $since);
     }
 
-    public function logsFCommand(?string $since=null): void
+    public function logsF(?string $since=null): void
     {
         $this->dnsMasq->logs(true, $since);
     }
 
-    public function addDomainCommand(string $domain): void
+    public function addDomain(string $domain): void
     {
         $this->cli->sudo();
 
@@ -213,7 +205,7 @@ class DnsTool extends Tool
             $this->dnsMasq->reload();
 
             $this->cli->silenceChannel('stdout', function(){
-                $this->refreshCommand();
+                $this->refresh();
             });
 
             $domain = Address::instance($domain->hostname);
@@ -225,7 +217,7 @@ class DnsTool extends Tool
         }
     }
 
-    public function removeDomainCommand(string $domain): void
+    public function removeDomain(string $domain): void
     {
         $this->cli->sudo();
 
@@ -245,7 +237,7 @@ class DnsTool extends Tool
             $this->dnsMasq->reload();
 
             $this->cli->silenceChannel('stdout', function(){
-                $this->refreshCommand();
+                $this->refresh();
             });
 
             $domain = Address::instance($domain->hostname);
@@ -257,7 +249,7 @@ class DnsTool extends Tool
         }
     }
 
-    public function ipCommand(?string $address=null): string
+    public function ip(?string $address=null): string
     {
         // TODO: what to do when you set a new ip address, here, should reconfigure everything with that new ip address?
         // NOTE: this could be quite a lot of changes in various aspects of the system that might be storing that ip address and using it locally
@@ -268,7 +260,7 @@ class DnsTool extends Tool
         return implode("\n", $list)."\n";
     }
 
-    public function pingCommand()
+    public function ping()
     {
         $list = $this->dnsService->getIpAddressList();
 
@@ -298,7 +290,7 @@ class DnsTool extends Tool
         }
     }
 
-    public function containerNameCommand(?string $name=null): string
+    public function containerName(?string $name=null): string
     {
         if(empty($name)){
             return $this->dnsConfig->getContainerName();
@@ -307,7 +299,7 @@ class DnsTool extends Tool
         }
     }
 
-    public function dockerImageCommand(?string $name=null): string
+    public function dockerImage(?string $name=null): string
     {
         if(empty($name)){
             return $this->dnsConfig->getDockerImage();
@@ -316,7 +308,7 @@ class DnsTool extends Tool
         }
     }
 
-    public function statusCommand(): string
+    public function status(): string
     {
         $this->cli->print("{blu}Registered domains:{end}\n");
 
@@ -338,7 +330,7 @@ class DnsTool extends Tool
         return $table->render(true);
     }
 
-    public function listDevicesCommand() {
+    public function listDevices() {
         $this->cli->print("{blu}List of all devices:{end}\n");
         
         foreach($this->dnsService->getHardwarePorts() as $index => $device){
@@ -346,7 +338,7 @@ class DnsTool extends Tool
         }
     }
 
-    public function setDeviceCommand(string $device=null) {
+    public function setDevice(string $device=null) {
         $this->cli->print("{blu}Set the device for DNS service:{end}\n");
 
         $list = $this->dnsService->getHardwarePorts();
@@ -366,7 +358,7 @@ class DnsTool extends Tool
         }
     }
 
-    public function removeDeviceCommand() {
+    public function removeDevice() {
         $this->dnsConfig->removeDevice();
     }
 }

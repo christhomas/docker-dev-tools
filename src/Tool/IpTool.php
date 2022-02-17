@@ -23,12 +23,12 @@ class IpTool extends Tool
         $this->config = $config;
 		$this->ipService = $ipService;
 
-		$this->registerCommand('set', 'setCommand');
-		$this->registerCommand('get', 'getCommand');
-		$this->registerCommand('add', 'addCommand');
-		$this->registerCommand('remove', 'removeCommand');
-		$this->registerCommand('reset', 'resetCommand');
-		$this->registerCommand('ping', 'pingCommand');
+		$this->setToolCommand('set', 'setCommand');
+		$this->setToolCommand('get', 'getCommand');
+		$this->setToolCommand('add', 'addCommand');
+		$this->setToolCommand('remove', 'removeCommand');
+		$this->setToolCommand('reset', 'resetCommand');
+		$this->setToolCommand('ping', 'pingCommand');
     }
 
 	public function getToolMetadata(): array

@@ -25,8 +25,8 @@ abstract class Tool
 
     /** @var array A list of functions which cannot be used as tool commands */
     private $protectedFunctions = [
-        'registerCommand',
-        'isTool',
+        'setToolCommand',
+        'getToolCommand',
         'getTool',
         'getToolMetaData',
         'getToolName',
@@ -44,7 +44,7 @@ abstract class Tool
 		$this->cli = $cli;
         
         $this->setEntrypoint($this->cli->getScript(false));
-        $this->registerCommand('help');
+        $this->setToolCommand('help');
 	}
 
     public function setEntrypoint(string $script): void 
@@ -67,7 +67,7 @@ abstract class Tool
         $this->quiet = $enable;
     }
 
-    public function registerCommand(string $name, ?string $method=null, bool $isDefault=false): void
+    public function setToolCommand(string $name, ?string $method=null, bool $isDefault=false): void
     {
         // TODO: block registering protected functions
 
