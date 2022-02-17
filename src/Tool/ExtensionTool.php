@@ -142,7 +142,7 @@ class ExtensionTool extends Tool
             $extensionList = $this->extensionManager->list();
 
             /** @var Table $table */
-            $table = container("table");
+            $table = container(Table::class);
             $table->setRightPadding(10);
             // table headers
             $table->addRow(["{yel}Name{end}", "{yel}Url{end}", "{yel}Path{end}"]);
@@ -151,7 +151,7 @@ class ExtensionTool extends Tool
                 $table->addRow([$name, $e['url'], $e['path']]);
             }
 
-            return $table->render(true);
+            $this->cli->print($table->render(true));
         }catch(ConfigWrongTypeException $e){
             $this->cli->failure($e->getMessage());
         }
