@@ -67,7 +67,7 @@ class ProjectTool extends Tool
         return in_array($type, ['composer', 'npm', 'ddt']);
     }
 
-    public function listCommand(): void
+    public function list(): void
     {
         $this->cli->print("{blu}Project Group List:{end}\n");
 
@@ -96,32 +96,32 @@ class ProjectTool extends Tool
         }
     }
 
-    public function addGroupCommand(string $name): void
+    public function addGroup(string $name): void
     {
         $this->cli->print("{blu}Adding group '$name'{end}\n");
 
         if($this->config->addGroup($name)){
             $this->cli->print("{grn}Project was added, listing projects{end}...\n");
 
-            $this->listCommand();
+            $this->list();
         }else{
             $this->cli->print("{red}Adding the group '$name' has failed (maybe it already exists?){end}\n");
         }
     }
 
-    public function removeGroupCommand(string $name): void
+    public function removeGroup(string $name): void
     {
         $this->cli->print("{blu}Removing group '$name'{end}\n");
 
         if($this->config->removeGroup($name)){
             $this->cli->print("{grn}Project was removed, listing projects{end}...\n");
-            $this->listCommand();
+            $this->list();
         }else{
             $this->cli->print("{red}Removing the group '$name' has failed (maybe it doesn't exist?){end}\n");
         }
     }
 
-    public function addProjectCommand(string $group, string $dir, ?string $name=null, ?string $type='ddt', ?string $git=null, ?string $remote='origin'): void
+    public function addProject(string $group, string $dir, ?string $name=null, ?string $type='ddt', ?string $git=null, ?string $remote='origin'): void
     {
         $this->cli->print("{blu}Adding project{end}\n");
 
@@ -158,7 +158,7 @@ class ProjectTool extends Tool
         }
     }
 
-    public function removeProjectCommand(string $group, string $name, ?bool $delete=false): void
+    public function removeProject(string $group, string $name, ?bool $delete=false): void
     {
         $this->cli->print("{blu}Removing Project{end}\n");
 

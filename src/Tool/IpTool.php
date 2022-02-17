@@ -58,7 +58,7 @@ class IpTool extends Tool
 		];
 	}
 
-	public function setCommand(): void
+	public function set(): void
 	{
 		$ipAddress = $this->cli->shiftArg();
 
@@ -78,12 +78,12 @@ class IpTool extends Tool
 		}
 	}
 
-	public function getCommand(): string
+	public function get(): string
 	{
 		return $this->config->get() . "\n";
 	}
 
-	public function addCommand(): void
+	public function add(): void
 	{
 		$ipAddress = $this->config->get();
 
@@ -101,7 +101,7 @@ class IpTool extends Tool
 		}
 	}
 
-	public function removeCommand(): void
+	public function remove(): void
 	{
 		$ipAddress = $this->config->get();
 
@@ -119,14 +119,14 @@ class IpTool extends Tool
 		}
 	}
 
-	public function resetCommand(): void
+	public function reset(): void
 	{
 		$this->cli->print("{blu}Resetting IP Address:{end}\n");
-		$this->removeCommand();
-		$this->addCommand();
+		$this->remove();
+		$this->add();
 	}
 
-	public function pingCommand(): string
+	public function ping(): string
 	{
 		$address = Address::instance($this->config->get());		
 		$address->ping();
