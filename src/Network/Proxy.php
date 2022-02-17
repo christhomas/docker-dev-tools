@@ -9,6 +9,7 @@ use DDT\Docker\DockerContainer;
 use DDT\Docker\DockerNetwork;
 use DDT\Docker\DockerVolume;
 use DDT\Exceptions\Docker\DockerContainerNotFoundException;
+use DDT\Exceptions\Docker\DockerInspectException;
 use DDT\Exceptions\Docker\DockerNetworkAlreadyAttachedException;
 use DDT\Exceptions\Docker\DockerNetworkCreateException;
 use DDT\Exceptions\Docker\DockerNetworkExistsException;
@@ -169,12 +170,12 @@ class Proxy
 
 	public function stop()
 	{
-		$containerId = $this->getContainerId();
-
-		$this->docker->deleteContainer($containerId);
-
-		// we don't delete the network since there is no real reason to want to do this
-		// just leave it and reuse it when necessary
+		try{
+			$container = DockerContainer::instance($this->getContainerName());
+			$container->delete();
+		}catch(DockerInspectException $e){
+			$this->cli->print("{red}".$e->getMessage."{end}\n");
+		}
 	}
 
 	public function logs(bool $follow, ?string $since=null)
