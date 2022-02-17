@@ -63,12 +63,6 @@ class Docker
         if($this->cli->isCommand('docker') === false){
             throw new DockerMissingException();
         }
-
-        $this->version = $this->getVersion();
-
-        if(!$this->isRunning()){
-            throw new DockerNotRunningException();
-        }
     }
 
 	public function getVersion(): array
@@ -119,6 +113,10 @@ class Docker
 
 	public function exec(string $command, bool $firstLine=false)
 	{
+		if(!$this->isRunning()){
+            throw new DockerNotRunningException();
+        }
+
 		try{
 			$command = $this->toCommandLine($command);
 
@@ -130,6 +128,10 @@ class Docker
 
 	public function passthru(string $command): int
 	{
+		if(!$this->isRunning()){
+            throw new DockerNotRunningException();
+        }
+		
 		try{
 			$command = $this->toCommandLine($command);
 
