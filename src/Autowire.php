@@ -242,7 +242,8 @@ class Autowire
             }
 
             if(array_key_exists('default', $search)){
-                debugVar("FOUND DEFAULT VALUE: name = '$name', default = '{$search['default']}'");
+                $sd = is_scalar($search['default']) ? $search['default'] : json_encode($search['default']);
+                debugVar("FOUND DEFAULT VALUE: name = '$name', default = '{$sd}'");
                 $output[] = $search['default'];
                 continue;
             }
