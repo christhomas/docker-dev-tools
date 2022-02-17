@@ -152,6 +152,7 @@ VIRTUAL_PORT - Which internal port to forward to
 VIRTUAL_PATH - What path to match when knowing how to forward requests
 ```
 
+### Example Docker Composer file
 An example `docker-compose.yml` might look like this:
 ```
 version: "3.4"
@@ -187,10 +188,12 @@ services:
 
 If you don't want to use docker compose, then simply pass the environment parameters to docker through the command line, using the required syntax
 
+### Configure a network to listen on
 Before you can use the proxy, you must declare what docker network it'll 
 sit on and listen for events. You can do this by using this command:
 ```
 ddt proxy add-network proxy
+ddt proxy restart
 ```
 
 You could call it anything you like, but this is just a simple example. This network is important, because the proxy will sit on this network and any containers attached to it, will be monitored and configured automatically. So any "service" which needs to respond to external requests, should be mounted on this network.
@@ -199,6 +202,13 @@ Backend services, which don't need to be accessed externally, could be mounted i
 
 The proxy simply sits on a network, listens for containers on that network and whether they start or stop, configures itself using those containers environment variables.
 
+Remove is just as easily by using
+```
+ddt proxy remove-network proxy
+ddt proxy restart
+```
+
+### Basic control
 To control the basic functionality of the proxy, use one of these commands:
 ```
 ddt proxy start
@@ -206,9 +216,16 @@ ddt proxy stop
 ddt proxy restart
 ```
 
+### Access Logs
 Logs are visible so you can see all the requests going through the proxy:
 ```
 ddt proxy logs
 ddt proxy logs-f
 ```
 
+### Advanced
+
+Sometimes, you need more advanced debugging, so you'd like to know the exact nginx configuration which is being used. This could be useful when needing to diagnose why a service doesn't respond as you expect, use this command to output the entire nginx configuration.
+```
+ddt proxy nginx-config
+```
