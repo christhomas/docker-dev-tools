@@ -7,9 +7,17 @@ class SystemConfig extends BaseConfig
     private $extensions;
 	private $projects;
 
-	static public function instance(): SystemConfig
+	static public function instance(?string $filename=null, ?bool $readonly=false): SystemConfig
 	{
-		return container(SystemConfig::class);
+		/** @var SystemConfig */
+		$config = container(SystemConfig::class);
+		$config->setReadonly($readonly);
+		
+		if(!empty($filename)){
+			$config->read($filename);
+		}
+
+		return $config;
 	}
 
 	public function getDescription(): string
