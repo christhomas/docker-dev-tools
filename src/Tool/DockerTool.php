@@ -45,10 +45,11 @@ class DockerTool extends Tool
             ),
             'options' => trim(
                 "{cyn}Managing Profiles{end}\n".
-                "--add-profile=xxx: The name of the profile to create\n".
-                "--remove-profile=xxx: The name of the profile to remove\n".
-                "--list-profile(s): List all the registered profiles\n".
+                "add-profile <name> <host> <port> <tlscacert> <tlscert> <tlskey>: See 'Adding Profiles' for more details\n".
+                "remove-profile <name>: The name of the profile to remove\n".
+                "list-profile(s): List all the registered profiles\n".
                 "\n".
+                "{cyn}Adding Profiles, the following options are available{end}\n".
                 "--host=xxx: The host of the docker server (or IP Address)\n".
                 "--port=xxx: The port, when using TLS, it must be 2376\n".
                 "--tlscacert=xxx: The filename of this tls cacert (cacert, not cert)\n".
