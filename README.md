@@ -73,6 +73,12 @@ To add a domain for development
 ddt dns add-domain mycompany.develop
 ```
 
+### Wildcards
+All configured domains are treated as wildcards. This means if you configure `mycompany.develop`, then ANY subdomains will work, such as `api.mycompany.develop` or `this.is.another.subdomain.mycompany.develop` or `mail.mycompany.develop`
+
+This is to make it easy to use and let you work without having to configure every single subdomain manually. Basically `*.mycompany.develop` will resolve to the ip address.
+
+### Basic Control
 To control the basic operating of the server, so you can work with the configuration you've made. Use these commands, they are self explanatory
 
 ```
@@ -89,6 +95,7 @@ ddt dns enable
 ddt dns disable
 ```
 
+### Access Logs
 To observe logs for dns resolution, to see if something is working as expected
 
 ```
@@ -96,11 +103,24 @@ ddt dns logs
 ddt dns logs-f (logs + follow in the terminal)
 ```
 
+### Need to trigger a simple refresh after a VPN session?
 If DNS resolution fails for some reason, it might be that you used a VPN or need to just disable/enable/reload so it will come back and start working again.
 
 ```
 ddt dns refresh
 ```
+
+Once you have configured the ip and dns, you can ping the domain name directly and it will resolve it to the ip address that you've configured. An example would be:
+```
+ping api.mycompany.develop
+
+$ ping api.mycompany.develop
+PING api.mycompany.develop (10.254.254.254): 56 data bytes
+64 bytes from 10.254.254.254: icmp_seq=0 ttl=64 time=19.655 ms
+64 bytes from 10.254.254.254: icmp_seq=1 ttl=64 time=0.142 ms
+```
+
+Remember, just because you can resolve the dns name to an ip address, doesn't mean any software is running. This is only concerned with resolving the ip address. Use the proxy tool to run software and configure it to respond on those domains
 
 ---
 
