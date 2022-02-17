@@ -214,7 +214,7 @@ class SetupTool extends Tool
         // Use the ConfigTool to get the job done
         /** @var ConfigTool */
         $configTool = $this->getTool('config');
-        $this->cli->print($configTool->reset());
+        $this->cli->print($configTool->invoke('reset'));
 
         //////////////////////////////////////////////////////////////////
         // TODO: handle installation of extension bin paths
