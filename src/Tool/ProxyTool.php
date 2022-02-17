@@ -50,14 +50,14 @@ class ProxyTool extends Tool
                 "logs-f: View and follow the logs from the Nginx proxy container\n".
                 "\n".
                 "{cyn}Network Configuration:{end}\n".
-                "add-network=XXX: Add a new network to a running proxy without needing to restart it\n".
-                "remove-network=XXX: Remove an existing network from the proxy container so it stops monitoring it\n".
+                "add-network <network-name>: Add a new network to a running proxy without needing to restart it\n".
+                "remove-network <network-name>: Remove an existing network from the proxy container so it stops monitoring it\n".
                 "\n".
                 "{cyn}Configuration:{end}\n".
                 "nginx-config: Output the raw /etc/nginx/conf.d/default.conf which is generated when containers start and stop\n".
                 "status: Show the domains that the Nginx proxy will respond to\n".
-                "container-name: Get/Set the name to give to this container\n".
-                "docker-image: Get/Set the docker image name to run\n"
+                "container-name: Get/Set the name to give to this container. Pass a second parameter for the container name if you wish to set it\n".
+                "docker-image: Get/Set the docker image name to run. Pass a second parameter for the docker image if you with to set it\n"
             ),
             'examples' => trim(
                 "{yel}Usage Example:{end} ddt proxy logs-f {grn}- follow the log output for the proxy{end}\n".
