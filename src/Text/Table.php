@@ -106,16 +106,21 @@ class Table
 	{
 		if(empty($this->data)) return null;
 
+		// Thanks! https://stackoverflow.com/a/37003117/279147
 		$transpose = function($array) {
-			array_unshift($array, null);
+			// I added an empty array as the second parameter here to deal with "empty tables"
+			// When the table is empty, the table headers you might add are the only row
+			// This causes some problems when you only have a single row, it'll not "zip them up" right
+			array_unshift($array, null, []);
 			return call_user_func_array('array_map', $array);
 		};
 
 		// Flip the array to process columns easily
 		$data = $transpose($this->data);
-		foreach($data as $index => $columns){
-			$data[$index] = $this->fixColumnWidths($columns);
-		}
+
+		$data = array_map(function($columns){
+			return $this->fixColumnWidths($columns);
+		}, $data);
 
 		// Flip the array back to normal
 		$data = $transpose($data);
