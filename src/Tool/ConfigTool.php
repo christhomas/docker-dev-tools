@@ -13,7 +13,7 @@ class ConfigTool extends Tool
 	private $text;
 
 	private $defaultConfig;
-	private $homeConfig;
+	private $systemConfig;
 
     public function __construct(CLI $cli, Text $text)
     {
@@ -24,7 +24,7 @@ class ConfigTool extends Tool
 
 		$this->text = $text;
 
-		foreach(['reset', 'get', 'delete', 'set', 'validate', 'version'] as $command){
+		foreach(['filename', 'reset', 'get', 'delete', 'set', 'validate', 'version'] as $command){
 			$this->setToolCommand($command);
 		}
     }
@@ -88,68 +88,59 @@ class ConfigTool extends Tool
 		];
 	}
 
-	public function filename(): string
+	public function filename(SystemConfig $config): string
 	{
-		$config = SystemConfig::instance();
-
 		return $config->getFilename();
 	}
 
-	public function exists(): bool
+	public function exists(SystemConfig $config): bool
 	{
 		try{
-			return is_file($this->filename());
+			return is_file($this->filename($config));
 		}catch(ConfigMissingException $e){
 			return false;
 		}
 	}
 
-	private function writeNewConfig(): bool
-	{
-		$newConfig = container(SystemConfig::class, ['filename' => $this->defaultConfig]);
-		
-		return $newConfig->write($this->homeConfig);
-	}
-
-	public function reset(): string
+	public function reset(SystemConfig $config): void
 	{
 		// Test if system configuration exists, if yes then you'll be asked to reset it
-		if($this->exists()){
+		if($this->exists($config)){
 			$reply = $this->cli->ask('Are you sure you want to reset your configuration?', ['yes', 'no']);
 
 			if($reply !== 'yes'){
-				return $this->text->box("The request to reset was refused", "wht", "red");
+				$this->cli->box("The request to reset was refused", "wht", "red");
+				return;
 			}	
 		}
 
-		if($this->writeNewConfig()){
-			return $this->text->box("The file '{$this->homeConfig}' file was not found, a new one was written", "blk", "grn");
+		$config->setReadonly(false);
+		$config->read($this->defaultConfig);
+		if($config->write($this->systemConfig)){
+			$this->cli->box("The file '{$this->systemConfig}' file was overwritten", "blk", "grn");
+		}else{
+			$this->cli->box("The file '{$this->systemConfig}' could not be written, the state of the file is unknown, please manually check it", "wht", "red");
 		}
-
-		return $this->text->box("The file '{$this->homeConfig}' could not be written, the state of the file is unknown, please manually check it", "wht", "red");
 	}
 
-	public function get(?string $key='.', ?bool $raw=null): string
+	public function get(SystemConfig $config, ?string $key='.', ?bool $raw=null): string
 	{
-		$config = SystemConfig::instance();
 		$value = $config->getKeyAsJson($key);
 
 		return $value . "\n";
 	}
 
-	public function delete(string $key): void
+	public function delete(SystemConfig $config, string $key): void
 	{
-		$config = SystemConfig::instance();
 		$config->deleteKey($key);
 		$config->write();
 	}
 
-	public function set(string $key, string $value): void
+	public function set(SystemConfig $config, string $key, string $value): void
 	{
 		$value = json_decode($value, true);
 
 		if(!empty($value)){
-			$config = SystemConfig::instance();
 			$config->setKey($key, $value);
 			$config->write();
 		}else{
@@ -157,10 +148,8 @@ class ConfigTool extends Tool
 		}
 	}
 
-	public function validate(): string
+	public function validate(SystemConfig $config): string
 	{
-		$config = SystemConfig::instance();
-
 		// TODO: the reason this is imploding an array with a string string
 		// TODO: is because it should be validating other things too
 		return implode("\n", [
@@ -170,10 +159,8 @@ class ConfigTool extends Tool
 		]);
 	}
 
-	public function version(): string
+	public function version(SystemConfig $config): string
 	{
-		$config = SystemConfig::instance();
-
 		return $config->getVersion() . "\n";
 	}
 }
