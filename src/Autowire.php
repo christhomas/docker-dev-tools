@@ -154,23 +154,39 @@ class Autowire
                 // for every named parameter, we must look for an input parameter with the same name AND HAS A VALUE
                 foreach($inputParameters as $index => $data){
                     if($data['name'] === $name){
-                        debugVar("TYPE CHECK($name), numeric = " . (int)filter_var($data['value'], FILTER_VALIDATE_INT) . ", value = '{$data['value']}'");
-                        if($type === 'bool' && filter_var($data['value'], FILTER_VALIDATE_BOOLEAN)){
-                            debugVar("FOUND NAMED BOOL: name = '$name', value = '{$data['value']}'");
-                            $output[] = (bool)$data['value'];
-                            unset($inputParameters[$index]);
-                            continue 2;
-                        }else if($type === 'int' && filter_var($data['name'], FILTER_VALIDATE_INT)){
-                            debugVar("FOUND NAMED INT: name = '$name', value = '{$data['value']}'");
-                            $output[] = (int)$data['value'];
-                            unset($inputParameters[$index]);
-                            continue 2;
-                        }else if($type === 'float' && filter_var($data['name'], FILTER_VALIDATE_FLOAT)){
-                            debugVar("FOUND NAMED FLOAT: name = '$name', value = '{$data['value']}'");
-                            $output[] = (float)$data['value'];
-                            unset($inputParameters[$index]);
-                            continue 2;
-                        }else if($type === 'string' && array_key_exists('value', $data)){
+                        $test_numeric = (int)filter_var($data['value'], FILTER_VALIDATE_INT, FILTER_NULL_ON_FAILURE);
+                        debugVar("NAMED TYPE CHECK($name), numeric = $test_numeric, value = '{$data['value']}'");
+                        if($type === 'bool'){
+                            $value = filter_var($data['value'], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+                            if(is_bool($value)){
+                                debugVar("FOUND NAMED BOOL: name = '$name', value = '$value}'");
+                                $output[] = $value;
+                                unset($inputParameters[$index]);
+                                continue 2;
+                            }
+                        }
+                        
+                        if($type === 'int'){
+                            $value = filter_var($data['name'], FILTER_VALIDATE_INT, FILTER_NULL_ON_FAILURE);
+                            if(is_int($value)){
+                                debugVar("FOUND NAMED INT: name = '$name', value = '$value'");
+                                $output[] = $value;
+                                unset($inputParameters[$index]);
+                                continue 2;    
+                            }
+                        }
+                        
+                        if($type === 'float'){
+                            $value = filter_var($data['name'], FILTER_VALIDATE_FLOAT, FILTER_NULL_ON_FAILURE);
+                            if(is_float($value)){
+                                debugVar("FOUND NAMED FLOAT: name = '$name', value = '$value'");
+                                $output[] = $value;
+                                unset($inputParameters[$index]);
+                                continue 2;    
+                            }
+                        }
+                        
+                        if($type === 'string' && array_key_exists('value', $data)){
                             debugVar("FOUND NAMED STRING: name = '$name', value = '{$data['value']}'");
                             $output[] = $data['value'];
                             unset($inputParameters[$index]);
@@ -184,23 +200,39 @@ class Autowire
                     if(is_array($data) && array_key_exists('value', $data)){
                         continue;
                     }
-                    debugVar("TYPE CHECK($type / {$data['name']}), numeric = " . (int)filter_var($data['name'], FILTER_VALIDATE_INT) . ", value = '{$data['name']}'");
-                    if($type === 'bool' && filter_var($data['name'], FILTER_VALIDATE_BOOLEAN)){
-                        debugVar("FOUND ANON BOOL: name = '{$data['name']}'");
-                        $output[] = (bool)$data['name'];
-                        unset($inputParameters[$index]);
-                        continue 2;
-                    }else if($type === 'int' && filter_var($data['name'], FILTER_VALIDATE_INT)){
-                        debugVar("FOUND ANON INT: name = '{$data['name']}'");
-                        $output[] = (int)$data['name'];
-                        unset($inputParameters[$index]);
-                        continue 2;
-                    }else if($type === 'float' && filter_var($data['name'], FILTER_VALIDATE_FLOAT)){
-                        debugVar("FOUND ANON FLOAT: name = '{$data['name']}'");
-                        $output[] = (float)$data['name'];
-                        unset($inputParameters[$index]);
-                        continue 2;
-                    }else if($type === 'string' && !empty($data['name'])){
+                    $test_numeric = (int)filter_var($data['name'], FILTER_VALIDATE_INT, FILTER_NULL_ON_FAILURE);
+                    debugVar("ANON TYPE CHECK($type / {$data['name']}), numeric = $test_numeric, value = '{$data['name']}'");
+                    if($type === 'bool'){
+                        $value = filter_var($data['name'], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+                        if(is_bool($value)) {
+                            debugVar("FOUND ANON BOOL: name = '$value'");
+                            $output[] = $value;
+                            unset($inputParameters[$index]);
+                            continue 2;
+                        }
+                    }
+
+                    if($type === 'int'){
+                        $value = filter_var($data['name'], FILTER_VALIDATE_INT, FILTER_NULL_ON_FAILURE);
+                        if(is_int($value)){
+                            debugVar("FOUND ANON INT: name = '$value'");
+                            $output[] = $value;
+                            unset($inputParameters[$index]);
+                            continue 2;
+                        }
+                    }
+
+                    if($type === 'float'){
+                        $value = filter_var($data['name'], FILTER_VALIDATE_FLOAT, FILTER_NULL_ON_FAILURE);
+                        if(is_float($value)){
+                            debugVar("FOUND ANON FLOAT: name = '$value'");
+                            $output[] = $value;
+                            unset($inputParameters[$index]);
+                            continue 2;
+                        }
+                    }
+
+                    if($type === 'string' && !empty($data['name'])){
                         debugVar("FOUND ANON STRING: name = '{$data['name']}'");
                         $output[] = $data['name'];
                         unset($inputParameters[$index]);
