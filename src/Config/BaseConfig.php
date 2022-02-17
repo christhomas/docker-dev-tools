@@ -86,6 +86,11 @@ abstract class BaseConfig implements ConfigInterface
         $this->readonly = $readonly;
     }
 
+    public function isReadonly(): bool
+    {
+        return $this->readonly;
+    }
+
 	public function read(string $filename): void
 	{
         $this->setFilename($filename);
