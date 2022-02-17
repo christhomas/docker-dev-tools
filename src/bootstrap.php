@@ -12,7 +12,7 @@ use DDT\Contract\DnsServiceInterface;
 use DDT\Exceptions\Config\ConfigInvalidException;
 use DDT\Exceptions\Config\ConfigMissingException;
 use DDT\Exceptions\Container\ContainerNotInstantiatedException;
-use DDT\Exceptions\Tool\CommandNotFoundException;
+use DDT\Exceptions\Tool\ToolCommandNotFoundException;
 use DDT\Exceptions\Tool\ToolNotFoundException;
 use DDT\Exceptions\Tool\ToolNotSpecifiedException;
 
@@ -119,7 +119,7 @@ try{
 	$cli->failure($text->box($e->getMessage(), "wht", "red"));
 }catch(ToolNotSpecifiedException $e){
 	$cli->failure($text->box($e->getMessage(), "wht", "red"));
-}catch(CommandNotFoundException $e){
+}catch(ToolCommandNotFoundException $e){
 	$cli->failure($text->box($e->getMessage(), "wht", "red"));
 }catch(Exception $e){
 	$cli->failure($text->box(get_class($e) . ":\nThe tool has a non-specified error: " . $e->getMessage(), "wht", "red"));
