@@ -30,8 +30,6 @@ class IpTool extends Tool
 
 	public function getToolMetadata(): array
 	{
-		$alias = $this->config->get() ?? 'unknown';
-
 		return [
 			'title' => 'IP Address Tool',
 			'short_description' => 'A tool to configure and control local ip addresses used to enable the dns server',
@@ -42,10 +40,10 @@ class IpTool extends Tool
 				"IDE Is listening for incoming connections\n"
 			),
 			'options' => implode("\n",[
-				"set <ip-address>: Add an IP Address to your configuration stack, this value will be remembered and used in the future",
+				"set <ip-address>: Set into the configuration the IP Address, this value will be remembered and used in the future",
 				"get: Get the Currently configured IP Address.",
-				"add: Add '{yel}$alias{end}' as an ip alias for '{yel}127.0.0.1{end}'",
-				"remove: Remove '{yel}$alias{end}' from your computer",
+				"add: Add '{yel}<ip-address>{end}' as an ip alias for '{yel}127.0.0.1{end}'",
+				"remove: Remove '{yel}<ip-address>{end}' from your computer",
 				"reset: Remove and Add the configuration again, just in case it broke somehow",
 				"ping: Ping the configured ip address",
 			]),
