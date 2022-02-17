@@ -19,7 +19,7 @@ abstract class BaseConfig implements ConfigInterface
         $this->read($filename);
     }
     
-    public function setFilename(string $filename): void
+    public function setFilename(string $filename): string
 	{
         if(is_dir($filename)){
             $filename = $filename . '/' . $this->getDefaultFilename();
@@ -38,6 +38,8 @@ abstract class BaseConfig implements ConfigInterface
 		}
 
 		$this->filename = $filename;
+
+        return $filename;
 	}
 
     abstract public function getDefaultFilename(): string;
@@ -109,7 +111,8 @@ abstract class BaseConfig implements ConfigInterface
             throw new ConfigReadonlyException();
         }
 
-		$filename = $filename ?: $this->getFilename();
+        // If provided, reset the filename to the new file, otherwise get the current filename
+		$filename = $this->setFilename($filename) ?: $this->getFilename();
 
 		$data = json_encode($this->data, JSON_PRETTY_PRINT);
 
