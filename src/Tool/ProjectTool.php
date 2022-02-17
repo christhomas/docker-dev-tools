@@ -20,11 +20,10 @@ class ProjectTool extends Tool
 
         $this->config = $config;
         $this->repoService = $repoService;
-        $this->setToolCommand('list', 'listCommand');
-        $this->setToolCommand('add-group', 'addGroupCommand');
-        $this->setToolCommand('remove-group', 'removeGroupCommand');
-        $this->setToolCommand('add-project', 'addProjectCommand');
-        $this->setToolCommand('remove-project', 'removeProjectCommand');
+
+        foreach(['list', 'add-group', 'remove-group', 'add-project', 'remove-project'] as $command){
+            $this->setToolCommand($command);
+        }
     }
 
     public function getToolMetadata(): array

@@ -22,8 +22,8 @@ class ProxyTool extends Tool
         $this->proxy = $proxy;
 
         foreach([
-            'start', 'stop', 'restart', 'logs', 'logsF', 'addNetwork', 
-            'removeNetwork', 'nginxConfig', 'status', 'containerName', 'dockerImage'
+            'start', 'stop', 'restart', 'logs', 'logs-f', 'add-network', 
+            'remove-network', 'nginx-config', 'status', 'container-name', 'docker-image'
         ] as $command){
             $this->setToolCommand($command);
         }

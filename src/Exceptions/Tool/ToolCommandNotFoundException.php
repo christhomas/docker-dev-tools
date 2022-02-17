@@ -2,7 +2,7 @@
 
 namespace DDT\Exceptions\Tool;
 
-class CommandNotFoundException extends \Exception
+class ToolCommandNotFoundException extends \Exception
 {
     public function __construct($tool, $command, $code = 0, \Throwable $previous = null)
     {

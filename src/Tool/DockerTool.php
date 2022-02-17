@@ -22,10 +22,9 @@ class DockerTool extends Tool
         $this->docker = $docker;
         $this->config = $config;
 
-        $this->setToolCommand('addProfile', 'addProfileCommand');
-        $this->setToolCommand('removeProfile', 'removeProfileCommand');
-        $this->setToolCommand('listProfile', 'listProfileCommand');
-        $this->setToolCommand('profile', 'profileCommand');
+        foreach(['add-profile', 'remove-profile', 'list-profile', 'profile'] as $command){
+            $this->setToolCommand($command);
+        }
     }
 
     public function getToolMetadata(): array
@@ -79,7 +78,7 @@ class DockerTool extends Tool
         ];
     }
 
-    public function addProfileCommand(string $name, string $host, int $port, string $tlscacert, string $tlscert, string $tlskey)
+    public function addProfile(string $name, string $host, int $port, string $tlscacert, string $tlscert, string $tlskey)
     {
         $this->cli->print("{blu}Creating new Docker Run Profile:{end}\n\n");
         $this->cli->print(" - name: '$name'\n");
@@ -98,7 +97,7 @@ class DockerTool extends Tool
         }
     }
 
-    public function removeProfileCommand(string $name)
+    public function removeProfile(string $name)
     {
         $this->cli->print("{blu}Removing Docker Run Profile:{end} '$name'\n\n");
 
@@ -109,7 +108,7 @@ class DockerTool extends Tool
         }
     }
 
-    public function listProfileCommand()
+    public function listProfile()
     {
         $this->cli->print("{blu}Listing Docker Run Profiles{end}\n\n");
 
@@ -131,7 +130,7 @@ class DockerTool extends Tool
         }
     }
 
-    public function profileCommand(string $name)
+    public function profile(string $name)
     {
         $profile = $this->config->readProfile($name);
         $args = $this->cli->getArgList();

@@ -24,12 +24,9 @@ class ConfigTool extends Tool
 
 		$this->text = $text;
 
-		$this->setToolCommand('reset', 'resetCommand');
-		$this->setToolCommand('get', 'getCommand');
-		$this->setToolCommand('delete', 'deleteCommand');
-		$this->setToolCommand('set', 'setCommand');
-		$this->setToolCommand('validate', 'validateCommand');
-		$this->setToolCommand('version', 'versionCommand');
+		foreach(['reset', 'get', 'delete', 'set', 'validate', 'version'] as $command){
+			$this->setToolCommand($command);
+		}
     }
 
 	public function getToolMetadata(): array
@@ -114,7 +111,7 @@ class ConfigTool extends Tool
 		return $newConfig->write($this->homeConfig);
 	}
 
-	public function resetCommand(): string
+	public function reset(): string
 	{
 		// Test if system configuration exists, if yes then you'll be asked to reset it
 		if($this->exists()){
@@ -132,7 +129,7 @@ class ConfigTool extends Tool
 		return $this->text->box("The file '{$this->homeConfig}' could not be written, the state of the file is unknown, please manually check it", "wht", "red");
 	}
 
-	public function getCommand(?string $key='.', ?bool $raw=null): string
+	public function get(?string $key='.', ?bool $raw=null): string
 	{
 		$config = SystemConfig::instance();
 		$value = $config->getKeyAsJson($key);
@@ -140,14 +137,14 @@ class ConfigTool extends Tool
 		return $value . "\n";
 	}
 
-	public function deleteCommand(string $key): void
+	public function delete(string $key): void
 	{
 		$config = SystemConfig::instance();
 		$config->deleteKey($key);
 		$config->write();
 	}
 
-	public function setCommand(string $key, string $value): void
+	public function set(string $key, string $value): void
 	{
 		$value = json_decode($value, true);
 
@@ -160,7 +157,7 @@ class ConfigTool extends Tool
 		}
 	}
 
-	public function validateCommand(): string
+	public function validate(): string
 	{
 		$config = SystemConfig::instance();
 
@@ -173,7 +170,7 @@ class ConfigTool extends Tool
 		]);
 	}
 
-	public function versionCommand(): string
+	public function version(): string
 	{
 		$config = SystemConfig::instance();
 

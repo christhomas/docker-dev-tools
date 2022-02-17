@@ -33,10 +33,9 @@ class SetupTool extends Tool
         $this->home = $home ?? $_SERVER['HOME'];
         $this->files = $this->getExistingFiles($this->files);
 
-        $this->setToolCommand('install', 'installCommand');
-        $this->setToolCommand('uninstall', 'uninstallCommand');
-        $this->setToolCommand('test', 'testCommand');
-        $this->setToolCommand('setPath', 'setPathCommand');
+        foreach(['install', 'uninstall', 'test', 'setPath'] as $command){
+            $this->setToolCommand($command);
+        }
     }
 
     public function getExistingFiles(array $files): array
@@ -172,7 +171,7 @@ class SetupTool extends Tool
 		}
 	}
 
-    public function installCommand(string $path)
+    public function install(string $path)
     {
         $this->cli->print("{blu}Docker Dev Tools Installer{end}\n");
 
@@ -215,7 +214,7 @@ class SetupTool extends Tool
         // Use the ConfigTool to get the job done
         /** @var ConfigTool */
         $configTool = $this->getTool('config');
-        $this->cli->print($configTool->resetCommand());
+        $this->cli->print($configTool->reset());
 
         //////////////////////////////////////////////////////////////////
         // TODO: handle installation of extension bin paths
@@ -226,10 +225,10 @@ class SetupTool extends Tool
 		$config->setToolsPath($path);
 		$config->write();
 
-        $this->testCommand();
+        $this->test();
     }
 
-    public function uninstallCommand(string $path)
+    public function uninstall(string $path)
     {
         $this->cli->print("{blu}Docker Dev Tools Uninstaller{end}\n");
 
@@ -248,7 +247,7 @@ class SetupTool extends Tool
 		// TODO: handle uninstallation of extension bin paths
     } 
 
-    public function testCommand(): bool
+    public function test(): bool
     {
         $config = SystemConfig::instance();
         $toolPath = $config->getToolsPath();
@@ -277,7 +276,7 @@ class SetupTool extends Tool
 		return false;
     }
 
-    public function setPathCommand(string $path)
+    public function setPath(string $path)
     {
         $path = rtrim($path, "/");
 

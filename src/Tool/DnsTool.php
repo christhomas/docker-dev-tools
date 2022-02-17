@@ -37,11 +37,11 @@ class DnsTool extends Tool
 
         foreach([
             'enable', 'disable', 'refresh', 'start', 'stop', 'restart',
-            'logs', 'logsF',
-            'addDomain', 'removeDomain',
+            'logs', 'logs-f',
+            'add-domain', 'remove-domain',
             'ip', 'ping', 'status',
-            'containerName', 'dockerImage',
-            'listDevices', 'setDevice', 'removeDevice'
+            'container-name', 'docker-image',
+            'list-devices', 'set-device', 'remove-device'
         ] as $command){
             $this->setToolCommand($command);
         }

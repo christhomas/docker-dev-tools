@@ -2,7 +2,7 @@
 
 namespace DDT\Exceptions\Tool;
 
-class CommandInvalidException extends \Exception
+class ToolCommandInvalidException extends \Exception
 {
     public function __construct(?string $message = null, $code = 0, \Throwable $previous = null)
     {

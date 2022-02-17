@@ -7,6 +7,8 @@ use DDT\Autowire;
 use DDT\CLI;
 use DDT\Exceptions\Tool\CommandInvalidException;
 use DDT\Exceptions\Tool\CommandNotFoundException;
+use DDT\Exceptions\Tool\ToolCommandInvalidException;
+use DDT\Exceptions\Tool\ToolCommandNotFoundException;
 use DDT\Exceptions\Tool\ToolNotFoundException;
 
 abstract class Tool
@@ -69,9 +71,26 @@ abstract class Tool
 
     public function setToolCommand(string $name, ?string $method=null, bool $isDefault=false): void
     {
-        // TODO: block registering protected functions
+        if(empty($name)){
+            throw new ToolCommandInvalidException();
+        }
 
-        $this->command[$name] = ['method' => $method ?? $name, 'is_default' => $isDefault];
+        $name = strtolower($name);
+
+        if(empty($method)){
+            $method = ucwords(str_replace(['-', '_'], ' ', $name));
+            $method = lcfirst(str_replace(' ', '', $method));
+        }
+
+        if(!is_callable([$this, $method])){
+            throw new ToolCommandNotFoundException("$this->entrypoint $this->name", $name);
+        }
+
+        if(in_array($method, $this->protectedFunctions)){
+            throw new ToolCommandInvalidException("The command '$name' with method name '$method' is a protected method and can't be set");
+        }
+
+        $this->command[$name] = ['method' => $method, 'is_default' => $isDefault];
     }
 
     public function getToolDefaultCommand(): ?string

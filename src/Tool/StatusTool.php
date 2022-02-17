@@ -20,6 +20,7 @@ class StatusTool extends Tool
 
         $this->text = $text;
         $this->config = $config;
+
         $this->setToolCommand('main', null, true);
     }
 

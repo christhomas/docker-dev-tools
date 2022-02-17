@@ -23,10 +23,9 @@ class ExtensionTool extends Tool
         $this->config = $config;
         $this->extensionManager = $extensionManager;
 
-        $this->setToolCommand('install', 'installCommand');
-        $this->setToolCommand('uninstall', 'uninstallCommand');
-        $this->setToolCommand('update', 'updateCommand');
-        $this->setToolCommand('list', 'listCommand');
+        foreach(['install', 'uninstall', 'update', 'list'] as $command){
+            $this->setToolCommand($command);
+        }
     }
 
     public function getToolMetadata(): array
@@ -53,7 +52,7 @@ class ExtensionTool extends Tool
         ];
     }
 
-    public function installCommand(string $name, string $url)
+    public function install(string $name, string $url)
     {
         $this->cli->print("Installing new ExtensionManager '{yel}$name{end}' from url '{yel}$url{end}'\n");
 
@@ -78,7 +77,7 @@ class ExtensionTool extends Tool
         }*/
     }
 
-    public function uninstallCommand(string $name)
+    public function uninstall(string $name)
     {
         $this->cli->failure('TODO: tool command: '.__METHOD__." is not implemented");
         /*
@@ -98,7 +97,7 @@ class ExtensionTool extends Tool
         }*/        
     }
 
-    public function updateCommand(string $name)
+    public function update(string $name)
     {
         $this->cli->failure('TODO: tool command: '.__METHOD__." is not implemented");
         /*
@@ -130,7 +129,7 @@ class ExtensionTool extends Tool
         }*/
     }
 
-    public function listCommand()
+    public function list()
     {
         // get list of configured extensions
         // get list of extensions from the filesystem
