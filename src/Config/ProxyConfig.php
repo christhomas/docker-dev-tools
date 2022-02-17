@@ -56,7 +56,7 @@ class ProxyConfig
 
 	public function setContainerName(string $name): bool
 	{
-		if(empty($image)) return false;
+		if(empty($name)) return false;
 		
 		$this->config->setKey($this->keys['container_name'], $name);
 
