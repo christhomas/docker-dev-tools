@@ -4,6 +4,8 @@ namespace DDT;
 
 use Exception;
 use DDT\Text\Text;
+use DDT\Exceptions\CLI\ExecException;
+use DDT\Exceptions\CLI\PassthruException;
 
 class CLI
 {
@@ -262,7 +264,7 @@ class CLI
 		$this->debug($debug);
 
 		if($code !== 0 && $throw === true){
-			throw new Exception(self::$stdout." ".self::$stderr, $code);
+			throw new ExecException(self::$stdout, self::$stderr, $code);
 		}
 
 		$output = empty(self::$stdout) ? [""] : explode("\n", self::$stdout);
@@ -281,7 +283,7 @@ class CLI
 		self::$exitCode = $code;
 
 		if ($code !== 0 && $throw === true){
-			throw new Exception(__METHOD__.": error with command '$command'\n");
+			throw new PassthruException($command, $code);
 		}
 
 		return $code;

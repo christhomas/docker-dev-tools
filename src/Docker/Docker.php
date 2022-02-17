@@ -4,6 +4,7 @@ namespace DDT\Docker;
 
 use DDT\CLI;
 use DDT\Config\DockerConfig;
+use DDT\Exceptions\CLI\ExecException;
 use DDT\Exceptions\Docker\DockerException;
 use DDT\Exceptions\Docker\DockerInspectException;
 use DDT\Exceptions\Docker\DockerMissingException;
@@ -18,13 +19,13 @@ class Docker
     private $config;
 
 	private $profile;
-	private $version;
     private $command = 'docker';
 
     const DOCKER_NOT_RUNNING = "The docker daemon is not running";
 	const DOCKER_PORT_ALREADY_IN_USE = "Something is already using port '{port}' on this machine, please stop that service and try again";
 	const DOCKER_NETWORK_ALREADY_ATTACHED = "/endpoint with name (?<container>[^\s].*) already exists in network (?<network>[^\s].*)/";
 
+	// TODO: I don't like this function much
 	private function parseErrors(string $message, array $tokens = []): string
 	{
 
@@ -67,13 +68,8 @@ class Docker
 
 	public function getVersion(): array
     {
-        return json_decode(implode(" ", $this->exec('version --format "{{json .}}"')), true);
+        return json_decode(implode(" ", $this->exec('version --format "{{json .Client.Version}}"')), true);
     }
-
-	public function isRunning(): bool
-	{
-	    return is_array($this->version) && array_key_exists('Server', $this->version) && !empty($this->version['Server']);
-	}
 
     public function setConfig(DockerConfig $config): void
     {
@@ -113,25 +109,21 @@ class Docker
 
 	public function exec(string $command, bool $firstLine=false)
 	{
-		if(!$this->isRunning()){
-            throw new DockerNotRunningException();
-        }
-
 		try{
 			$command = $this->toCommandLine($command);
 
 			return $this->cli->exec($command);
-		}catch(\Exception $e){
+		}catch(ExecException $e){
+			if(strpos(strtolower($e->getStderr()), 'cannot connect to the docker daemon') !== false){
+				throw new DockerNotRunningException();
+			}
+
 			throw new DockerException($e->getMessage(), $e->getCode(), $e->getPrevious());
 		}
 	}
 
 	public function passthru(string $command): int
 	{
-		if(!$this->isRunning()){
-            throw new DockerNotRunningException();
-        }
-		
 		try{
 			$command = $this->toCommandLine($command);
 
