@@ -187,16 +187,19 @@ abstract class Tool
         
         $options = array_key_exists('options', $metadata) ? $metadata['options'] : null;
         if(!empty($options)){
+            $options = is_array($options) ? implode("\n", $options) : $options;
             $section[] = "{blu}Options:{end}\n$options";
         }
 
         $examples = array_key_exists('examples', $metadata) ? $metadata['examples'] : null;
         if(!empty($examples)){
+            $examples = is_array($examples) ? implode("\n", $examples) : $examples;
             $section[] = "{blu}Examples:{end}\n$examples";
         }
 
         $notes = array_key_exists('notes', $metadata) ? $metadata['notes'] : null;
         if(!empty($notes)) {
+            $notes = is_array($notes) ? implode("\n", $notes) : $notes;
             $section[] = "{blu}Notes:{end}\n$notes";
         }
 
