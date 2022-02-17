@@ -137,10 +137,14 @@ class ProxyTool extends Tool
         // Format::networkList($proxy->getNetworks());
     } 
 
-    public function nginxConfig()
+    public function nginxConfig(?bool $colour=true)
     {
         if($this->proxy->isRunning()){
-            $this->cli->print("\n{cyan}".$this->proxy->getConfig()."{end}\n\n");
+            $output = $this->proxy->getConfig();
+            if($colour){
+                $output = "\n{cyn}".$output."{end}\n\n";
+            }
+            $this->cli->print($output);
         }else{
             $this->cli->print('{red}Proxy is not running{end}');
         }
