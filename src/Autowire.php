@@ -70,7 +70,7 @@ class Autowire
         // Resolve parameter data to a simple array
         $params = array_map(function($p) {
             $temp = ['name' => $p->getName(), 'type' => $p->getType()];
-            if($p->isOptional){
+            if($p->isOptional()){
                 $temp['default'] = $p->getDefaultValue();
             }
             return $temp;
@@ -86,9 +86,9 @@ class Autowire
 
         $output = [];
         $vd = function($a){ 
-            is_scalar($a) ? print($a."\n") : var_dump($a); 
+            // is_scalar($a) ? print($a."\n") : var_dump($a); 
         };
-        $vd("REFORMAT ARGS = ",$inputParameters);
+        $vd(["REFORMAT ARGS" => $inputParameters]);
 
         foreach($inputParameters as $name => $arg){
             if(is_string($name)){
@@ -103,20 +103,8 @@ class Autowire
                     // I'm not sure what other formats to take care of right now
                 }
             }
-            // if(is_array($arg) && array_key_exists('name', $arg) && array_key_exists('value', $arg)){
-            //     $output[] = ['name' => trim($arg['name'], " -"), 'value' => $arg['value']];
-            // }else{
-            //     $output[] = ['name' => trim($name, " -"), 'value' => $arg];
-            // }else{
-            //     throw new Exception(implode("\n",[
-            //         "Unexpected argument format, don't know how to fix it",
-            //         "Json Formatted input: ".json_encode($input),
-            //         "Stack:",
-            //         (new Exception)->getTraceAsString(),
-            //     ]));
-            // }
         }
-        $vd("FINAL OUTPUT = ", $output);
+        $vd(["FINAL OUTPUT" => $output]);
 
         return $output;
     }
@@ -141,7 +129,7 @@ class Autowire
 
             $vd("=======================\nSEARCH PARAMETER: name = '$name' with type '$type'");
 
-            if(class_exists($type)){
+            if(class_exists($type) || interface_exists($type)){
                 // When the type is a class, 
                 foreach($inputParameters as $index => $data){
                     if($data['name']  === $name && is_object($data['value']) && get_class($data['value']) === $type){
