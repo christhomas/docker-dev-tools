@@ -117,7 +117,7 @@ abstract class BaseConfig implements ConfigInterface
         }
 
         // If provided, reset the filename to the new file, otherwise get the current filename
-		$filename = $this->setFilename($filename) ?: $this->getFilename();
+		$filename = !empty($filename) ? $this->setFilename($filename) : $this->getFilename();
 
 		$data = json_encode($this->data, JSON_PRETTY_PRINT);
 
