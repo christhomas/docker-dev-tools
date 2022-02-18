@@ -93,7 +93,7 @@ abstract class BaseConfig implements ConfigInterface
 
 	public function read(string $filename): void
 	{
-        $this->setFilename($filename);
+        $filename = $this->setFilename($filename);
 
 		if(file_exists($filename) === false){
             throw new ConfigMissingException($filename);
