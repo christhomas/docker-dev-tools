@@ -217,10 +217,8 @@ class SetupTool extends Tool
         // Use the ConfigTool to get the job done
         /** @var ConfigTool */
         $configTool = $this->getTool('config');
-        $this->cli->print($configTool->invoke('reset'));
-        
+        $systemConfig = $configTool->reset(SystemConfig::instance());
         //  write into the config the tools path and save file
-        $systemConfig = SystemConfig::instance();
 		$systemConfig->setPath('tools', $path);
 		$systemConfig->write();
 
