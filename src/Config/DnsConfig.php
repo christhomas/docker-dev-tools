@@ -2,8 +2,6 @@
 
 namespace DDT\Config;
 
-use DDT\Docker\DockerRunProfile;
-
 class DnsConfig
 {
     private $keys = [
@@ -18,11 +16,11 @@ class DnsConfig
         $this->config = $config;
 	
 		if($this->config->getKey($this->keys['docker_image']) === null){
-			$this->config->setDockerImage(container('defaults.dns.docker_image'));
+			$this->setDockerImage(container('defaults.dns.docker_image'));
 		}
 	
 		if($this->config->getKey($this->keys['container_name']) === null){
-			$this->config->setContainerName(container('defaults.dns.container_name'));
+			$this->setContainerName(container('defaults.dns.container_name'));
 		}
 
 		if($this->config->getKey($this->keys['domains']) === null){
