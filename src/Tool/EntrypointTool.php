@@ -89,6 +89,9 @@ class EntrypointTool extends Tool
             if($methodName === null){
                 // There is a default command, use that instead
                 $methodName = $tool->getToolDefaultCommand();
+            }else{
+                // The requested command was found, we need to remove the first argument now we know it's safe to do so
+                $argList = array_slice($argList, 1);
             }
 
             if($methodName !== null){
