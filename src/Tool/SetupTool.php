@@ -302,13 +302,12 @@ class SetupTool extends Tool
 		return false;
     }
 
-    public function setPath(string $path)
+    public function setPath(SystemConfig $systemConfig, string $path)
     {
         $path = rtrim($path, "/");
 
         $this->cli->print("{blu}Set Tools Path:{end} updating configuration with path '$path'\n");
-        $config = SystemConfig::instance();
-        $config->setPath('tools', $path);
-	    $config->write();
+        $systemConfig->setPath('tools', $path);
+	    $systemConfig->write();
     }
 }
