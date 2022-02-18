@@ -265,6 +265,23 @@ class SetupTool extends Tool
         }
     } 
 
+    public function update()
+    {
+        // use the .ddt-system.json to store a "version.update_time" and set it to one week in advance
+        // each time ddt tools runs, it should check this time
+        // if time is behind current time, we should update
+        // here are the git commands to discuss
+        // 1. git fetch
+        // 2. git rev-list --left-right master..origin/master --count
+        // 3. git pull
+        // we should use (1) to update the remote branch information, then (2) to to find out the current status, the "0 1" is two columns, ahead/behind commit counts
+        // if we are ahead, we can't update cleanly, so we should stop with an error at this point
+        // if we are behind, and the time is right, we can do (3) to update our local copy of the tools
+        
+        // FUTURE PROBLEMS
+        // TODO: how to deal with any kind of migration? what if the .ddt-system.json file format changes?
+    }
+
     public function test(): bool
     {
         try {
