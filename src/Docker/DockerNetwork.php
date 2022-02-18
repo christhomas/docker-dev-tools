@@ -62,6 +62,11 @@ class DockerNetwork
         }
     }
 
+    public function getName(): string
+    {
+        return $this->name;
+    }
+
     public function listContainers(): array
     {
         $result = $this->docker->inspect('network', $this->name, '.Containers');
