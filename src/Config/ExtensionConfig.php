@@ -26,9 +26,9 @@ class ExtensionConfig
 		return container(ExtensionConfig::class);
 	}
 
-    public function getPath(string $name, string $path): string
+    public function getToolsPath(string $path): string
     {
-        return $this->config->getPath($name, $path);
+        return $this->config->getPath('tools', $path);
     }
 
     public function add(string $name, string $url, string $path, string $test): bool

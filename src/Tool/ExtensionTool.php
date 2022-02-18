@@ -59,7 +59,7 @@ class ExtensionTool extends Tool
     {
         $this->cli->print("Installing new ExtensionManager '{yel}$name{end}' from url '{yel}$url{end}'\n");
 
-        $path = $this->config->getPath('tools', "/extensions/$name");
+        $path = $this->config->getToolsPath("/extensions/$name");
 
         try{
             if($this->gitService->clone($url, $path)){

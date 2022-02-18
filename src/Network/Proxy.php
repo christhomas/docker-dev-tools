@@ -16,8 +16,13 @@ use DDT\Exceptions\Docker\DockerNetworkExistsException;
 
 class Proxy
 {
+	/** @var CLI */
 	private $cli;
+
+	/** @var ProxyConfig */
 	private $config;
+
+	/** @var Docker */
 	private $docker;
 
 	public function __construct(CLI $cli, ProxyConfig $config, Docker $docker)
@@ -110,7 +115,7 @@ class Proxy
 	{
 		$image = $this->getDockerImage();
 		$name = $this->getContainerName();
-		$path = $this->config->getPath('tools');
+		$path = $this->config->getToolsPath('tools');
 
 		$this->docker->pruneContainer();
 
