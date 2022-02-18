@@ -63,7 +63,7 @@ class ProxyConfig
 		return $this->config->write();
 	}
 
-	public function getNetworkList(): array
+	public function listNetworks(): array
 	{
 		return $this->config->getKey($this->keys['network']);
 	}
