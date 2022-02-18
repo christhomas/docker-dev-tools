@@ -29,6 +29,7 @@ abstract class Tool
     private $protectedFunctions = [
         'setToolCommand',
         'getToolCommand',
+        'getToolCommandName',
         'getTool',
         'getToolMetaData',
         'getToolName',
@@ -104,13 +105,24 @@ abstract class Tool
         return null;
     }
 
-    public function getToolCommand(string $name): ?string
+    public function getToolCommand(string $commandName): string
     {
-        if(array_key_exists($name, $this->command)){
-            return $this->command[$name]['method'];
+        if(array_key_exists($commandName, $this->command)){
+            return $this->command[$commandName]['method'];
         }
 
-        throw new Exception("The requested command '$name' was not registered");
+        throw new Exception("The requested command '$commandName' was not registered");
+    }
+
+    public function getToolCommandName(string $methodName): string
+    {
+        foreach($this->command as $commandName => $command){
+            if($methodName === $command['method']){
+                return $commandName;
+            }
+        }
+
+        throw new Exception("The requested method '$methodName' was not registered as a command");
     }
 
     public function getTool(string $name): Tool

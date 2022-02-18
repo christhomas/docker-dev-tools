@@ -4,6 +4,7 @@ namespace DDT\Tool;
 
 use DDT\Autowire;
 use DDT\CLI;
+use DDT\Exceptions\Autowire\CannotAutowireParameterException;
 use DDT\Exceptions\Tool\ToolNotFoundException;
 
 class EntrypointTool extends Tool
@@ -49,33 +50,42 @@ class EntrypointTool extends Tool
 
     public function handle()
     {        
-        $arg = $this->cli->shiftArg();
-        $tool = null;
+        try{
+            $toolArg = $this->cli->shiftArg();
 
-        if(!empty($arg)){
-            $name = strtolower($arg['name']);
-            
-            // We check if the tool requested is the entrypoint, which would be weird
-            // But we block this stupid thing from happening anyway
-            if($name !== $this->name) {
-                $tool = $this->getTool($name);
+            // There were no commands or arguments, show main help
+            if(empty($toolArg)){
+                return $this->cli->print($this->help());
             }
-        }
 
-        if($tool instanceof Tool){
+            // If the tool name, is the entrypoint, we stop this from happening 
+            // by just treating it as if you called the help
+            $toolName = strtolower($toolArg['name']);
+            if($toolName === $this->name) {
+                return $this->cli->print($this->help());
+            }
+        
+            // Obtain the tool, throw exception if not found
+            $tool = $this->getTool($toolName);
+            if(!$tool instanceof Tool){
+                throw new ToolNotFoundException($toolName);
+            }
+
+            // If there are no arguments provided to the tool, show the tools help
             if($this->cli->countArgs() === 0){
-                // There were no commands or arguments, show help
-                $response = $tool->help();
-            }else if($method = $tool->getToolDefaultCommand()){
+                return $this->cli->print($tool->help());
+            }
+
+            if($method = $tool->getToolDefaultCommand()){
                 // There is a default command, call it with all the args passed
                 $autowire = container(Autowire::class);
                 $response = $autowire->callMethod($tool, $method, $this->cli->getArgList());
             }else{
-                $method = $this->cli->shiftArg();
-                $method = $tool->getToolCommand($method['name']);
+                $methodArg = $this->cli->shiftArg();
+                $methodName = $tool->getToolCommand($methodArg['name']);
 
                 $autowire = container(Autowire::class);
-                $response = $autowire->callMethod($tool, $method, $this->cli->getArgList());
+                $response = $autowire->callMethod($tool, $methodName, $this->cli->getArgList());
             }
     
             if(is_string($response)){
@@ -83,9 +93,11 @@ class EntrypointTool extends Tool
             }
     
             return $response;
+        }catch(CannotAutowireParameterException $e){
+            $this->cli->print($tool->help());
+            $commandName = $tool->getToolCommandName($e->getMethodName());
+            $this->cli->failure("The command '$commandName' on the tool '$toolName' requires a parameter '{$e->getParameterName()}' with format '{$e->getParameterType()}'\n");
         }
-
-        return $this->cli->print($this->help());
     }
 
     public function getToolMetadata(): array
