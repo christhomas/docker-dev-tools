@@ -56,23 +56,17 @@ class IpTool extends Tool
 		];
 	}
 
-	public function set(): void
+	public function set(string $ipAddress): void
 	{
-		$ipAddress = $this->cli->shiftArg();
+		$ipAddress = $ipAddress['name'];
+		$this->cli->print("Writing IP Address '{yel}$ipAddress{end}': ");
 
-		if(empty($ipAddress)){
-			throw new \Exception("You must provide an ip address to this command, one was not found in the config, nor the command line");
+		$this->config->set($ipAddress);
+
+		if($this->config->set($ipAddress)){
+			$this->cli->print("{grn}SUCCESS{end}\n");
 		}else{
-			$ipAddress = $ipAddress['name'];
-			$this->cli->print("Writing IP Address '{yel}$ipAddress{end}': ");
-
-			$this->config->set($ipAddress);
-
-			if($this->config->set($ipAddress)){
-				$this->cli->print("{grn}SUCCESS{end}\n");
-			}else{
-				$this->cli->failure("{red}FAILURE{end}\n");
-			}
+			$this->cli->failure("{red}FAILURE{end}\n");
 		}
 	}
 
