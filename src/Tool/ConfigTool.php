@@ -35,56 +35,55 @@ class ConfigTool extends Tool
 
 		return [
 			'title' => 'Configuration',
-			'description' => '  This tool will manipulate the configuration or query part of it for use in other tools',
-			'options' => implode("\n",[
-				"  filename: Returns a single string containing the filename",
-				"  reset: Will reset your configuration file to the default 'empty' configuration, {red}it will destroy any setup you already have{end}",
-				"  get: Will retrieve a specific key, if no key is specified, the entire config is shown",
-				"  validate: Only validate the file can be read without errors",
-				"  version: Output some information about the configuration that is deemed useful",
-				"  help: This information, also if no sub command is given help is automatically shown",
-			]),
+			'description' => 'This tool will manipulate the configuration or query part of it for use in other tools',
+			'options' => [
+				"filename: Returns a single string containing the filename",
+				"reset: Will reset your configuration file to the default 'empty' configuration, {red}it will destroy any setup you already have{end}",
+				"get: Will retrieve a specific key, if no key is specified, the entire config is shown",
+				"validate: Only validate the file can be read without errors",
+				"version: Output some information about the configuration that is deemed useful",
+				"help: This information, also if no sub command is given help is automatically shown",
+			],
 			'examples' => trim(
 				"Basic commands are simple to understand:\n".
-				"  - {$entrypoint} filename (will output where the system configuration file is located)\n".
-				"  - {$entrypoint} version (will output version information, etc)\n".
+				"\t- {$entrypoint} filename (will output where the system configuration file is located)\n".
+				"\t- {$entrypoint} version (will output version information, etc)\n".
 				"\n".
 				"To query parts of the configuration:\n".
-				"  - {$entrypoint} get (with no specific key mentioned, will output entire configuration)\n".
-				"  - {$entrypoint} get --key=.type\n".
-				"  - {$entrypoint} get --key=.this.0.must.be.3.valid\n".
+				"\t- {$entrypoint} get (with no specific key mentioned, will output entire configuration)\n".
+				"\t- {$entrypoint} get --key=.type\n".
+				"\t- {$entrypoint} get --key=.this.0.must.be.3.valid\n".
 				"\n".	
 				"The last one will do a recursive lookup drilling down each level that are split by the dots\n".
-				"  - key(this) -> index(0) -> key(must) -> key(be) -> index(3) -> key(valid)\n".
+				"\t- key(this) -> index(0) -> key(must) -> key(be) -> index(3) -> key(valid)\n".
 				"\n".
 				"The json for the above example could be:\n".
-				"{cyn}{\n".
-				"  \"this\": [\n".
-				"    {\n".
-				"      \"must\": {\n".
-				"        \"be\": [\n".
-				"          \"not this\",\n".
-				"          \"or this\",\n".
-				"          \"neither this\",\n".
-				"          {\n".
-				"            \"valid\": \"this one! this is index 3\",\n".
-				"            \"json\": \"doesn't care if you mix strings with objects or sub-arrays\"\n".
-				"          },\n".
-				"          \"ignore this\"\n".
-				"        ]\n".
-				"      }\n".   
-				"    }\n".
-				"  ]\n".
-				"}\n".
-				"{end}\n".
+				"{cyn}".str_replace("    ", "\t", json_encode([
+					"this" => [
+						[
+							"must" => [
+								"be" => [
+									"not this",
+									"or this",
+									"neither this",
+									[
+										"valid" => "this one! this is index 3",
+										"json" => "doesn't care if you mix strings with objects or sub-arrays"
+									],
+									"ignore this",
+								]
+							]
+						]
+					]
+				], JSON_PRETTY_PRINT))."{end}\n".
 				"bash# {$entrypoint} get=.this.0.must.be.3.valid\n".
 				"\"this one! this is index 3\"\n"
 			),
-			'notes' => implode("\n",[
+			'notes' => [
 				"All keys begin with '.' (dot), e.g: '.description'",
 				"Keys are a dotted syntax that allows you to pluck out a segment of the configuration",
 				"If you ask for an invalid heirarchy. This function will return null",
-			]),
+			],
 		];
 	}
 
@@ -102,7 +101,7 @@ class ConfigTool extends Tool
 		}
 	}
 
-	public function reset(SystemConfig $config): void
+	public function reset(SystemConfig $config): ?SystemConfig
 	{
 		// Test if system configuration exists, if yes then you'll be asked to reset it
 		if($this->exists($config)){
@@ -110,7 +109,7 @@ class ConfigTool extends Tool
 
 			if($reply !== 'yes'){
 				$this->cli->box("The request to reset was refused", "wht", "red");
-				return;
+				return null;
 			}	
 		}
 
@@ -121,6 +120,8 @@ class ConfigTool extends Tool
 		}else{
 			$this->cli->box("The file '{$this->systemConfig}' could not be written, the state of the file is unknown, please manually check it", "wht", "red");
 		}
+
+		return $config;
 	}
 
 	public function get(SystemConfig $config, ?string $key='.', ?bool $raw=null): string
