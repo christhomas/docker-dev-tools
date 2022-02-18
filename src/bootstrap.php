@@ -55,7 +55,7 @@ try{
 	}
 	
 	// We have to set this value really early so it's useful when the autowirer starts using it
-	if((bool)$cli->getArg('--dev-debug', false)){
+	if((bool)$cli->getArg('--dev-debug', false, true)){
 		function debugVar($a){ is_scalar($a) ? print("$a\n") : var_dump($a); }
 	}else{
 		function debugVar($a){}
