@@ -76,16 +76,16 @@ class EntrypointTool extends Tool
                 return $this->cli->print($tool->help());
             }
 
-            if($method = $tool->getToolDefaultCommand()){
+            $argList = $this->cli->getArgList();
+
+            if($methodName = $tool->getToolCommand($argList[0]['name'])){
+                // Search for a method using the first argument after the tool name
+                $autowire = container(Autowire::class);
+                $response = $autowire->callMethod($tool, $methodName, $argList);
+            }else if($methodName = $tool->getToolDefaultCommand()){
                 // There is a default command, call it with all the args passed
                 $autowire = container(Autowire::class);
-                $response = $autowire->callMethod($tool, $method, $this->cli->getArgList());
-            }else{
-                $methodArg = $this->cli->shiftArg();
-                $methodName = $tool->getToolCommand($methodArg['name']);
-
-                $autowire = container(Autowire::class);
-                $response = $autowire->callMethod($tool, $methodName, $this->cli->getArgList());
+                $response = $autowire->callMethod($tool, $methodName, $argList);
             }
     
             if(is_string($response)){
@@ -96,7 +96,9 @@ class EntrypointTool extends Tool
         }catch(CannotAutowireParameterException $e){
             $this->cli->print($tool->help());
             $commandName = $tool->getToolCommandName($e->getMethodName());
-            $this->cli->failure("The command '$commandName' on the tool '$toolName' requires a parameter '{$e->getParameterName()}' with format '{$e->getParameterType()}'\n");
+            $commandText = $tool->isToolDefaultCommand($commandName) ? 'tool' : "command '$commandName' on the tool";
+
+            $this->cli->failure("The {$commandText} '$toolName' requires a parameter '{$e->getParameterName()}' with format '{$e->getParameterType()}'\n");
         }
     }
 
