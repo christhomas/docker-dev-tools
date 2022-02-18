@@ -3,8 +3,10 @@
 namespace DDT\Tool;
 
 use DDT\CLI;
+use DDT\Config\ProjectGroupConfig;
 use DDT\Exceptions\Config\ConfigMissingException;
 use DDT\Services\RunService;
+use DDT\Text\Table;
 
 class RunTool extends Tool
 {
@@ -13,6 +15,7 @@ class RunTool extends Tool
     	parent::__construct('run', $cli);
 
         $this->setToolCommand('script', null, true);
+        $this->setToolCommand('--list', 'list');
     }
 
     public function getToolMetadata(): array
@@ -28,13 +31,31 @@ class RunTool extends Tool
                 "demand instead of requiring each developer to know each project and each dependency and how",
                 "to start them",
             ]),
-            'options' => implode("\n\t", [
-                "script: Run a script",
-                "--group=name: The group to select the project from",
-                "--project=name: The project in that group to execute the script from",
-                "--name=script: The script in that project to execute",
-            ])
+            'examples' => [
+                "{yel}{$this->getEntrypoint()} run{end}: This help",
+                "{yel}{$this->getEntrypoint()} run --name=start --group=mycompany --project=backendapi{end}: Run the 'start' script from the 'backendapi' project in the 'mycompany' group",
+                "{yel}{$this->getEntrypoint()} run <script> <group> <project>{end}: The same command as above, but using anonymous parameters",
+                "{yel}{$this->getEntrypoint()} run --list{end}: Will output all the possible scripts that it's possible to run",
+            ],
         ];
+    }
+
+    public function list(ProjectGroupConfig $config): void
+    {
+        $table = container(Table::class);
+        $table->setRightPadding(10);
+        $table->addRow(["{yel}Group{end}", "{yel}Project{end}", "{yel}Script Name{end}", "{yel}Script Command{end}"]);
+
+        foreach($config->listGroup() as $group => $groupList){
+            foreach($groupList as $project => $projectList){
+                $projectConfig = $config->getProjectConfig($group, $project);
+                foreach($projectConfig->listScripts() as $script => $scriptCommand){
+                    $table->addRow([$group, $project, $script, $scriptCommand]);
+                }
+            }
+        }
+        
+        $this->cli->print($table->render());
     }
 
     public function script(RunService $runService, string $name, string $group, string $project): void

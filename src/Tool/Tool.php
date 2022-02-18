@@ -105,16 +105,25 @@ abstract class Tool
         return null;
     }
 
-    public function getToolCommand(string $commandName): string
+    public function isToolDefaultCommand(string $commandName): bool
+    {
+        if(array_key_exists($commandName, $this->command)){
+            return $this->command[$commandName]['is_default'];
+        }
+
+        return false;
+    }
+
+    public function getToolCommand(string $commandName): ?string
     {
         if(array_key_exists($commandName, $this->command)){
             return $this->command[$commandName]['method'];
         }
 
-        throw new Exception("The requested command '$commandName' was not registered");
+        return null;
     }
 
-    public function getToolCommandName(string $methodName): string
+    public function getToolCommandName(string $methodName): ?string
     {
         foreach($this->command as $commandName => $command){
             if($methodName === $command['method']){
@@ -122,7 +131,7 @@ abstract class Tool
             }
         }
 
-        throw new Exception("The requested method '$methodName' was not registered as a command");
+        return null;
     }
 
     public function getTool(string $name): Tool

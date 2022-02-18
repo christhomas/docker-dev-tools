@@ -44,6 +44,11 @@ class StandardProjectConfig extends BaseConfig
 		return $this->path;
 	}
 
+	public function listScripts(): array
+	{
+		return $this->getKey('.scripts') ?? [];
+	}
+
 	public function getDependencies(?string $script = null): array
 	{
 		$dependencies = $this->getKey('.dependencies') ?? [];
