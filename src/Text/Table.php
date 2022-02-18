@@ -123,7 +123,7 @@ class Table
 		return $columns;
 	}
 
-	public function render(): string
+	public function render(): ?string
 	{
 		if(empty($this->data)) return null;
 
