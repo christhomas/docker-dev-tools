@@ -31,36 +31,48 @@ class Autowire
 
     public function getInstance(string $ref, ?array $args=[])
     {
-        $rc = new ReflectionClass($ref);
-        $rm = $rc->getConstructor();
-        $params = $this->getReflectionParameters($rm);
-        
-        $args = $this->reformatArgs($args);
-        $args = $this->resolveArgs($params, $args);
-
-        return $rc->newInstanceArgs($args);
+        try{
+            $rc = new ReflectionClass($ref);
+            $rm = $rc->getConstructor();
+            $params = $this->getReflectionParameters($rm);
+            
+            $args = $this->reformatArgs($args);
+            $args = $this->resolveArgs($params, $args);
+    
+            return $rc->newInstanceArgs($args);
+        }catch(CannotAutowireParameterException $e){
+            $e->setClassName($ref);
+            $e->setMethodName($rm->getName());
+            throw $e;
+        }
     }
 
     public function callMethod(object $class, string $method, ?array $args=[])
     {
-        $rc = new ReflectionClass($class);
+        try{
+            $rc = new ReflectionClass($class);
 
-        if($rc->hasMethod($method) === true || $rc->hasMethod('__call') === false){
-            $rm = $rc->getMethod($method);
-            $params = $this->getReflectionParameters($rm);
-
-            $args = $this->reformatArgs($args);
-            $args = $this->resolveArgs($params, $args);
-
-            return $rm->invoke($class, ...$args);
+            if($rc->hasMethod($method) === true || $rc->hasMethod('__call') === false){
+                $rm = $rc->getMethod($method);
+                $params = $this->getReflectionParameters($rm);
+    
+                $args = $this->reformatArgs($args);
+                $args = $this->resolveArgs($params, $args);
+    
+                return $rm->invoke($class, ...$args);
+            }
+    
+            // TODO: how will this reformat/resolve argument code work 
+            // against __call interfaces which typically have no arguments
+            // and work like magic? Surely this will fail?
+            $rm = $rc->getMethod('__call');
+    
+            return $rm->invoke($class, $method, $args);
+        }catch(CannotAutowireParameterException $e){
+            $e->setClassName(get_class($class));
+            $e->setMethodName($method);
+            throw $e;
         }
-
-        // TODO: how will this reformat/resolve argument code work 
-        // against __call interfaces which typically have no arguments
-        // and work like magic? Surely this will fail?
-        $rm = $rc->getMethod('__call');
-
-        return $rm->invoke($class, $method, $args);
     }
 
     private function getReflectionParameters(ReflectionMethod $method): array
