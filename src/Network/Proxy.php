@@ -163,7 +163,7 @@ class Proxy
 	
 			foreach($networkList as $network){
 				$this->cli->print("Connecting container '$name' to network '$network'\n");
-				$network = DockerNetwork::instance($network);
+				$network = DockerNetwork::instance($network, true);
 				$network->attach($id);
 			}
 
@@ -196,7 +196,7 @@ class Proxy
 	public function addNetwork(string $name): bool
 	{
 		try{
-			$network = DockerNetwork::instance($name);
+			$network = DockerNetwork::instance($name, true);
 
 			$containerId = $this->getContainerId();
 
@@ -220,7 +220,7 @@ class Proxy
 	public function removeNetwork(string $name): bool
 	{
 		try{
-			$network = DockerNetwork::instance($name);
+			$network = DockerNetwork::instance($name, false);
 
 			$containerId = $this->getcontainerId();
 

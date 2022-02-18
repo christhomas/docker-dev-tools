@@ -26,7 +26,7 @@ class DockerNetwork
     /** @var string the docker network id */
     private $id;
 
-    public function __construct(CLI $cli, Docker $docker, string $name, ?bool $create=true)
+    public function __construct(CLI $cli, Docker $docker, string $name, ?bool $create=false)
     {
         $this->cli = $cli;
         $this->docker = $docker;
@@ -43,7 +43,7 @@ class DockerNetwork
         }
     }
 
-    static public function instance(string $name, ?bool $create=true): DockerNetwork
+    static public function instance(string $name, ?bool $create=false): DockerNetwork
     {
         return container(DockerNetwork::class, [
             'name' => $name, 
