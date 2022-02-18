@@ -21,8 +21,6 @@ class DockerContainer
         try{
             $this->id = $this->getId();
         }catch(DockerContainerNotFoundException $e){
-            debugVar("WE HAVE AN EXCEPTION");
-
             if(empty($image)){
                 throw $e;
             }
@@ -35,8 +33,6 @@ class DockerContainer
 
     static public function instance(string $name, ?string $image = null, ?array $ports = [], ?array $volumes = [], ?array $options = []): DockerContainer
     {
-        debugVar([__METHOD__ => func_get_args()]);
-
         return container(DockerContainer::class, [
             'name' => $name,
             'image' => $image,
