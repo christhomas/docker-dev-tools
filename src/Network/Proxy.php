@@ -13,6 +13,7 @@ use DDT\Exceptions\Docker\DockerInspectException;
 use DDT\Exceptions\Docker\DockerNetworkAlreadyAttachedException;
 use DDT\Exceptions\Docker\DockerNetworkCreateException;
 use DDT\Exceptions\Docker\DockerNetworkExistsException;
+use Exception;
 
 class Proxy
 {
@@ -89,26 +90,115 @@ class Proxy
 		}
 	}
 
-	public function getNetworks(): array
+	public function getNetworks(?bool $inactive=false): array
 	{
-		return $this->config->getNetworkList();
+		$container = $this->getContainer();
+		
+		$list = array_merge(array_keys($container->listNetworks()), $this->config->listNetworks());
+		$list = array_unique($list);
+		$list = array_filter($list, function($a){ return $a !== 'bridge'; });
+		
+		return $list;
 	}
 
-	public function getListeningNetworks(): array
+	public function getContainersOnNetwork(string $network): array
 	{
-		$containerId = $this->getContainerId();
+		$network = DockerNetwork::instance($network);
+
+		$list = $network->listContainers();
+
+		// remove itself from the list, cause thats redundant
+		$list = array_filter($list, function($c){
+			return $c !== $this->getContainerName();
+		});
+
+		$list = array_map(function($c) use ($network) {
+			$container = DockerContainer::instance($c);
+			return [
+				'name' => $c,
+				'network' => $network->getName(),
+				'ip_address' => $container->getIpAddress($network->getName()),
+				'port' => 80,
+			];
+		}, $list);
+
+		$nginxConfig = $this->getConfig();
+		$list = array_map(function($c) use ($nginxConfig) {
+			return $this->attachNginxConfigInfo($c, $nginxConfig);
+		}, $list);
+
+		// Remove items from the list, which have no nginx configuration data attached to them
+		// This means they are not found in the nginx proxy config
+		$list = array_filter($list, function($c){
+			return array_key_exists('nginx_status', $c);
+		});
+
+		var_dump($list);
+
+		return $list;
+	}
+
+	public function attachNginxConfigInfo(array $container, ?string $nginxConfig=null): array
+	{
+		if($nginxConfig === null){
+			$nginxConfig = $this->getConfig();
+		}
+
+		$network = $container['network'];
+		$name = $container['name'];
+		$ip_address = preg_quote($container['ip_address']);
+		$port = $container['port'];
+
+		preg_match_all("/upstream\s(?P<upstream>".$name.")\s{(?P<config>[^}]*)}/m", $nginxConfig, $upstreams);
+		// group all results by index
+		$upstreams = array_map(null, $upstreams['upstream'], $upstreams['config']);
+		// remap them into associative array
+		$upstreams = array_reduce($upstreams, function($a, $c){
+			$a[array_shift($c)] = array_shift($c);
+			return $a;
+		}, []);
+
+		if(empty($upstreams)) return $container;
+
+		$feedback = array_map(function($u) use ($name, $network, $ip_address, $port) {
+			preg_match(
+				"/##\sCan be connected with \"(?P<network>".$network.")\" network\s*".
+				"#\s(?P<name>".$name.")\s*".
+				"server\s(?P<ip_address>".$ip_address.")\:(?P<port>".$port.")\;/m", $u, $feedback);
+
+			return array_intersect_key($feedback, array_flip(['name', 'network', 'ip_address', 'port']));
+		}, $upstreams);
+
+		if(empty($feedback)) return $container;
+
+		// TODO: What other feedback do I want to do here?
+
+		$container['nginx_status'] = '{grn}passed{end}';
+
+		return $container;
+	}
+
+	public function getContainerProxyEnv(string $container): array
+	{
+		$list = ['host' => '', 'port' => '80', 'path' => ''];
 
 		try{
-			$json = $this->docker->inspect('container', $containerId);
-			$networkList = array_keys($json["NetworkSettings"]["Networks"]);
-			$networkList = array_filter($networkList, function($v){
-				return strpos($v, 'bridge') === false;
-			});
-
-			return $networkList;
-		}catch(\Exception $e){
-			return [];
+			$container = DockerContainer::instance($container);
+			$env = $container->listEnvParams();
+			if(array_key_exists('VIRTUAL_HOST', $env)){
+				$list['host'] = $env['VIRTUAL_HOST'];
+			}
+			if(array_key_exists('VIRTUAL_PORT', $env)){
+				$list['port'] = $env['VIRTUAL_PORT'];
+			}
+			if(array_key_exists('VIRTUAL_PATH', $env)){
+				$list['path'] = $env['VIRTUAL_PATH'];
+			}
+		}catch(Exception $e){
+			// TODO: What should I do when something went wrong?
 		}
+
+		return $list;
 	}
 
 	public function start(?array $networkList=null)
@@ -235,35 +325,5 @@ class Proxy
 		}
 
 		return false;
-	}
-
-	public function getUpstreams(): array
-	{
-		$config = explode("\n",$this->getConfig());
-		if(empty($config)) return [];
-
-		$containers = [];
-		foreach($config as $line){
-			if(preg_match("/^upstream\s(?P<upstream>[^\s]+)\s\{$/", trim($line), $matches)) {
-				$containers[] = $matches['upstream'];
-			}
-		}
-
-		$upstream = [];
-		foreach($containers as $c){
-			$upstream[$c] = ['host' => '<empty>', 'port' => 80, 'path' => '/', 'networks' => '<empty>'];
-
-			$json = $this->docker->inspect('container', $c);
-			foreach($json['Config']['Env'] as $e){
-				list($key, $value) = explode("=", $e);
-				if($key === 'VIRTUAL_HOST') $upstream[$c]['host'] = $value;
-				if($key === 'VIRTUAL_PORT') $upstream[$c]['port'] = $value;
-				if($key === 'VIRTUAL_PATH') $upstream[$c]['path'] = $value;
-			}
-
-			$upstream[$c]['networks'] = implode(',', array_keys($json['NetworkSettings']['Networks']));
-		}
-
-		return $upstream;
 	}
 }

@@ -5,6 +5,7 @@ namespace DDT\Tool;
 use DDT\CLI;
 use DDT\Config\SystemConfig;
 use DDT\Network\Proxy;
+use DDT\Text\Table;
 
 class ProxyTool extends Tool
 {
@@ -152,22 +153,31 @@ class ProxyTool extends Tool
 
     public function status()
     {
-        // Just for now, dump this list like this
-        // TODO: what are listning networks?
-        // TODO: perhaps I meant configured networks and active networks
-        var_dump($this->proxy->getListeningNetworks());
+        $table = container(Table::class);
 
-        // 1. get a list of configured networks
-        // 2. get the list of active networks 
-        // 3. show a list of both configured and active networks, with their configured and active statuses
-        // 4. show a list of upstreams the proxy has configured
+        $table->addRow([
+            '{yel}Docker Network{end}',
+            '{yel}Container{end}',
+            '{yel}Host{end}',
+            '{yel}Port{end}',
+            '{yel}Path{end}',
+            '{yel}Nginx Status{end}',
+        ]);
 
-        // old code, should delete it and do the above instead
-        // Format::networkList($proxy->getListeningNetworks());
-        // Format::upstreamList($proxy->getUpstreams());
-        // if($format = $cli->getArg('networks')){
-        //     Format::networkList($proxy->getListeningNetworks(), $format);
-        // }
+        foreach($this->proxy->getNetworks(true) as $network){
+            $containerList = $this->proxy->getContainersOnNetwork($network);
+
+            if(empty($containerList)){
+                $table->addRow([$network, "{yel}There are no containers{end}"]);
+            }
+
+            foreach($containerList as $container){
+                $env = $this->proxy->getContainerProxyEnv($container['name']);
+                $table->addRow([$network, $container['name'], $env['host'], $env['port'], $env['path'], $container['nginx_status']]);
+            }
+        }
+
+        $this->cli->print($table->render());
     }
 
     public function containerName(?string $name=null)
