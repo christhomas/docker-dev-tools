@@ -134,7 +134,7 @@ class DnsTool extends Tool
         $this->dnsMasq->start();
         $this->enable();
 
-        $domainGroup = $this->dnsConfig->getDomainList();
+        $domainGroup = $this->dnsConfig->listDomains();
 
         foreach($domainGroup as $ipAddress => $domainList){
             foreach($domainList as $domain){
@@ -255,14 +255,14 @@ class DnsTool extends Tool
         // NOTE: this could be quite a lot of changes in various aspects of the system that might be storing that ip address and using it locally
         $this->cli->debug("new ip address = '$address'");
 
-        $list = $this->dnsService->getIpAddressList();
+        $list = $this->dnsService->listIpAddress();
 
         return implode("\n", $list)."\n";
     }
 
     public function ping()
     {
-        $list = $this->dnsService->getIpAddressList();
+        $list = $this->dnsService->listIpAddress();
 
         foreach($list as $ipAddress){
             $address = Address::instance($ipAddress);
@@ -280,7 +280,7 @@ class DnsTool extends Tool
         $address->ping();
         $this->cli->print((string)$address);
 
-        $domainGroup = $this->dnsConfig->getDomainList();
+        $domainGroup = $this->dnsConfig->listDomains();
         foreach($domainGroup as $ipAddress => $domainList){
             foreach($domainList as $domain){
                 $address = Address::instance($domain);

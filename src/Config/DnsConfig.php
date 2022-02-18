@@ -60,7 +60,7 @@ class DnsConfig
 		return $this->config->getKey($this->keys['container_name']);
 	}
 
-	public function getDomainList(): array
+	public function listDomains(): array
 	{
 		return $this->config->getKey($this->keys['domains']);
 	}
