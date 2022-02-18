@@ -172,18 +172,9 @@ class SetupTool extends Tool
 		}
 	}
 
-    public function install(?string $path=null)
+    public function install(string $path)
     {
         $this->cli->print("{blu}Docker Dev Tools Installer{end}\n");
-
-        if(empty($path)){
-            $systemConfig = SystemConfig::instance();
-            $path = $systemConfig->getPath('tools');
-        }
-
-        if(empty($path)){
-            $this->cli->failure("You must either have a preinstalled configuration with a path, or provide a path on the command line\n");
-        }
 
         $path = rtrim($path, "/");
 
