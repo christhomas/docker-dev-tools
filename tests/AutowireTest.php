@@ -3,7 +3,6 @@
 namespace DDT\Test;
 
 use DDT\Autowire;
-use DDT\Autowire2;
 use DDT\Text\Text;
 use DDT\CLI;
 use DDT\Config\SystemConfig;
@@ -88,6 +87,38 @@ class AutowireTest extends TestCase
         $response = $autowire->callMethod($this, 'autowireFunction', $args);
 
         var_dump($response);
+    }
+
+    public function testNewAutowireResolver(): void
+    {
+        // we should use the resolve2 function to try to build a better resolver, the default one is pretty wild and stupidly complex
+    }
+
+    public function resolve2(array $signatureParameters, array $inputParameters): array
+    {
+        $output = [];
+
+        $vd = function (){
+            var_dump(func_get_args());
+        };
+
+        foreach($inputParameters as $index => $data){
+
+        }
+
+        $output = [
+            call_user_func($this->resolver, "\\DDT\\RunService"),
+            'start',
+            'plista',
+            false,
+            23,
+            'accounting-ui',
+            77,
+            99.99,
+            'debug'
+        ];
+
+        return $output;
     }
 
     public function autowireFunction(
