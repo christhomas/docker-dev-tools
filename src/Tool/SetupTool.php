@@ -3,6 +3,7 @@
 namespace DDT\Tool;
 
 use DDT\CLI;
+use DDT\Config\ExtensionConfig;
 use DDT\Config\SystemConfig;
 use DDT\Text\Text;
 
@@ -98,7 +99,7 @@ class SetupTool extends Tool
 	}
 
     private $found;
-	private function add(string $newPath): void
+	public function add(string $newPath): void
 	{
 		$this->found = false;
 
@@ -124,7 +125,7 @@ class SetupTool extends Tool
 		});
 	}
 
-	private function remove(string $search): void
+	public function remove(string $search): void
 	{
 		$this->processFiles(function($contents, $lineNum, $lineData) use ($search) {
 			$pattern = "/^(?P<prefix>[\s]+)?PATH=(?P<path>.*)$/";
@@ -171,9 +172,18 @@ class SetupTool extends Tool
 		}
 	}
 
-    public function install(string $path)
+    public function install(?string $path=null)
     {
         $this->cli->print("{blu}Docker Dev Tools Installer{end}\n");
+
+        if(empty($path)){
+            $systemConfig = SystemConfig::instance();
+            $path = $systemConfig->getPath('tools');
+        }
+
+        if(empty($path)){
+            $this->cli->failure("You must either have a preinstalled configuration with a path, or provide a path on the command line\n");
+        }
 
         $path = rtrim($path, "/");
 
@@ -204,6 +214,8 @@ class SetupTool extends Tool
             $this->backupFile($file);
         }
 
+        $this->cli->print("Installing to '$path'\n");
+
         // TODO: I don't like how this processes all files at once, I would like this functionality removed
         // add the installation path from the file
         $this->add("$path/bin");
@@ -215,23 +227,22 @@ class SetupTool extends Tool
         /** @var ConfigTool */
         $configTool = $this->getTool('config');
         $this->cli->print($configTool->invoke('reset'));
-
-        //////////////////////////////////////////////////////////////////
-        // TODO: handle installation of extension bin paths
-        //////////////////////////////////////////////////////////////////
         
         //  write into the config the tools path and save file
-        $config = SystemConfig::instance();
-		$config->setToolsPath($path);
-		$config->write();
+        $systemConfig = SystemConfig::instance();
+		$systemConfig->setToolsPath($path);
+		$systemConfig->write();
 
-        $this->test();
+        $this->cli->print("{grn}Testing installation, this next operation should succeed{end}\n");
+        $this->test('ddt --are-you-ok');
     }
 
-    public function uninstall(string $path)
+    public function uninstall()
     {
         $this->cli->print("{blu}Docker Dev Tools Uninstaller{end}\n");
 
+        $systemConfig = SystemConfig::instance();
+        $path = $systemConfig->getPath('tools');
         $path = rtrim($path, "/");
 
         // for each shell configuration file we found
@@ -244,34 +255,32 @@ class SetupTool extends Tool
         // remove the installation path from the files
 		$this->remove("$path/bin");
 
-		// TODO: handle uninstallation of extension bin paths
+        $this->cli->print("{grn}Testing installation{end}: This should fail if uninstallation has completed ok\n");
+        if($this->cli->silenceChannel('stdout', function(){
+            return $this->test('ddt --are-you-ok');
+        }) === false){
+            $this->cli->box("Uninstallation has completed and tested successfully", "blk", "grn");
+        }else{
+            $this->cli->box("Uninstallation has failed and it's not possible to figure out why. Please report this error", "wht", "red");
+        }
     } 
 
     public function test(): bool
     {
-        $config = SystemConfig::instance();
-        $toolPath = $config->getToolsPath();
-        $script = $this->cli->getScript(false);
+        try {
+            $this->cli->debug("{red}[PATH]:{end} " . $this->cli->exec("exec env -i bash -cl 'echo \$PATH'", true));
 
-        $path = implode("\n",$this->cli->exec("bash --login -c 'echo \$PATH'"));
-		$path = explode(":", $path);
+            foreach(func_get_args() as $script){
+                $this->cli->debug("{red}[TEST RESULT]:{end} ".$this->cli->exec("exec env -i bash -cl '$script'", true));
+            }
 
-		$toolPath = "$toolPath/bin";
-
-		foreach($path as $segment){
-			if($toolPath === $segment){
-				try {
-					$this->cli->exec("bash --login -c '$script'");
-					$this->cli->exec("bash -c '$toolPath/$script'");
-                    $this->cli->box("The path was successfully installed, you might need to open a new terminal to see the effects", "blk", "grn");
-					return true;
-				}catch(\Exception $e){
-					$this->cli->print($e->getMessage());
-                    $this->cli->box("The tool '$script' could not set the shell path successfully installed. Please report this error", "wht", "red");
-					return false;
-				}
-			}
-		}
+            $this->cli->box("The path was successfully installed, you might need to open a new terminal to see the effects", "blk", "grn");
+            
+            return true;
+        }catch(\Exception $e){
+            $this->cli->print($e->getMessage());
+            $this->cli->box("There was a problem testing the installation as one of the testing processes failed. Please report this error", "wht", "red");
+        }
 
 		return false;
     }

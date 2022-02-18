@@ -48,6 +48,11 @@ try{
 	$cli = new CLI($argv, $text);
 
 	$container = new Container($cli, [Autowire::class, 'instantiator']);
+
+	// Simple "yes the script runs" type check
+	if((bool)$cli->getArg('--are-you-ok', false, true)){
+		die("yes\n");
+	}
 	
 	// We have to set this value really early so it's useful when the autowirer starts using it
 	if((bool)$cli->getArg('--dev-debug', false)){

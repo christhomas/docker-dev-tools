@@ -21,10 +21,20 @@ class ExtensionConfig
 		}
     }
 
-    public function add(string $name, string $url, string $path): bool
+    static public function instance(): ExtensionConfig
+	{
+		return container(ExtensionConfig::class);
+	}
+
+    public function getPath(string $name, string $path): string
+    {
+        return $this->config->getPath($name, $path);
+    }
+
+    public function add(string $name, string $url, string $path, string $test): bool
     {
         $extensions = $this->list();
-        $extensions[$name] = ['url' => $url, 'path' => $path];
+        $extensions[$name] = ['url' => $url, 'path' => $path, 'test' => $test];
         
         $this->config->setKey($this->key, $extensions);
 
@@ -36,7 +46,14 @@ class ExtensionConfig
         $extensions = $this->list();
         unset($extensions[$name]);
 
+        $this->config->setKey($this->key, $extensions);
+
         return $this->config->write();
+    }
+
+    public function get(string $name): ?array
+    {
+        return $this->config->getKey("$this->key.$name");
     }
 
     public function list(): array
