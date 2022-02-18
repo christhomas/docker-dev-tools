@@ -59,9 +59,7 @@ class CLI
 	public function ask(string $question, array $accept): string
 	{
 		$responses = "(Accepts: " . implode(", ", $accept) . "): ";
-		$reply = readline($this->text->write("{yel}$question $responses{end}"));
-
-		return $reply;
+		return readline($this->text->write("{yel}$question $responses{end}"));
 	}
 
 	public function listenChannel(string $channel, ?bool $state=true, ?callable $enabled=null, ?callable $disabled=null)
