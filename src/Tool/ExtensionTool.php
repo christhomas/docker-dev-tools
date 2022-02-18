@@ -7,7 +7,7 @@ use DDT\Config\ExtensionConfig;
 use DDT\Exceptions\Config\ConfigWrongTypeException;
 use DDT\Exceptions\Filesystem\DirectoryExistsException;
 use DDT\Exceptions\Filesystem\DirectoryNotExistException;
-use DDT\GitService;
+use DDT\Services\GitService;
 use DDT\Text\Table;
 use InvalidArgumentException;
 
@@ -16,7 +16,7 @@ class ExtensionTool extends Tool
     /** @var ExtensionConfig */
     private $config;
 
-    /** @var GitService $gitService The service that can handle git repositories and manage them */
+    /** @var \DDT\Services\GitService $gitService The service that can handle git repositories and manage them */
     private $gitService;
 
     public function __construct(CLI $cli, ExtensionConfig $config, GitService $gitService)

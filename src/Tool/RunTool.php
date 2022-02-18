@@ -4,7 +4,7 @@ namespace DDT\Tool;
 
 use DDT\CLI;
 use DDT\Exceptions\Config\ConfigMissingException;
-use DDT\RunService;
+use DDT\Services\RunService;
 
 class RunTool extends Tool
 {

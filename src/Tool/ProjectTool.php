@@ -4,14 +4,14 @@ namespace DDT\Tool;
 
 use DDT\Config\ProjectGroupConfig;
 use DDT\CLI;
-use DDT\GitService;
+use DDT\Services\GitService;
 
 class ProjectTool extends Tool
 {
     /** @var \DDT\Config\ProjectGroupConfig  */
     private $config;
 
-    /** @var \DDT\GitService */
+    /** @var \DDT\Services\GitService */
     private $repoService;
 
     public function __construct(CLI $cli, ProjectGroupConfig $config, GitService $repoService)

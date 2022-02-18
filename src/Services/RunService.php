@@ -1,5 +1,5 @@
 <?php
-namespace DDT;
+namespace DDT\Services;
 
 use DDT\CLI;
 use DDT\Config\External\StandardProjectConfig;

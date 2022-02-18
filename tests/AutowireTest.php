@@ -7,7 +7,7 @@ use DDT\Text\Text;
 use DDT\CLI;
 use DDT\Config\SystemConfig;
 use DDT\Container;
-use DDT\RunService;
+use DDT\Services\RunService;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
 
@@ -51,7 +51,7 @@ class AutowireTest extends TestCase
 
         $response = $this->callHiddenMethod($autowire, "resolveArgs", [
             [
-                ['name' => 'runService','type' => 'DDT\RunService'],
+                ['name' => 'runService','type' => 'DDT\Services\RunService'],
                 ['name' => 'name','type' => 'string'],
                 ['name' => 'group','type' => 'string'],
                 ['name' => 'testing','type' => 'bool'],
@@ -107,7 +107,7 @@ class AutowireTest extends TestCase
         }
 
         $output = [
-            call_user_func($this->resolver, "\\DDT\\RunService"),
+            call_user_func($this->resolver, '\DDT\Service\RunService'),
             'start',
             'plista',
             false,
