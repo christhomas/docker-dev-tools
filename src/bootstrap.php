@@ -3,6 +3,7 @@
 use DDT\Autowire;
 use DDT\CLI;
 use DDT\Text\Text;
+use DDT\Text\Table;
 use DDT\Container;
 use DDT\DistroDetect;
 use DDT\Tool\EntrypointTool;
@@ -48,6 +49,15 @@ try{
 	$cli = new CLI($argv, $text);
 
 	$container = new Container($cli, [Autowire::class, 'instantiator']);
+
+	$container->bind(Table::class, function() use ($text) {
+		$table = new Table($text);
+		$table->setRightPadding(10);
+		$table->setBorder('|', '-');
+		$table->setNumHeaderRows(1);    
+		
+		return $table;
+	});
 
 	// Simple "yes the script runs" type check
 	if((bool)$cli->getArg('--are-you-ok', false, true)){

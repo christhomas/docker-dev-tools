@@ -42,8 +42,8 @@ class RunTool extends Tool
 
     public function list(ProjectGroupConfig $config): void
     {
+        /* @var Table $table */
         $table = container(Table::class);
-        $table->setRightPadding(10);
         $table->addRow(["{yel}Group{end}", "{yel}Project{end}", "{yel}Script Name{end}", "{yel}Script Command{end}"]);
 
         foreach($config->listGroup() as $group => $groupList){

@@ -8,6 +8,8 @@ class Table
 	private $data;
 	private $tabWidth = 2;
 	private $numColumns = 0;
+	private $numHeaderRows = 0;
+	private $border = null;
 	private $space = " ";
 	private $rightPadding = 0;
 	private $debug = false;
@@ -53,6 +55,34 @@ class Table
 		$this->rightPadding = $padding;
 	}
 
+	public function setNumHeaderRows(int $numHeaderRows): void
+	{
+		$this->numHeaderRows = $numHeaderRows;
+	}
+
+	public function setBorder(string $v, string $h): void
+	{
+		if(!empty($v) || !empty($h)){
+			$this->border = ['v' => " $v ", 'h' => $h];
+		}else{
+			$this->border = null;
+		}
+	}
+
+	private function calcPrintingWidth(string $text): int
+	{
+		$tw = strlen($text);
+		$np = 0;
+
+		$codes = $this->text->findCodes($text);
+		foreach($codes as $c){
+			$tw = $tw + $c['printing'];
+			$np = $np + $c['length'];
+		}
+		
+		return (int)($tw - $np);
+	}
+
 	private function fixColumnWidths($columns): array
 	{
 		// Replace tabs with spaces
@@ -68,20 +98,11 @@ class Table
 
 		// Find the printing character widths for every column
 		$pw = array_reduce($columns, function($accum, $text) {
-			$tw = strlen($text);
-			$np = 0;
-
-			$codes = $this->text->findCodes($text);
-			foreach($codes as $c){
-				$tw = $tw + $c['printing'];
-				$np = $np + $c['length'];
-			}
-
-			$accum[] = $tw - $np;
+			$accum[] = $this->calcPrintingWidth($text);
 			return $accum;
 		}, []);
 
-		// What is the minimum column width?
+		// The Maximum printing width, is the minimum display width for this column
 		$min = max($pw);
 
 		// Determine the padding PER COLUMN, because each column contains a unique number of non-printing characters
@@ -102,43 +123,62 @@ class Table
 		return $columns;
 	}
 
-	public function render($buffer=false): ?string
+	public function render(): string
 	{
 		if(empty($this->data)) return null;
 
-		// Thanks! https://stackoverflow.com/a/37003117/279147
-		$transpose = function($array) {
-			// I added an empty array as the second parameter here to deal with "empty tables"
-			// When the table is empty, the table headers you might add are the only row
-			// This causes some problems when you only have a single row, it'll not "zip them up" right
-			array_unshift($array, null, []);
-			return call_user_func_array('array_map', $array);
-		};
+		$data = $this->data;
+		array_unshift($data, []);
 
 		// Flip the array to process columns easily
-		$data = $transpose($this->data);
+		$data = array_map(null, ...$data);
 
+		// Fix up all the column widths, including all hidden non-printing characters
 		$data = array_map(function($columns){
 			return $this->fixColumnWidths($columns);
 		}, $data);
 
 		// Flip the array back to normal
-		$data = $transpose($data);
+		$data = array_map(null, ...$data);
+		$data = array_slice($data, 1);
 
-		// Output the data as lines of strings
-		$output = "";
-		foreach($data as $row){
-			// we are done with this line now, finalise it's output somewheres
-			// implode, buffer, print
-			$row = implode(" ", $row) . "\n";
+		// Render the header and body
+		$header	= $this->renderHeader(array_slice($data, 0, $this->numHeaderRows));
+		$body	= $this->renderBody(array_slice($data, $this->numHeaderRows));
 
-			if($buffer){
-				$output .= $row;
-			}else{
-				print($row);
-			}
+		// Combine both the header and body together, trimming off what we don't want
+		return trim(implode("\n", array_merge($header, $body))) . "\n";
+	}
+
+	private function renderHeader(array $rows): array
+	{
+		if(count($rows) === 0) return [];
+
+		foreach($rows as $index => $row){
+			$b = $this->border ? $this->border['v'] : '';
+			$rows[$index] = trim($b . implode($b, $row) . $b);
 		}
 
-		return strlen($output) ? $output : null;
+		$pw = $this->calcPrintingWidth($rows[0]);
+		$line = $this->border ? str_pad('', $pw, $this->border['h']) : '';
+		$line = [$line];
+
+		return array_merge($line, $rows);
+	}
+
+	private function renderBody(array $rows): array
+	{
+		if(count($rows) === 0) return [];
+
+		foreach($rows as $index => $row){
+			$b = $this->border ? $this->border['v'] : '';
+			$rows[$index] = trim($b . implode($b, $row) . $b);
+		}
+
+		$pw = $this->calcPrintingWidth($rows[0]);
+		$line = $this->border ? str_pad('', $pw, $this->border['h']) : '';
+		$line = [$line];
+
+		return array_merge($line, $rows, $line);
 	}
 }

@@ -198,7 +198,6 @@ class ExtensionTool extends Tool
 
             /** @var Table $table */
             $table = container(Table::class);
-            $table->setRightPadding(10);
             // table headers
             $table->addRow(["{yel}Name{end}", "{yel}Url{end}", "{yel}Path{end}"]);
             // table body
