@@ -2,6 +2,8 @@
 
 namespace DDT\Config;
 
+use Exception;
+
 class SystemConfig extends BaseConfig
 {
     private $extensions;
@@ -30,28 +32,18 @@ class SystemConfig extends BaseConfig
 		return '.ddt-system.json';
 	}
 
-    public function setToolsPath(string $path): void
+	public function setPath(string $name, string $path): void
 	{
-        $this->setKey('path.tools', $path);
-    }
-    
-    public function getToolsPath(string $subpath = null): string
-	{
-		$path = $this->getKey("path.tools");
-		$path = $path ?: dirname(__DIR__);
-
-		return $path . $subpath;
+		$this->setKey('path.$name', $path);
 	}
 
-	public function setProjectPath(string $path): void
+	public function getPath(string $name, ?string $subpath=''): string
 	{
-		$this->setKey('path.projects', $path);
-	}
+		$path = $this->getKey("path.$name");
 
-	public function getProjectPath(string $subpath = null): string
-	{
-		$path = $this->getKey('path.projects');
-		$path = $path ?: dirname($this->getToolsPath());
+		if(empty($path)){
+			throw new Exception("The path named '$name' could not be found in the configuration");
+		}
 
 		return $path . $subpath;
 	}
