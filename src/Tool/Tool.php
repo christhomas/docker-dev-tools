@@ -182,27 +182,28 @@ abstract class Tool
 
         $description = array_key_exists('description', $metadata) ? $metadata['description'] : null;
         if(!empty($description)){
+            $description = "\t" . implode("\n\t", explode("\n", $description));
             $section[] = "{blu}Description:{end}\n$description";
         }
         
         $options = array_key_exists('options', $metadata) ? $metadata['options'] : null;
         if(!empty($options)){
-            $options = is_array($options) ? implode("\n", $options) : $options;
+            $options = is_array($options) ? ("\t" . implode("\n\t", $options)) : $options;
             $section[] = "{blu}Options:{end}\n$options";
         }
 
         $examples = array_key_exists('examples', $metadata) ? $metadata['examples'] : null;
         if(!empty($examples)){
-            $examples = is_array($examples) ? implode("\n", $examples) : $examples;
+            $examples = is_array($examples) ? ("\t" . implode("\n\t", $examples)) : $examples;
             $section[] = "{blu}Examples:{end}\n$examples";
         }
 
         $notes = array_key_exists('notes', $metadata) ? $metadata['notes'] : null;
         if(!empty($notes)) {
-            $notes = is_array($notes) ? implode("\n", $notes) : $notes;
+            $notes = is_array($notes) ? ("\t" . implode("\n\t", $notes)) : $notes;
             $section[] = "{blu}Notes:{end}\n$notes";
         }
 
-        return implode("\n\n", $section) . "\n";
+        return implode("\n\n", $section) . "\n\n";
     }
 }
