@@ -67,6 +67,35 @@ class DockerContainer
         return $status === 'running';
     }
 
+    public function listNetworks(): array
+    {
+        return $this->docker->inspect('container', $this->name, '.NetworkSettings.Networks');
+    }
+
+    public function listEnvParams(): array
+    {
+        $list = $this->docker->inspect('container', $this->name, '.Config.Env');
+        
+        return array_reduce($list, function($a, $e) {
+            [$name, $value] = explode("=", $e) + [null, null];
+            
+            // If any name/value is null, 
+            if($name === null || $value === null){
+                return $a;
+            }
+
+            $a[$name] = $value;
+            return $a;
+        }, []);
+    }
+
+    public function getIpAddress(string $network): string
+    {
+        $ipAddress = $this->docker->inspect('container', $this->name, ".NetworkSettings.Networks.{$network}.IPAddress");
+
+        return current($ipAddress);
+    }
+
     public function exec(string $command)
     {
         return $this->docker->exec("exec -it $this->id $command");
