@@ -54,7 +54,7 @@ class DockerNetwork
     public function getId(): string
     {
         try{
-            $id = $this->docker->inspect('network', $this->name, '-f \'{{ .Id }}\'');
+            $id = $this->docker->inspect('network', $this->name, '.Id');
 
             return $id[0];
         }catch(\Exception $e){
@@ -64,7 +64,7 @@ class DockerNetwork
 
     public function listContainers(): array
     {
-        $result = $this->docker->inspect('network', $this->name, '-f \'{{json .Containers }}\'');
+        $result = $this->docker->inspect('network', $this->name, '.Containers');
         
         return array_reduce(array_keys($result), function($a, $c) use ($result) {
             $a[$c] = $result[$c]['Name'];

@@ -54,7 +54,7 @@ class DockerContainer
     public function getId(): string
     {
         try{
-            $id = $this->docker->inspect('container', $this->name, '-f \'{{ .Id }}\'');
+            $id = $this->docker->inspect('container', $this->name, '.Id');
             $id = $id[0];
 
             return $id;
@@ -65,7 +65,7 @@ class DockerContainer
 
     public function isRunning(): bool
     {
-        $status = $this->docker->inspect('container', $this->name, '-f \'{{ .State.Status }}\'');
+        $status = $this->docker->inspect('container', $this->name, '.State.Status');
         $status = $status[0];
 
         return $status === 'running';
