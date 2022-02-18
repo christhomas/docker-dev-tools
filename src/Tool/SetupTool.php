@@ -230,7 +230,7 @@ class SetupTool extends Tool
         
         //  write into the config the tools path and save file
         $systemConfig = SystemConfig::instance();
-		$systemConfig->setToolsPath($path);
+		$systemConfig->setPath('tools', $path);
 		$systemConfig->write();
 
         $this->cli->print("{grn}Testing installation, this next operation should succeed{end}\n");
@@ -291,7 +291,7 @@ class SetupTool extends Tool
 
         $this->cli->print("{blu}Set Tools Path:{end} updating configuration with path '$path'\n");
         $config = SystemConfig::instance();
-        $config->setToolsPath($path);
+        $config->setPath('tools', $path);
 	    $config->write();
     }
 }
