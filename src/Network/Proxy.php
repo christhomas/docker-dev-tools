@@ -110,7 +110,7 @@ class Proxy
 	{
 		$image = $this->getDockerImage();
 		$name = $this->getContainerName();
-		$path = $this->config->getToolsPath();
+		$path = $this->config->getPath('tools');
 
 		$this->docker->pruneContainer();
 

@@ -32,7 +32,7 @@ class ProxyConfig
 
 	public function getToolsPath(?string $subpath = null): string
 	{
-		return $this->config->getToolsPath($subpath);
+		return $this->config->getPath('tools', $subpath);
 	}
 
 	public function getDockerImage(): string
