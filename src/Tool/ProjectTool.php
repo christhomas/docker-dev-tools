@@ -5,6 +5,7 @@ namespace DDT\Tool;
 use DDT\Config\ProjectGroupConfig;
 use DDT\CLI;
 use DDT\Services\GitService;
+use DDT\Text\Table;
 
 class ProjectTool extends Tool
 {
@@ -73,27 +74,24 @@ class ProjectTool extends Tool
 
         $groupList = $this->config->listGroup();
 
+        $table = container(Table::class);
+        $table->addRow(['{yel}Group{end}', '{yel}Project{end}', '{yel}Path{end}', '{yel}Type{end}', '{yel}Repository Url{end}', '{yel}Remote Name{end}']);
+
         if(empty($groupList)){
-            $this->cli->print("There are no configured groups\n");
+            $table->addRow(['There are no groups']);
         }
         
         foreach($groupList as $group => $projectList) {
-            $this->cli->print("\nGroup: {yel}$group{end}\n");
-            $this->cli->print("Projects: \n");
-
             if(empty($projectList)){
-                $this->cli->print("\tThere are no configured projects\n");
+                $table->addRow([$group, 'There are no projects']);
             }
 
-            foreach($projectList as $name => $config) {
-                $this->cli->print("{cyn}$name{end}:\n");
-                $this->cli->print("\tPath: {$config['path']}\n");
-                $this->cli->print("\tType: {$config['type']}\n");
-                $this->cli->print("\tRepository:\n");
-                $this->cli->print("\t\tUrl: {$config['repo']['url']}\n");
-                $this->cli->print("\t\tRemote: {$config['repo']['remote']}\n");
+            foreach($projectList as $project => $config) {
+                $table->addRow([$group, $project, $config['path'], $config['type'], $config['repo']['url'], $config['repo']['remote']]);
             }
         }
+
+        $this->cli->print($table->render());
     }
 
     public function addGroup(string $name): void
