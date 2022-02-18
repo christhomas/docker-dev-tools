@@ -77,22 +77,31 @@ class EntrypointTool extends Tool
             }
 
             $argList = $this->cli->getArgList();
-
-            if($methodName = $tool->getToolCommand($argList[0]['name'])){
+            $requestedCommand = $argList[0]['name'];
+            
+            $methodName = null;
+            
+            if($methodName === null){
                 // Search for a method using the first argument after the tool name
+                $methodName = $tool->getToolCommand($requestedCommand);
+            }
+
+            if($methodName === null){
+                // There is a default command, use that instead
+                $methodName = $tool->getToolDefaultCommand();
+            }
+
+            if($methodName !== null){
                 $autowire = container(Autowire::class);
                 $response = $autowire->callMethod($tool, $methodName, $argList);
-            }else if($methodName = $tool->getToolDefaultCommand()){
-                // There is a default command, call it with all the args passed
-                $autowire = container(Autowire::class);
-                $response = $autowire->callMethod($tool, $methodName, $argList);
+                $response = is_string($response) ? $response : '' . "\n";
+                
+                $this->cli->print($response);
+                return $response;
             }
-    
-            if(is_string($response)){
-                $response = $this->cli->print($response."\n");
-            }
-    
-            return $response;
+
+            $this->cli->print($tool->help());
+            $this->cli->failure("The requested command '$requestedCommand' from tool '$toolName' does not exist, check your spelling against the help");
         }catch(CannotAutowireParameterException $e){
             $this->cli->print($tool->help());
             $commandName = $tool->getToolCommandName($e->getMethodName());
