@@ -237,11 +237,10 @@ class SetupTool extends Tool
         $this->test('ddt --are-you-ok');
     }
 
-    public function uninstall()
+    public function uninstall(SystemConfig $systemConfig)
     {
         $this->cli->print("{blu}Docker Dev Tools Uninstaller{end}\n");
 
-        $systemConfig = SystemConfig::instance();
         $path = $systemConfig->getPath('tools');
         $path = rtrim($path, "/");
 
