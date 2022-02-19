@@ -109,16 +109,16 @@ class ConfigTool extends Tool
 
 			if($reply !== 'yes'){
 				$this->cli->box("The request to reset was refused", "wht", "red");
-				return null;
 			}	
-		}
-
-		$config->setReadonly(false);
-		$config->read($this->defaultConfig);
-		if($config->write($this->systemConfig)){
-			$this->cli->box("The file '{$this->systemConfig}' file was overwritten", "blk", "grn");
 		}else{
-			$this->cli->box("The file '{$this->systemConfig}' could not be written, the state of the file is unknown, please manually check it", "wht", "red");
+			$config->read($this->defaultConfig);
+			$config->setReadonly(false);
+			
+			if($config->write($this->systemConfig)){
+				$this->cli->box("The file '{$this->systemConfig}' file was overwritten", "blk", "grn");
+			}else{
+				$this->cli->box("The file '{$this->systemConfig}' could not be written, the state of the file is unknown, please manually check it", "wht", "red");
+			}
 		}
 
 		return $config;
