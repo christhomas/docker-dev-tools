@@ -30,6 +30,9 @@ class CLI
 		$this->listenChannel('quiet');
 		$this->isRoot = $this->exec('whoami', true) === 'root';
 
+		// This will reset any colours bleeding over from commands by resetting the shell colour codes
+		$this->print("{end}");
+
 		if($this->isRoot){
 			$this->print("{yel}[SYSTEM]:{end} Root user detected\n");
 		}
