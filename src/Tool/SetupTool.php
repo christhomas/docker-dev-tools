@@ -57,16 +57,17 @@ class SetupTool extends Tool
             'short_description' => 'A tool that manages the installation and upgrade of the docker dev tools',
             'description' => 'This tool that manages the installation of the docker dev tools',
             'options' => [
-                "install --path=<path>: Install the tools into the path using the either the optional path given with the parameter or defaults to the current directory",
+                "install --path=<path> [--overwrite=true|false]: Install the tools into the path using the either the optional path given with the parameter or defaults to the current directory",
                 "uninstall --path=<path>: Uninstall the tools, given the path from the configuration",
                 "{yel}upgrade{end}: TODO: Should add this functionality",
                 "set-path --path=<path>: Update where the tools are installed",
                 "test: Open a new sub shell and test whether scripts work with the current system path.",
             ],
             'examples' => implode("\n", [
-                "  - $entrypoint install --path=\$HOME/projects/ddt-tools",
-                "  - $entrypoint uninstall --path=\$HOME/projects/ddt-tools",
-                "  - $entrypoint set-path --path=\$HOME/somewhere/else/if/you/want/ddt-tools",
+                "  - $entrypoint install --path=\$HOME/projects/docker-dev-tools",
+                "  - $entrypoint uninstall --path=\$HOME/projects/docker-dev-tools",
+                "  - $entrypoint set-path --path=\$HOME/somewhere/else/if/you/want/docker-dev-tools",
+                "  - $entrypoint set-path --path=\$HOME/projects/docker-dev-tools --overwrite=false",
             ]),
         ];
     }
@@ -172,7 +173,7 @@ class SetupTool extends Tool
 		}
 	}
 
-    public function install(string $path)
+    public function install(string $path, ?bool $overwrite=true)
     {
         $this->cli->print("{blu}Docker Dev Tools Installer{end}\n");
 
@@ -217,7 +218,13 @@ class SetupTool extends Tool
         // Use the ConfigTool to get the job done
         /** @var ConfigTool */
         $configTool = $this->getTool('config');
-        $systemConfig = $configTool->reset(SystemConfig::instance());
+        $systemConfig = SystemConfig::instance();
+        
+        // Whether or not to overwrite the config can be controlled by the --overwrite=(bool) flag
+        if($overwrite){
+            $configTool->reset($systemConfig);
+        }        
+        
         //  write into the config the tools path and save file
 		$systemConfig->setPath('tools', $path);
 		$systemConfig->write();
