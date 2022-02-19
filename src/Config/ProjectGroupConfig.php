@@ -65,14 +65,14 @@ class ProjectGroupConfig
 		return false;
 	}
 
-	public function addProject(string $group, string $project, string $dir, ?string $type, ?string $repo, ?string $remote): bool
+	public function addProject(string $group, string $project, string $path, ?string $type, ?string $repo, ?string $remote): bool
 	{
 		if($this->hasGroup($group)){
 			$groupKey = "{$this->key}.$group";
 			$group = $this->config->getKey($groupKey);
 			
 			$group[$project] = [
-				"path" => $dir,
+				"path" => $path,
 				"repo" => [
 					"url" => $repo,
 					"remote" => $remote
