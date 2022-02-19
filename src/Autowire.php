@@ -173,7 +173,7 @@ class Autowire
 
                 // for every named parameter, we must look for an input parameter with the same name AND HAS A VALUE
                 foreach($inputParameters as $index => $data){
-                    if($data['name'] === $name){
+                    if($data['name'] === $name && array_key_exists('value', $data)){
                         $test_numeric = (int)filter_var($data['value'], FILTER_VALIDATE_INT, FILTER_NULL_ON_FAILURE);
                         debugVar("NAMED TYPE CHECK($name), numeric = $test_numeric, value = '{$data['value']}'");
                         if($type === 'bool'){
