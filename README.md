@@ -211,9 +211,23 @@ ddt proxy restart
 ### Basic control
 To control the basic functionality of the proxy, use one of these commands:
 ```
+ddt proxy status
 ddt proxy start
 ddt proxy stop
 ddt proxy restart
+```
+
+Showing the status of the proxy will output a table of all the registered networks, containers with the respective important information. It looks like this (might need to adjust your page width settings):
+
+```
+$ ddt proxy status
+--------------------------------------------------------------------------------------------------------------------------
+| Docker Network  | Container                  | Host             | Port | Path                      | Nginx Status      |
+--------------------------------------------------------------------------------------------------------------------------
+| backbone        | project_a_dev_nginx-1      | domain_a.develop | 80   |                           | passed            |
+| backbone        | project_b_service_nginx-1  | domain_b.develop | 80   | ^/[a-zA-Z]{2,4}/service_b | passed            |
+| ddt-proxy       | There are no containers    |                  |      |                           |                   |
+--------------------------------------------------------------------------------------------------------------------------
 ```
 
 ### Access Logs
