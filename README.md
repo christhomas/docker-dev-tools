@@ -82,9 +82,24 @@ This is to make it easy to use and let you work without having to configure ever
 To control the basic operating of the server, so you can work with the configuration you've made. Use these commands, they are self explanatory
 
 ```
+ddt dns status
 ddt dns start
 ddt dns stop
 ddt dns restart
+```
+
+Showing the status of the dns will output a table of all the registered domains and the ip addresses they point to. It looks like this (might need to adjust your page width settings):
+
+```
+$ ddt dns status
+Registered domains:
+------------------------------------
+| Domain          | IP Address     |
+------------------------------------
+| hello.world     | 10.254.254.254 |
+| aws.develop     | 10.254.254.254 |
+| plista.develop  | 10.254.254.254 |
+------------------------------------
 ```
 
 If you want to temporarily add/remove the dns to the system, but without restarting it, you can use these two commands. The server will continue to run but will not
@@ -221,13 +236,13 @@ Showing the status of the proxy will output a table of all the registered networ
 
 ```
 $ ddt proxy status
---------------------------------------------------------------------------------------------------------------------------
-| Docker Network  | Container                  | Host             | Port | Path                      | Nginx Status      |
---------------------------------------------------------------------------------------------------------------------------
-| backbone        | project_a_dev_nginx-1      | domain_a.develop | 80   |                           | passed            |
-| backbone        | project_b_service_nginx-1  | domain_b.develop | 80   | ^/[a-zA-Z]{2,4}/service_b | passed            |
-| ddt-proxy       | There are no containers    |                  |      |                           |                   |
---------------------------------------------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------------------------------------------
+| Docker Network | Container                 | Host             | Port | Path                      | Nginx Status |
+-------------------------------------------------------------------------------------------------------------------
+| backbone       | project_a_dev_nginx-1     | domain_a.develop | 80   |                           | passed       |
+| backbone       | project_b_service_nginx-1 | domain_b.develop | 80   | ^/[a-zA-Z]{2,4}/service_b | passed       |
+| ddt-proxy      | There are no containers   |                  |      |                           |              |
+-------------------------------------------------------------------------------------------------------------------
 ```
 
 ### Access Logs
