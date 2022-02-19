@@ -46,7 +46,7 @@ class ProjectTool extends Tool
                 "{cyn}Adding Projects{end}:\n".
                 "\tadd-project --name=<project-name>: Will add a new project that already exists on the disk.\n".
                 "\t--group=<group>: (REQUIRED) The group to which this project will be added\n".
-                "\t--dir=<path>: (REQUIRED) The location on the filesystem for this project\n".
+                "\t--path=<path>: (REQUIRED) The location on the filesystem for this project\n".
                 "\t--type=<npm|composer|ddt>: (OPTIONAL: default=ddt) One of the supported project types. {yel}(See Project Type list below){end}\n".
                 "\n".
                 "{cyn}Removing Projects{end}:\n".
@@ -119,7 +119,7 @@ class ProjectTool extends Tool
         }
     }
 
-    public function addProject(string $group, string $dir, ?string $name=null, ?string $type='ddt', ?string $git=null, ?string $remote='origin'): void
+    public function addProject(string $group, string $path, ?string $name=null, ?string $type='ddt', ?string $git=null, ?string $remote='origin'): void
     {
         $this->cli->print("{blu}Adding project{end}\n");
 
@@ -129,14 +129,17 @@ class ProjectTool extends Tool
         }
 
         if($name === null){
-            $name = basename($dir);
+            $name = basename($path);
         }
 
-        if(is_dir($dir)){
+        if(is_dir($path)){
             $this->cli->print("Project '$name' exists?: {grn}Yes{end}\n");
 
+            // Resolve any relative paths into absolute ones
+            $path = realpath($path);
+
             try{
-                $remoteUrl = $this->repoService->getRemote($dir, $remote);
+                $remoteUrl = $this->repoService->getRemote($path, $remote);
                 $this->cli->print("Git Remote Url ($remote): {grn}$remoteUrl{end}\n");    
             }catch(\Exception $e){
                 $this->cli->print("Git Remote Url ($remote): {red}Error occurred, is this a git directory? Will skip this...{end}\n");
@@ -144,7 +147,7 @@ class ProjectTool extends Tool
                 $remoteUrl = null;
             }
             
-            if($this->config->addProject($group, $name, $dir, $type, $remoteUrl, $remote)){
+            if($this->config->addProject($group, $name, $path, $type, $remoteUrl, $remote)){
                 $this->cli->success("The project '$name' was successfully added to the group '$group'\n");
             }else{
                 $this->cli->failure("The project '$name' failed to be added to the group '$group'\n");
@@ -152,7 +155,7 @@ class ProjectTool extends Tool
         }else if($git !== null){
             $this->cli->print("Project '$name' exists?: {red}No{end}\n");
         }else{
-            $this->cli->print("{red}Project '$name' in directory '$dir' does not exist, but no --git option given in order to clone it{end}\n");
+            $this->cli->print("{red}Project '$name' in directory '$path' does not exist, but no --git option given in order to clone it{end}\n");
         }
     }
 
