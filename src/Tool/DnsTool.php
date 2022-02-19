@@ -314,7 +314,7 @@ class DnsTool extends Tool
 
         $domainList = $this->dnsMasq->listDomains();
 
-        $table = container('table');
+        $table = container(Table::class);
         $table->setRightPadding(10);
         $table->addRow(['{yel}Domain{end}', '{yel}IP Address{end}']);
 
