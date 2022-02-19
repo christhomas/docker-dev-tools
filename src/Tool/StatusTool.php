@@ -45,7 +45,13 @@ class StatusTool extends Tool
 
     public function main()
     {
-        $this->cli->failure('TODO: please implement me');
+        /** @var ProxyTool */
+        $proxy = $this->getTool('proxy');
+        $proxy->status();
+
+        /** @var DnsTool */
+        $dns = $this->getTool('dns');
+        $dns->status();
     }
 }
 

@@ -308,7 +308,7 @@ class DnsTool extends Tool
         }
     }
 
-    public function status(): string
+    public function status(): void
     {
         $this->cli->print("{blu}Registered domains:{end}\n");
 
@@ -327,7 +327,7 @@ class DnsTool extends Tool
             $table->addRow(["{wht}{$item['domain']}{end}", "{wht}{$item['ip_address']}{end}"]);
         }
         
-        return $table->render(true);
+        $this->cli->print($table->render(true));
     }
 
     public function listDevices() {

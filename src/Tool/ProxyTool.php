@@ -153,6 +153,7 @@ class ProxyTool extends Tool
 
     public function status()
     {
+        $this->cli->print("{blu}Registered proxy services:{end}\n");
         $table = container(Table::class);
 
         $table->addRow([
