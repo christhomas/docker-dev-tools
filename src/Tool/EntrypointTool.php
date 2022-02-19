@@ -70,26 +70,23 @@ class EntrypointTool extends Tool
                 throw new ToolNotFoundException($toolName);
             }
 
-            // If there are no arguments provided to the tool, show the tools help
-            if($this->cli->countArgs() === 0){
-                return $this->cli->print($tool->help());
-            }
-
             $argList = $this->cli->getArgList();
-            $requestedCommand = $argList[0]['name'];
             
-            $methodName = null;
+            $requestedCommand = null;
+            $defaultCommand = $tool->getToolDefaultCommand();
             
-            if($methodName === null){
-                // Search for a method using the first argument after the tool name
-                $methodName = $tool->getToolCommand($requestedCommand);
+            // If there are arguments, pick the first and resolve it to a command method
+            if($this->cli->countArgs()){
+                $requestedCommand = $tool->getToolCommand($argList[0]['name']);
             }
 
-            if($methodName === null){
-                // There is a default command, use that instead
-                $methodName = $tool->getToolDefaultCommand();
+            if($requestedCommand === null){
+                // If it does not resolve into a command method, fall back to the default command method
+                $methodName = $defaultCommand;
             }else{
-                // The requested command was found, we need to remove the first argument now we know it's safe to do so
+                // If the argument contained a valid command method, we should slice this parameter off the list
+                // This is so it doesn't get consumed twice
+                $methodName = $requestedCommand;
                 $argList = array_slice($argList, 1);
             }
 
