@@ -94,11 +94,11 @@ Showing the status of the dns will output a table of all the registered domains 
 $ ddt dns status
 Registered domains:
 ------------------------------------
-| Domain          | IP Address     |
+| Domain           | IP Address     |
 ------------------------------------
-| hello.world     | 10.254.254.254 |
-| aws.develop     | 10.254.254.254 |
-| plista.develop  | 10.254.254.254 |
+| hello.world      | 10.254.254.254 |
+| aws.develop      | 10.254.254.254 |
+| company.develop  | 10.254.254.254 |
 ------------------------------------
 ```
 
