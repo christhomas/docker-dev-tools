@@ -2,7 +2,6 @@
 
 namespace DDT\Tool;
 
-use DDT\Autowire;
 use DDT\CLI;
 use DDT\Exceptions\Autowire\CannotAutowireParameterException;
 use DDT\Exceptions\Tool\ToolNotFoundException;
@@ -95,8 +94,7 @@ class EntrypointTool extends Tool
             }
 
             if($methodName !== null){
-                $autowire = container(Autowire::class);
-                $response = $autowire->callMethod($tool, $methodName, $argList);
+                $response = $tool->invoke($methodName, $argList);
                 $response = is_string($response) ? $response : '' . "\n";
                 
                 $this->cli->print($response);

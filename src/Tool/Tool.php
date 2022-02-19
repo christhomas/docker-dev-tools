@@ -5,8 +5,6 @@ namespace DDT\Tool;
 use Exception;
 use DDT\Autowire;
 use DDT\CLI;
-use DDT\Exceptions\Tool\CommandInvalidException;
-use DDT\Exceptions\Tool\CommandNotFoundException;
 use DDT\Exceptions\Tool\ToolCommandInvalidException;
 use DDT\Exceptions\Tool\ToolCommandNotFoundException;
 use DDT\Exceptions\Tool\ToolNotFoundException;
@@ -41,11 +39,14 @@ abstract class Tool
     /** @var bool $quiet Whether or not to silence any output that shouldn't hit the terminal cause it's not wanted */
     private $quiet = false;
 
+    private $autowire;
+
     public function __construct(string $name, CLI $cli)
 	{
 		$this->name = $name;
 		$this->cli = $cli;
-        
+        $this->autowire = container(Autowire::class);
+    
         $this->setEntrypoint($this->cli->getScript(false));
         $this->setToolCommand('help');
 	}
@@ -187,8 +188,7 @@ abstract class Tool
      */
     public function invoke(string $method, ?array $args=[])
     {
-        $autowire = container(Autowire::class);
-        return $autowire->callMethod($this, $method, $args);
+        return $this->autowire->callMethod($this, $method, $args);
     }
 
     public function help(): string
