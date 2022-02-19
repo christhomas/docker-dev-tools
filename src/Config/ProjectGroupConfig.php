@@ -65,6 +65,11 @@ class ProjectGroupConfig
 		return false;
 	}
 
+	public function listProject(string $group): array
+	{
+		return $this->config->getKey("{$this->key}.$group") ?? [];
+	}
+
 	public function addProject(string $group, string $project, string $path, ?string $type, ?string $repo, ?string $remote): bool
 	{
 		if($this->hasGroup($group)){

@@ -60,7 +60,7 @@ class RunService
 		return $this->projectGroupConfig->getProjectConfig($group, $project);
 	}
 
-	public function run(string $group, string $project, string $script)
+	public function run(string $script, string $group, ?string $project=null)
 	{
 		try{
 			$this->cli->debug("{red}[RUNSERVICE]:{end} Running: $group, $project, $script\n");
@@ -126,7 +126,7 @@ class RunService
 
 			// Run the script for this dependency
 			// TODO: how to handle a the return value from this?
-			$this->run($depGroup, $project, $depScript);
+			$this->run($depScript, $depGroup, $project);
 		}
 		
 		// Lol, I don't know how to deal with all the return values yet

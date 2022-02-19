@@ -33,7 +33,7 @@ class RunTool extends Tool
             ]),
             'examples' => [
                 "{yel}{$this->getEntrypoint()} run{end}: This help",
-                "{yel}{$this->getEntrypoint()} run --name=start --group=mycompany --project=backendapi{end}: Run the 'start' script from the 'backendapi' project in the 'mycompany' group",
+                "{yel}{$this->getEntrypoint()} run --script=start --group=mycompany --project=backendapi{end}: Run the 'start' script from the 'backendapi' project in the 'mycompany' group",
                 "{yel}{$this->getEntrypoint()} run <script> <group> <project>{end}: The same command as above, but using anonymous parameters",
                 "{yel}{$this->getEntrypoint()} run --list{end}: Will output all the possible scripts that it's possible to run",
             ],
@@ -58,11 +58,21 @@ class RunTool extends Tool
         $this->cli->print($table->render());
     }
 
-    public function script(RunService $runService, string $name, string $group, string $project): void
+    public function script(ProjectGroupConfig $config, RunService $runService, string $script, string $group, ?string $project=null): void
     {
         try{
             $runService->reset();
-            $runService->run($group, $project, $name);
+
+            if($project === null){
+                $project = $config->listProject($group);
+                $project = array_keys($project);
+            }else{
+                $project = [$project];
+            }
+
+            foreach($project as $name){
+                $runService->run($script, $group, $name);
+            }
         }catch(ConfigMissingException $exception){
             $this->cli->failure("The project directory for '$project' in group '$group' was not found");
         }
