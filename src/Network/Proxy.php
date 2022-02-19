@@ -133,8 +133,6 @@ class Proxy
 			return array_key_exists('nginx_status', $c);
 		});
 
-		var_dump($list);
-
 		return $list;
 	}
 
