@@ -2,10 +2,7 @@
 
 namespace DDT;
 
-use Exception;
 use DDT\Exceptions\Autowire\CannotAutowireParameterException;
-use ReflectionClass;
-use ReflectionMethod;
 
 class Autowire
 {
@@ -32,7 +29,7 @@ class Autowire
     public function getInstance(string $ref, ?array $args=[])
     {
         try{
-            $rc = new ReflectionClass($ref);
+            $rc = new \ReflectionClass($ref);
             $rm = $rc->getConstructor();
             $params = $this->getReflectionParameters($rm);
             
@@ -50,7 +47,7 @@ class Autowire
     public function callMethod(object $class, string $method, ?array $args=[])
     {
         try{
-            $rc = new ReflectionClass($class);
+            $rc = new \ReflectionClass($class);
 
             if($rc->hasMethod($method) === true || $rc->hasMethod('__call') === false){
                 $rm = $rc->getMethod($method);
@@ -75,7 +72,7 @@ class Autowire
         }
     }
 
-    private function getReflectionParameters(ReflectionMethod $method): array
+    private function getReflectionParameters(\ReflectionMethod $method): array
     {
         $params = $method->getParameters();
             
