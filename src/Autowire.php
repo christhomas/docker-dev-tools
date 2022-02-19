@@ -103,11 +103,11 @@ class Autowire
         foreach($inputParameters as $name => $arg){
             if(is_string($name)){
                 // Take care of string key-ed arrays
-                $output[] = ['name' => trim($name, " -"), 'value' => $arg];
+                $output[] = ['name' => $this->normaliseArgName($name), 'value' => $arg];
             }else if(is_int($name) && is_array($arg)){
                 // Take care of numerically indexed arrays with array like data (such as command line arguments)
                 if(array_key_exists('name', $arg)){
-                    $arg['name'] = trim($arg['name'], " -");
+                    $arg['name'] = $this->normaliseArgName($arg['name']);
                     $output[] = $arg;
                 }else{
                     // I'm not sure what other formats to take care of right now
@@ -117,6 +117,14 @@ class Autowire
         debugVar(["FINAL OUTPUT" => $output]);
 
         return $output;
+    }
+
+    private function normaliseArgName(string $name): string
+    {
+        $name = trim($name, " -");
+        $name = ucwords(str_replace(['-', '_'], ' ', $name));
+        $name = lcfirst(str_replace(' ', '', $name));
+        return $name;
     }
 
     private function resolveArgs(array $signatureParameters, array $inputParameters): array
