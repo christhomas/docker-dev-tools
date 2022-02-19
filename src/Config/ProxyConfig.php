@@ -30,7 +30,7 @@ class ProxyConfig
 		}
     }
 
-	public function getToolsPath(?string $subpath = null): string
+	public function getToolsPath(?string $subpath=''): string
 	{
 		return $this->config->getPath('tools', $subpath);
 	}
