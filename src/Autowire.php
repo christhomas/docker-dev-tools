@@ -103,11 +103,12 @@ class Autowire
                 $output[] = ['name' => $this->normaliseArgName($name), 'value' => $arg];
             }else if(is_int($name) && is_array($arg)){
                 // Take care of numerically indexed arrays with array like data (such as command line arguments)
-                if(array_key_exists('name', $arg)){
+                if(array_key_exists('name', $arg) && array_key_exists('value', $arg)){
                     $arg['name'] = $this->normaliseArgName($arg['name']);
                     $output[] = $arg;
                 }else{
                     // I'm not sure what other formats to take care of right now
+                    $output[] = $arg;
                 }
             }
         }
