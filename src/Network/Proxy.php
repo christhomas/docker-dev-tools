@@ -268,6 +268,7 @@ class Proxy
 	{
 		try{
 			$container = $this->getContainer();
+			$container->stop();
 			$container->delete();
 		}catch(DockerInspectException $e){
 			$this->cli->print("{red}".$e->getMessage."{end}\n");
