@@ -97,6 +97,37 @@ class DockerContainer
         return current($ipAddress);
     }
 
+    public function run(string $image, string $name, string $command = '', array $volumes = [], array $options = [], array $env = [], array $ports = [], bool $background=false): int
+	{
+		$exec = ["run"];
+
+		$exec[] = "--name $name";
+
+		if($background){
+			$exec[] = "-d --restart always";
+		}
+		
+		foreach($volumes as $v){
+			$exec[] = "-v $v";
+		}
+
+		foreach($env as $e){
+			$exec[] = "-e $e";
+		}
+
+		foreach($ports as $p){
+			$exec[] = "-p $p";
+		}
+
+		$exec = array_merge($exec, $options);
+
+		$exec[] = $image;
+
+		$exec[] = $command;
+
+        return $this->docker->passthru(implode(" ", $exec));
+	}
+
     public function exec(string $command)
     {
         return $this->docker->exec("exec -it $this->id $command");
