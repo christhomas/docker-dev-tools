@@ -71,16 +71,21 @@ class Table
 
 	private function calcPrintingWidth(string $text): int
 	{
-		$tw = strlen($text);
-		$np = 0;
+		$text_width = strlen($text);
+		$non_printing = 0;
 
+		// Find in the text given, all the special terminal codes
 		$codes = $this->text->findCodes($text);
+		
+		// For every code, it might be printing or non-printing
 		foreach($codes as $c){
-			$tw = $tw + $c['printing'];
-			$np = $np + $c['length'];
+			$text_width = $text_width + $c['printing'];
+			$non_printing = $non_printing + $c['length'];
 		}
 		
-		return (int)($tw - $np);
+		// Subtract the non-printing character widths summed up from the text width
+		// giving the final number of charactes that'll be written to the terminal
+		return (int)($text_width - $non_printing);
 	}
 
 	private function fixColumnWidths($columns): array
@@ -128,9 +133,20 @@ class Table
 		if(empty($this->data)) return null;
 
 		$data = $this->data;
+
+		// fix(1): avoid problems with only having one row of data
 		array_unshift($data, []);
 
-		// Flip the array to process columns easily
+		// array_map(null, ...$data) is a really cool feature of php
+		// it'll loop through all the arrays passed into it, then extract
+		// all the array values with the same index and present it as an array
+		// so all array indexes with value '0', get turned into an array
+		// so this is like a way to 'flip' an array so that rows become columns
+		// and we want to process data in a 'column' orientated way, so we can figure
+		// out easily the width of each column in order to pad them out so they display
+		// on the terminal correctly
+
+		// Flip the array to so that process columns easily
 		$data = array_map(null, ...$data);
 
 		// Fix up all the column widths, including all hidden non-printing characters
@@ -140,45 +156,63 @@ class Table
 
 		// Flip the array back to normal
 		$data = array_map(null, ...$data);
+
+		// fix(1): removes the extra column created by fix(1) above where we add an empty row just for no reason
 		$data = array_slice($data, 1);
 
 		// Render the header and body
 		$header	= $this->renderHeader(array_slice($data, 0, $this->numHeaderRows));
 		$body	= $this->renderBody(array_slice($data, $this->numHeaderRows));
+		// TODO: future idea, support a table footer
+		$footer = $this->renderFooter([]);
 
 		// Combine both the header and body together, trimming off what we don't want
-		return trim(implode("\n", array_merge($header, $body))) . "\n";
+		return trim(implode("\n", array_merge($header, $body, $footer))) . "\n";
+	}
+
+	private function renderRows(array $rows): array
+	{
+		if(count($rows) === 0) return [];
+
+		// add the optionally configured vertical border character 
+		// to surround every column in the table, such as '|'
+		foreach($rows as $index => $row){
+			$b = $this->border ? $this->border['v'] : '';
+			$rows[$index] = trim($b . implode($b, $row) . $b);
+		}
+
+		// calculate the width of the table and use it to add the 
+		// optionally configured horizontal border character to the 
+		// table, which normally is '-'
+		$pw = $this->calcPrintingWidth($rows[0]);
+		$line = $this->border ? str_pad('', $pw, $this->border['h']) : '';
+		$line = [$line];
+
+		// every row set is given a 'top-bar' made of the optionally
+		// configured horizontal border character
+		// NOTE: if borders are disabled, this means an empty string 
+		// NOTE: which trim() removes afterwards leaving no spaces behind
+		return array_merge($line, $rows);
 	}
 
 	private function renderHeader(array $rows): array
 	{
-		if(count($rows) === 0) return [];
-
-		foreach($rows as $index => $row){
-			$b = $this->border ? $this->border['v'] : '';
-			$rows[$index] = trim($b . implode($b, $row) . $b);
-		}
-
-		$pw = $this->calcPrintingWidth($rows[0]);
-		$line = $this->border ? str_pad('', $pw, $this->border['h']) : '';
-		$line = [$line];
-
-		return array_merge($line, $rows);
+		return $this->renderRows($rows);
 	}
 
 	private function renderBody(array $rows): array
 	{
-		if(count($rows) === 0) return [];
+		$rows = $this->renderRows($rows);
 
-		foreach($rows as $index => $row){
-			$b = $this->border ? $this->border['v'] : '';
-			$rows[$index] = trim($b . implode($b, $row) . $b);
-		}
+		// special case: the body requires a bottom border, use the first row
+		return array_merge($rows, [current($rows)]);
+	}
 
-		$pw = $this->calcPrintingWidth($rows[0]);
-		$line = $this->border ? str_pad('', $pw, $this->border['h']) : '';
-		$line = [$line];
+	private function renderFooter(array $rows): array
+	{
+		$rows = $this->renderRows($rows);
 
-		return array_merge($line, $rows, $line);
+		// special case: the footer requires a bottom border, use the first row
+		return array_merge($rows, [current($rows)]);
 	}
 }
