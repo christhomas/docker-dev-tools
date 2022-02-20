@@ -188,7 +188,7 @@ class Table
 		$line = $this->border ? str_pad('', $pw, $this->border['h']) : '';
 		$line = [$line];
 
-		// every row set is given a 'top-bar' made of the optionally
+		// every row set is given a 'top-border' made of the optionally
 		// configured horizontal border character
 		// NOTE: if borders are disabled, this means an empty string 
 		// NOTE: which trim() removes afterwards leaving no spaces behind
