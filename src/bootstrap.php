@@ -2,6 +2,7 @@
 
 use DDT\Autowire;
 use DDT\CLI;
+use DDT\Debug;
 use DDT\Text\Text;
 use DDT\Text\Table;
 use DDT\Container;
@@ -65,11 +66,7 @@ try{
 	}
 	
 	// We have to set this value really early so it's useful when the autowirer starts using it
-	if((bool)$cli->getArg('--dev-debug', false, true)){
-		function debugVar($a){ is_scalar($a) ? print("$a\n") : var_dump($a); }
-	}else{
-		function debugVar($a){}
-	}
+	Debug::$enabled = (bool)$cli->getArg('--dev-debug', false, true);
 
 	// Set these two important locations for either the system configuration
 	// This is the default system configuration that is the basic template for any new installation
