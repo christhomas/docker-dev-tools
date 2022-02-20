@@ -3,13 +3,29 @@
 namespace DDT\Tool;
 
 use DDT\CLI;
+use DDT\Config\PhpComposerConfig;
+use DDT\Docker\Docker;
+use DDT\Docker\DockerContainer;
+use DDT\Docker\DockerVolume;
+use DDT\Exceptions\Docker\DockerVolumeNotFoundException;
 
 class ComposerTool extends Tool
 {
-    public function __construct(CLI $cli)
+    /** @var PhpComposerConfig */
+    private $config;
+
+    /** @var Docker */
+    private $docker;
+
+    public function __construct(CLI $cli, PhpComposerConfig $config, Docker $docker)
     {
+        $this->config = $config;
+        $this->docker = $docker;
+
     	parent::__construct('composer', $cli);
         $this->setToolCommand('__call', null, true);
+        $this->setToolCommand('--enable-docker-volume-cache', 'enableDockerVolumeCache');
+        $this->setToolCommand('--set-container-name', 'setContainerName');
     }
     
     public function getToolMetadata(): array
@@ -33,6 +49,80 @@ class ComposerTool extends Tool
         ];
     }
 
+    public function enableDockerVolumeCache(bool $state, ?string $volumeName=null): void
+    {
+        if($this->config->enableCache($state, $volumeName)){
+            $this->cli->print("Enabled: " . ($this->config->isCacheEnabled() ? "yes" : "no") . "\n");
+            $this->cli->print("Volume Name: " . $this->config->getCacheName() . "\n");
+
+            if($state === false){
+                try{
+                    $name = $this->config->getCacheName();
+                    $volume = DockerVolume::instance($name, false);
+                    if($volume->delete()){
+                        $this->cli->print("{yel}Docker Cache Volume{end}: successfully deleted '$name'\n");
+                    }else{
+                        $this->cli->print("{red}Docker Cache Volume{end}: failed to delete\n");
+                    }
+                }catch(DockerVolumeNotFoundException $e){
+                    // don't do anything, nothing to delete
+                    $this->cli->debug("{red}[COMPOSER TOOL]{end}: No volume named '$name' to delete\n");
+                }
+            }
+
+            $this->cli->success("Successfully set docker volume cache information");
+        }else{
+            $this->cli->failure("Failed to set docker volume cache information");
+        }
+    }
+
+    public function setContainerName(string $name): void
+    {
+        if($this->config->setContainerName($name)){
+            $this->cli->print("Container Name: " . $this->config->getContainerName() . "\n");
+            $this->cli->success("Successfully set the docker container name");
+        }else{
+            $this->cli->failure("Failed to set docker container name information");
+        }
+    }
+
+    public function run($params)
+    {
+        try{
+            $name = $this->config->getContainerName();
+
+            $volumes = [
+                '$HOME/.ssh:/root/.ssh',
+                getcwd().':/app:delegated'
+            ];
+
+            if($this->config->isCacheEnabled()){
+                $this->cli->print("{yel}DDT Docker Composer Cache{end}: enabled\n");
+                $volumes[] = $this->config->getCacheName(). ":/tmp:delegated";
+            }else{
+                $this->cli->print("{yel}DDT Docker Composer Cache{end}: disabled\n");
+            }
+
+            $options = [
+                '--entrypoint "sh"',
+                '--rm'
+            ];
+
+            $env = [
+                'COMPOSER_PROCESS_TIMEOUT=2000'
+            ];
+
+            $image = 'composer:latest';
+            $command = "-c 'php -d memory_limit=-1 $(which composer) $params' 2>&1";
+
+            $this->docker->delete($name, true);
+
+            DockerContainer::foreground($name, $command, $image, $volumes, $options, $env);
+        }catch(\Exception $e){
+            // NOTE: what should I do here?
+        }
+    }
+
     public function __call($name, $input)
     {
         $args = array_reduce($input[0], function($a, $i){
@@ -42,11 +132,7 @@ class ComposerTool extends Tool
         }, []);
 
         $params = implode(' ', $args);
-        
-        try{
-            return $this->cli->passthru("$name $params");   
-        }catch(\Exception $e){
-            // NOTE: what should I do here?
-        }
+
+        return $this->run($params) . "\n";
     }
 }
