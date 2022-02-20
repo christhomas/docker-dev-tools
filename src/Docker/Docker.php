@@ -132,32 +132,6 @@ class Docker
 			throw new DockerException($e->getMessage(), $e->getCode(), $e->getPrevious());
 		}
 	}
-
-	public function run(string $image, string $name, array $ports = [], array $volumes = [], array $options = []): ?string
-	{
-		$command = ["run -d --restart always"];
-
-		$command = array_merge($command, $options);
-
-		foreach($ports as $p){
-			$command[] = "-p $p";
-		}
-
-		foreach($volumes as $v){
-			$command[] = "-v $v";
-		}
-
-		$command[] = '--name '.$name;
-		$command[] = $image;
-
-		try{
-			return implode("\n", $this->exec(implode(" ", $command)));
-		}catch(\Exception $e){
-			// FIXME: I don't think this should die here, but return an exception which can be understood by somewhere above in the hierarchy
-			$this->cli->failure($this->parseErrors($e->getMessage(), ["{port}" => $ports]));
-		}
-	}
-
 	public function stop(string $containerId): bool 
 	{
 		try{
