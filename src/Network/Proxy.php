@@ -210,7 +210,7 @@ class Proxy
 		try{
 			// Remove the container that was previously built
 			// cause otherwise it'll crash with "The container name /xxx" is already in use by container "xxxx"
-			$container = DockerContainer::instance($name);
+			$container = $this->getContainer();
 			$this->cli->print("Deleting Container with name '$name'\n");
 			$container->stop();
 			$container->delete();
@@ -264,7 +264,7 @@ class Proxy
 	public function stop()
 	{
 		try{
-			$container = DockerContainer::instance($this->getContainerName());
+			$container = $this->getContainer();
 			$container->delete();
 		}catch(DockerInspectException $e){
 			$this->cli->print("{red}".$e->getMessage."{end}\n");
@@ -274,7 +274,7 @@ class Proxy
 	public function logs(bool $follow, ?string $since=null)
 	{
 		try{
-            $container = DockerContainer::instance($this->getContainerName());
+            $container = $this->getContainer();
 			$container->logs($follow, $since);
         }catch(\Exception $e){
             throw new \Exception('Could not find docker container view the logs from: ' . $e->getMessage());
