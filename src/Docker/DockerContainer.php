@@ -25,7 +25,7 @@ class DockerContainer
                 throw $e;
             }
 
-            $this->docker->run($image, $name, $ports, $volumes, $options);
+            $this->run($image, $name, $command, $volumes, $options, $env, $ports, $background);
 
             $this->id = $this->getId();
         }
