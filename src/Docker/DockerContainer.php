@@ -50,10 +50,11 @@ class DockerContainer
     public function getId(): string
     {
         try{
-            $id = $this->docker->inspect('container', $this->name, '.Id');
-            $id = $id[0];
+            if($this->id) return $this->id;
 
-            return $id;
+            $id = $this->docker->inspect('container', $this->name, '.Id');
+
+            return current($id);
         }catch(\Exception $e){
             throw new DockerContainerNotFoundException($this->name);
         }
