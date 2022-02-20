@@ -91,7 +91,12 @@ class EntrypointTool extends Tool
             }
 
             if($methodName !== null){
-                $response = $tool->invoke($methodName, $argList);
+                if($methodName === '__call'){
+                    $response = $tool->$toolName($argList);
+                }else{
+                    $response = $tool->invoke($methodName, $argList);
+                }
+
                 $response = is_string($response) ? $response : '' . "\n";
                 
                 $this->cli->print($response);

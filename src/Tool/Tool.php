@@ -79,6 +79,10 @@ abstract class Tool
 
         $name = strtolower($name);
 
+        if($name === '__call'){
+            $method = $name;
+        }
+
         if(empty($method)){
             $method = ucwords(str_replace(['-', '_'], ' ', $name));
             $method = lcfirst(str_replace(' ', '', $method));
