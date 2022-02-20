@@ -10,10 +10,19 @@ class DockerContainer
 
     private $name;
 
-    private $id;
+    private $id = null;
 
-    public function __construct(Docker $docker, string $name, ?string $image = null, ?array $ports = [], ?array $volumes = [], ?array $options = [])
-    {
+    public function __construct(
+        Docker $docker, 
+        string $name, 
+        ?string $command = '',
+        ?string $image = null, 
+        ?array $volumes = [], 
+        ?array $options = [], 
+        ?array $env = [], 
+        ?array $ports = [],
+        ?bool $background = false
+    ){
         $this->docker = $docker;
 
         $this->name = $name;
@@ -31,14 +40,38 @@ class DockerContainer
         }
     }
 
-    static public function instance(string $name, ?string $image = null, ?array $ports = [], ?array $volumes = [], ?array $options = []): DockerContainer
+    static public function get(string $name): DockerContainer
+    {
+        return container(DockerContainer::class, ['name' => $name]);
+    }
+
+    static public function foreground(string $name, ?string $command = '', ?string $image = null, ?array $volumes = [], ?array $options = [], ?array $env = []): void
+    {
+        try{
+            container(DockerContainer::class, [
+                'name' => $name,
+                'command' => $command,
+                'image' => $image,
+                'volumes' => $volumes,
+                'options' => $options,
+                'env' => $env,
+            ]);
+        }catch(DockerContainerNotFoundException $e){
+            // Do nothing
+        }
+    }
+
+    static public function background(string $name, ?string $command = '', ?string $image = null, ?array $volumes = [], ?array $options = [], ?array $env = [], ?array $ports = []): DockerContainer
     {
         return container(DockerContainer::class, [
             'name' => $name,
+            'command' => $command,
             'image' => $image,
-            'ports' => $ports,
             'volumes' => $volumes,
             'options' => $options,
+            'env' => $env,
+            'ports' => $ports,
+            'background' => true,
         ]);
     }
 

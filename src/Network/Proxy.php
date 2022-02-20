@@ -55,7 +55,7 @@ class Proxy
 
 	public function getContainer(): DockerContainer
 	{
-		return DockerContainer::instance($this->getContainerName());
+		return DockerContainer::get($this->getContainerName());
 	}
 
 	public function getContainerId(): ?string
@@ -113,7 +113,7 @@ class Proxy
 		});
 
 		$list = array_map(function($c) use ($network) {
-			$container = DockerContainer::instance($c);
+			$container = DockerContainer::get($c);
 			return [
 				'name' => $c,
 				'network' => $network->getName(),
@@ -181,7 +181,7 @@ class Proxy
 		$list = ['host' => '', 'port' => '80', 'path' => ''];
 
 		try{
-			$container = DockerContainer::instance($container);
+			$container = DockerContainer::get($container);
 			$env = $container->listEnvParams();
 			if(array_key_exists('VIRTUAL_HOST', $env)){
 				$list['host'] = $env['VIRTUAL_HOST'];
@@ -228,10 +228,10 @@ class Proxy
 		DockerVolume::instance('ddt_proxy_html');
 
 		try{
-			$container = DockerContainer::instance(
+			$container = DockerContainer::background(
 				$name, 
+				'',
 				$image, 
-				['80:80', '443:443'], 
 				[
 					"ddt_proxy_certs:/etc/nginx/certs",
 					"ddt_proxy_vhost:/etc/nginx/vhost.d",
@@ -239,7 +239,10 @@ class Proxy
 					"/var/run/docker.sock:/tmp/docker.sock:ro",
 					"$path/proxy-config/global.conf:/etc/nginx/conf.d/global.conf",
 					"$path/proxy-config/nginx-proxy.conf:/etc/nginx/proxy.conf",
-				]
+				],
+				[],
+				[],
+				['80:80', '443:443'],
 			);
 
 			$id = $container->getId();
