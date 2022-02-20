@@ -61,7 +61,7 @@ class DnsMasq
 			    $file = trim($file);
                 
                 if(empty($file)){
-                    $this->cli->debug('{red}[DOCKER-CONTAINER]:{end} cannot view file inside container as it was empty string, skipping');
+                    $this->cli->debug('{red}[DNSMASQ-CONTAINER]:{end} cannot view file inside container as it was empty string, skipping');
                     continue;
                 }
 
@@ -72,7 +72,7 @@ class DnsMasq
 			}
         }catch(\Exception $e){
             // TODO: what should I do n this situation?
-            $this->cli->debug("{red}[DOCKER-CONTAINER]: {end} ". $e->getMessage());
+            $this->cli->debug("{red}[DNSMASQ-CONTAINER]: {end} ". $e->getMessage());
         }
 
         return $domains;
