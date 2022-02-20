@@ -61,7 +61,7 @@ class DockerVolume
 		try{
 			$r = $this->docker->exec("volume create $name 2>&1");
 			
-			return $r[0];
+			return current($r);
 		}catch(\Exception $e){
 			$this->cli->debug("The docker volume '$name' failed to create with error:\n".$e->getMessage());
 
@@ -71,11 +71,14 @@ class DockerVolume
 
     public function delete(): bool
     {
-        // TODO: attempt to delete docker volume
-        // TODO: if fails to delete, throw exception
-        // TODO: if succeeds to delete, return true
+        try{
+            $id = $this->getId();
+            $this->docker->exec("volume rm $id");
 
-        return true;
+            return true;
+        }catch(DockerVolumeNotFoundException $e){
+            return false;
+        }
     }
 
     public function getId(): string
