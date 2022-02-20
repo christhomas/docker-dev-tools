@@ -3,6 +3,7 @@
 namespace DDT\Tool;
 
 use DDT\CLI;
+use DDT\CLI\ArgumentList;
 use DDT\Config\ProjectGroupConfig;
 use DDT\Exceptions\Config\ConfigMissingException;
 use DDT\Services\RunService;
@@ -61,6 +62,11 @@ class RunTool extends Tool
     public function script(ProjectGroupConfig $config, RunService $runService, string $script, string $group, ?string $project=null): void
     {
         try{
+            // Ignore the first three arguments, they would be script, group, project
+            // This will not work when you don't have project specified, cause it wouldn't know
+            // how to differentiate between a project name and an extra argument to forward on
+            $arguments = new ArgumentList($this->cli->getArgList(), 3);
+
             $runService->reset();
 
             if($project === null){
@@ -71,7 +77,7 @@ class RunTool extends Tool
             }
 
             foreach($project as $name){
-                $runService->run($script, $group, $name);
+                $runService->run($script, $group, $name, $arguments);
             }
         }catch(ConfigMissingException $exception){
             $this->cli->failure("The project directory for '$project' in group '$group' was not found");

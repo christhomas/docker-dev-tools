@@ -2,6 +2,7 @@
 namespace DDT\Services;
 
 use DDT\CLI;
+use DDT\CLI\ArgumentList;
 use DDT\Config\External\StandardProjectConfig;
 use DDT\Config\ProjectGroupConfig;
 use DDT\Exceptions\Project\ProjectScriptInvalidException;
@@ -60,7 +61,7 @@ class RunService
 		return $this->projectGroupConfig->getProjectConfig($group, $project);
 	}
 
-	public function run(string $script, string $group, ?string $project=null)
+	public function run(string $script, string $group, ?string $project=null, ?ArgumentList $extraArgs=null)
 	{
 		try{
 			$this->cli->debug("{red}[RUNSERVICE]:{end} Running: $group, $project, $script\n");
@@ -74,7 +75,7 @@ class RunService
 				$this->pushJob($projectConfig, $script);
 
 				// Before attempting to run the script required, process it's dependencies
-				if($this->runDependencies($projectConfig, $group, $script) === true){
+				if($this->runDependencies($projectConfig, $group, $script, $extraArgs) === true){
 					// Now all dependencies are run, obtain the actual commandline to run
 					$path = $projectConfig->getPath();
 					$command = $projectConfig->getKey(".scripts.$script");
@@ -85,9 +86,10 @@ class RunService
 					}
 		
 					// Otherwise, cd into the project path and run the script as specified
-					$this->cli->print("\n{blu}Run Script:{end} group: {yel}$group{end}, project: {yel}$project{end}, script: {yel}$script{end}\n");
+					$this->cli->print("\n{blu}Run Script:{end} group: {yel}$group{end}, project: {yel}$project{end}, script: {yel}$script{end}, extra args: {yel}$extraArgs{end}\n");
+
 					// TODO: how to handle when a script fails?
-					$this->cli->passthru("cd $path; $command");
+					$this->cli->passthru("cd $path; $command $extraArgs");
 				}
 			}else{
 				// show an error about non-entrant scripts, so we don't do any infinite loops
@@ -101,7 +103,7 @@ class RunService
 		}
 	}
 
-	public function runDependencies(StandardProjectConfig $projectConfig, string $group, string $script): bool
+	public function runDependencies(StandardProjectConfig $projectConfig, string $group, string $script, ?ArgumentList $extraArgs=null): bool
 	{
 		// First, get all this projects dependencies, so you can loop through them
 		$dependencies = $projectConfig->getDependencies($script);
@@ -126,7 +128,7 @@ class RunService
 
 			// Run the script for this dependency
 			// TODO: how to handle a the return value from this?
-			$this->run($depScript, $depGroup, $project);
+			$this->run($depScript, $depGroup, $project, $extraArgs);
 		}
 		
 		// Lol, I don't know how to deal with all the return values yet
