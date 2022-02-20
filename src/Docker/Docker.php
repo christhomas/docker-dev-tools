@@ -170,14 +170,16 @@ class Docker
 		}
 	}
 
-	public function delete(string $containerId): bool
+	public function delete(string $containerId, ?bool $silent=false): bool
 	{
 		try{
 			$this->exec("container rm $containerId 1>&2");
 
 			return true;
 		}catch(\Exception $e){
-			$this->cli->print("{red}".$this->parseErrors($e->getMessage())."{end}\n");
+			if($silent === false){
+				$this->cli->print("{red}".$this->parseErrors($e->getMessage())."{end}\n");
+			}
 			return false;
 		}
 	}
