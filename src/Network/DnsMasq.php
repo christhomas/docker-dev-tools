@@ -6,6 +6,7 @@ use DDT\CLI;
 use DDT\Config\DnsConfig;
 use DDT\Docker\Docker;
 use DDT\Docker\DockerContainer;
+use DDT\Exceptions\Docker\DockerContainerNotFoundException;
 
 class DnsMasq
 {
@@ -37,6 +38,11 @@ class DnsMasq
 
     public function getContainer(): DockerContainer 
     {
+        return DockerContainer::get($this->config->getContainerName());
+    }
+
+    public function startContainer(): DockerContainer
+    {
         return DockerContainer::background(
             $this->config->getContainerName(), 
             '',
@@ -56,8 +62,6 @@ class DnsMasq
 
         $list = $container->exec("find /etc/dnsmasq.d -name \"*.conf\" -type f");
         $list = array_map('trim', $list);
-        $list = array_filter($list);    
-            $list = array_filter($list);    
         $list = array_filter($list);    
 
         foreach($list as $file){
@@ -119,14 +123,16 @@ class DnsMasq
 
         $this->cli->print("{blu}Starting DNSMasq Container...{end}\n");
 
-        $container = $this->getContainer();
+        $container = $this->startContainer();
         
         if($container->isRunning() === false){
+            $this->cli->debug("{red}[DNSMASQ]:{end}: Container was found, but doesn't appear to be running, delete it and try again");
             // we found the container, but it's stopped or exited in some way, so we need to destroy it and recreate it
+            $container->stop();
             $container->delete();
-        
+
             // Now create a brand new container
-            $container = $this->getContainer();
+            $container = $this->startContainer();
         }
 
         $this->cli->print("{blu}Started DNSMasq Container (id: {$container->getId()})...{end}\n");
