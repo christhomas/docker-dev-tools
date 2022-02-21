@@ -132,10 +132,8 @@ try{
 
 	$tool = container(EntrypointTool::class);
 	
-	// Before handling the request, check to see if 
-	// the auto_update timeout passes and self update
-	$setupTool = $tool->getTool('setup');
-	$setupTool->invoke('selfUpdate', array_slice($cli->getArgList(), 2));
+	// Before handling the request, check to see if the timeout passes and self update
+	$tool->getTool('self-update')->run();
 
 	// But in the end, handle the request made by the user
 	$tool->handle();

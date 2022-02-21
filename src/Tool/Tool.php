@@ -144,7 +144,13 @@ abstract class Tool
         try{
             if(empty($name)) throw new Exception('Tool name cannot be empty');
             
-            return container('DDT\\Tool\\'.ucwords($name).'Tool');
+            $name = strtolower($name);
+            $name = explode("-", $name);
+            $name = implode(" ", $name);
+            $name = ucwords($name);
+            $name = str_replace(" ", "", $name);
+
+            return container('DDT\\Tool\\'.$name.'Tool');
         }catch(Exception $e){
             $this->cli->debug("{red}".$e->getMessage()."{end}");
             throw new ToolNotFoundException($name, 0, $e);

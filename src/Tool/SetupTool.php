@@ -3,10 +3,7 @@
 namespace DDT\Tool;
 
 use DDT\CLI;
-use DDT\Config\SelfUpdateConfig;
 use DDT\Config\SystemConfig;
-use DDT\Helper\DateTimeHelper;
-use DDT\Services\GitService;
 use DDT\Text\Text;
 
 class SetupTool extends Tool
@@ -36,13 +33,9 @@ class SetupTool extends Tool
         $this->home = $home ?? $_SERVER['HOME'];
         $this->files = $this->getExistingFiles($this->files);
 
-        foreach(['install', 'uninstall', 'test', 'set-path', 'self-update'] as $command){
+        foreach(['install', 'uninstall', 'test', 'set-path'] as $command){
             $this->setToolCommand($command);
         }
-
-        $this->setToolCommand('--show-update-timeout',  'showUpdateTimeout');
-        $this->setToolCommand('--set-update-period',    'setUpdatePeriod');
-        $this->setToolCommand('--set-update-enabled',   'setUpdateEnabled');
     }
 
     public function getExistingFiles(array $files): array
@@ -296,75 +289,6 @@ class SetupTool extends Tool
         $this->cli->print("{blu}Set Tools Path:{end} updating configuration with path '$path'\n");
         $systemConfig->setPath('tools', $path);
 	    $systemConfig->write();
-    }
-
-    public function showUpdateTimeout(SelfUpdateConfig $config): void
-    {
-        $timeout = DateTimeHelper::nicetime($config->getTimeout());
-        $this->cli->print("{yel}Self Updater Timeout in{end}: $timeout\n");
-    }
-
-    public function setUpdatePeriod(SelfUpdateConfig $config, string $period)
-    {
-        if($config->setPeriod($period)){
-            $timeout = $this->resetUpdateTimeout($config);
-            $relative = DateTimeHelper::nicetime($timeout);
-            $this->cli->print("{yel}Next update{end}: $relative\n");
-        }
-    }
-
-    public function setUpdateEnabled(SelfUpdateConfig $config, ?bool $enable=true)
-    {
-        $config->setEnabled($enable);
-        
-        $statusText = $config->isEnabled() ? 'enabled' : 'disabled';
-        $this->cli->print("{yel}Self Updater is{end}: $statusText{end}\n");
-    }
-
-    public function resetUpdateTimeout(SelfUpdateConfig $config): int
-    {
-        $timeout = strtotime($config->getPeriod(), time());
-        $config->setTimeout($timeout);
-
-        return $timeout;
-    }
-
-    public function selfUpdate(SelfUpdateConfig $SelfUpdateConfig, SystemConfig $systemConfig, GitService $gitService): void
-    {
-        // use the .ddt-system.json to store a "version.update_time" and set it to one week in advance
-        // each time ddt tools runs, it should check this time
-        // if time is behind current time, we should update
-        // here are the git commands to discuss
-        // 1. git fetch
-        // 2. git rev-list --left-right master...origin/master --count
-        // 3. git pull
-        // we should use (1) to update the remote branch information, then (2) to to find out the current status, the "0 1" is two columns, ahead/behind commit counts
-        // if we are ahead, we can't update cleanly, so we should stop with an error at this point
-        // if we are behind, and the time is right, we can do (3) to update our local copy of the tools
-        
-        // FUTURE PROBLEMS
-        // 1. how to deal with any kind of migration? what if the .ddt-system.json file format changes?
-
-        $timeout = $SelfUpdateConfig->getTimeout();
-
-        if(time() < $timeout){
-            return;
-        }
-
-        $this->cli->print("{blu}Docker Dev Tools{end}: Self Updater\n");
-
-        if(!$SelfUpdateConfig->isEnabled()){
-            $this->cli->print("{yel}Self Updater is disabled{end}\n");
-            return;
-        }
-
-        $gitService->pull($systemConfig->getPath('tools'));
-
-        $timeout = $this->resetUpdateTimeout($SelfUpdateConfig);
-        
-        $relative = DateTimeHelper::nicetime($timeout);
-        
-        $this->cli->print("{yel}Self Update Complete, next update: $relative{end}\n");
     }
 }
 
