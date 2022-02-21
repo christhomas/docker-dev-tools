@@ -4,6 +4,7 @@ namespace DDT\Tool;
 
 use DDT\CLI;
 use DDT\Config\ProxyConfig;
+use DDT\Exceptions\Docker\DockerContainerNotFoundException;
 use DDT\Network\Proxy;
 use DDT\Text\Table;
 
@@ -87,12 +88,16 @@ class ProxyTool extends Tool
 
     public function stop()
     {
-        $this->cli->print("{blu}Stopping the Frontend Proxy:{end} ".$this->dockerImage()."\n");
-        $this->proxy->stop();
+        try{
+            $this->cli->print("{blu}Stopping the Frontend Proxy:{end} ".$this->dockerImage()."\n");
+            $this->proxy->stop();
 
-        // FIXME: perhaps this should call the docker object to do this
-        $this->cli->print("{blu}Running Containers:{end}\n");
-        $this->cli->passthru('docker ps');
+            // FIXME: perhaps this should call the docker object to do this
+            $this->cli->print("{blu}Running Containers:{end}\n");
+            $this->cli->passthru('docker ps');
+        }catch(DockerContainerNotFoundException $e){
+            $this->cli->failure("The Proxy Container is not running");
+        }
     }
 
     public function restart()
