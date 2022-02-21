@@ -93,7 +93,7 @@ class Table
 		// Replace tabs with spaces
 		$columns = array_map(function($text) {
 			$replace = str_pad("", $this->tabWidth, $this->space);
-			return str_replace("\t", $replace, $text);
+			return str_replace("\t", $replace, $text ?? '');
 		}, $columns);
 
 		// Replace all special codes with shell script codes
