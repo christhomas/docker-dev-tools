@@ -58,6 +58,9 @@ try{
 	$text = new Text();
 	$cli = new CLI($argv, $text);
 
+	// We have to set this value really early so it's useful when the autowirer starts using it
+	Debug::$enabled = (bool)$cli->getArg('--dev-debug', false, true);
+
 	$container = new Container($cli, [Autowire::class, 'instantiator']);
 
 	$container->bind(Table::class, function() use ($text) {
@@ -69,14 +72,22 @@ try{
 		return $table;
 	});
 
-	// Simple "yes the script runs" type check
-	if((bool)$cli->getArg('--are-you-ok', false, true)){
-		die("yes\n");
+	// This should move into the entrypoint but for now I'll specify this here
+	// and mark it up as a future TODO item
+	if((bool)$cli->getArg('--version', false, true)){
+		die("1.0\n");
 	}
-	
-	// We have to set this value really early so it's useful when the autowirer starts using it
-	Debug::$enabled = (bool)$cli->getArg('--dev-debug', false, true);
 
+	// Set the container to have some default values which can be extracted on demand
+	// This just centralises all the defaults in one place, there are other ways to do it
+	// But this just seems to be a nice place since you're also setting up the rest of the di-container
+	// TODO: This is already stored in the default.ddt-system.json file and should be used instead of duplicating this here
+	$container->singleton('defaults.ip_address',			'10.254.254.254');
+	$container->singleton('defaults.proxy.docker_image',	'christhomas/nginx-proxy:alpine');
+	$container->singleton('defaults.proxy.container_name',	'ddt-proxy');
+	$container->singleton('defaults.proxy.network',			['ddt-proxy']);
+	$container->singleton('defaults.dns.docker_image',		'christhomas/supervisord-dnsmasq');
+	$container->singleton('defaults.dns.container_name',	'ddt-dnsmasq');
 	// Set these two important locations for either the system configuration
 	// This is the default system configuration that is the basic template for any new installation
 	$container->singleton('config.file.default', __DIR__ . '/../default.ddt-system.json');
@@ -101,17 +112,6 @@ try{
 
 		return $c;
 	});
-
-	// Set the container to have some default values which can be extracted on demand
-	// This just centralises all the defaults in one place, there are other ways to do it
-	// But this just seems to be a nice place since you're also setting up the rest of the di-container
-	// TODO: This is already stored in the default.ddt-system.json file and should be used instead of duplicating this here
-	$container->singleton('defaults.ip_address',			'10.254.254.254');
-	$container->singleton('defaults.proxy.docker_image',	'christhomas/nginx-proxy:alpine');
-	$container->singleton('defaults.proxy.container_name',	'ddt-proxy');
-	$container->singleton('defaults.proxy.network',			['ddt-proxy']);
-	$container->singleton('defaults.dns.docker_image',		'christhomas/supervisord-dnsmasq');
-	$container->singleton('defaults.dns.container_name',	'ddt-dnsmasq');
 
 	$detect = $container->get(DistroDetect::class);
 
