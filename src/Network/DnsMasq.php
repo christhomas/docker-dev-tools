@@ -6,7 +6,6 @@ use DDT\CLI;
 use DDT\Config\DnsConfig;
 use DDT\Docker\Docker;
 use DDT\Docker\DockerContainer;
-use DDT\Exceptions\UnsupportedDistroException;
 
 class DnsMasq
 {
@@ -114,9 +113,6 @@ class DnsMasq
 		$this->docker->pull($dockerImage);
 	}
 
-    /**
-     * @throws UnsupportedDistroception
-     */
     public function start()
     {
         $this->pull();
@@ -138,9 +134,6 @@ class DnsMasq
 		sleep(2);
     }
 
-    /**
-     * @throws UnsupportedDistroException
-     */
 	public function stop(bool $delete=true): bool
 	{
         try{

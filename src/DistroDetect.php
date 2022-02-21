@@ -2,8 +2,6 @@
 
 namespace DDT;
 
-use DDT\Exceptions\UnsupportedDistroException;
-
 class DistroDetect
 {
 	/** @var CLI */
@@ -21,23 +19,29 @@ class DistroDetect
 
 	public function isLinux(): bool
 	{
-		if($this->cli->isCommand('uname') && $this->cli->exec('uname -o', true) === 'GNU/Linux'){
+		if($this->cli->isCommand('uname') === false){
+			return false;
+		}
+
+		$distro = $this->cli->exec('uname -o', true);
+
+		if(in_array($distro, ['GNU/Linux', 'Linux'])){
 			return true;
 		}
 
-		throw new UnsupportedDistroException('unknown distribution and command uname does not exist');
+		return false;
 	}
 
 	public function isUbuntu(string $version): bool
 	{
-		if($this->cli->isCommand('lsb_release')){
-			$lsb_output = $this->cli->exec('lsb_release -d', true);
-			list($ignore, $release) = explode(':', $lsb_output);
-			$release = trim($release);
-
-			return strpos($release, $version) !== false;
+		if($this->cli->isCommand('lsb_release') === false){
+			return false;
 		}
 
-		throw new UnsupportedDistroException('unknown linux distribution');
+		$lsb_output = $this->cli->exec('lsb_release -d', true);
+		list($ignore, $release) = explode(':', $lsb_output);
+		$release = trim($release);
+
+		return strpos($release, $version) !== false;
 	}
 }
