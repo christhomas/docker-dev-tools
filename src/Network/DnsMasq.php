@@ -27,8 +27,12 @@ class DnsMasq
 
     public function isRunning(): bool
     {
-        // FIXME: should actually return whether it's running or not
-        return false;
+        try{
+            $this->getContainer();
+            return true;
+        }catch(DockerContainerNotFoundException $e){
+            return false;
+        }
     }
 
     public function getContainer(): DockerContainer 
