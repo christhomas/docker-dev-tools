@@ -11,6 +11,7 @@ class DockerContainer
     private $name;
 
     private $id = null;
+    private $exitCode = 0;
 
     public function __construct(
         Docker $docker, 
@@ -163,7 +164,11 @@ class DockerContainer
 
     public function exec(string $command)
     {
-        return $this->docker->exec("exec -it $this->id $command");
+        $output = $this->docker->exec("exec -it $this->id $command");
+        
+        $this->exitCode = $this->docker->getExitCode();
+
+        return $output;
     }
     
     public function stop(): bool
@@ -174,5 +179,10 @@ class DockerContainer
     public function delete(): bool
     {
         return $this->docker->delete($this->getId());
+    }
+
+    public function getExitCode(): int
+    {
+        return $this->exitCode;
     }
 }
