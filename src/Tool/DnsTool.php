@@ -102,7 +102,7 @@ class DnsTool extends Tool
 
     public function enable()
     {
-        $this->cli->print("{grn}Enabling:{end} DNS...\n");
+        $this->cli->print("{grn}Enabling{end}: DNS...\n");
 
         $dnsIpAddress = $this->ipConfig->get();
 
@@ -131,8 +131,13 @@ class DnsTool extends Tool
     public function start()
     {
         $this->cli->print("{blu}Starting:{end} DNS...\n");
-
-        $this->dnsMasq->start();
+        
+        $this->dnsMasq->pull();
+        
+        $id = $this->dnsMasq->start();
+        
+        $this->cli->print("{blu}Started{end}: container id '$id'...{end}\n");
+        
         $this->enable();
 
         $domainGroup = $this->dnsConfig->listDomains();

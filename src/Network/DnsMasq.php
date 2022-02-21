@@ -68,7 +68,7 @@ class DnsMasq
             $file = trim($file);
             
             if(empty($file)){
-                $this->cli->debug('{red}[DNSMASQ-CONTAINER]:{end} cannot view file inside container as it was empty string, skipping');
+                $this->cli->debug('{red}[DNSMASQ]{end}: cannot view file inside container as it was empty string, skipping');
                 continue;
             }
 
@@ -117,16 +117,12 @@ class DnsMasq
 		$this->docker->pull($dockerImage);
 	}
 
-    public function start()
+    public function start(): string
     {
-        $this->pull();
-
-        $this->cli->print("{blu}Starting DNSMasq Container...{end}\n");
-
         $container = $this->startContainer();
         
         if($container->isRunning() === false){
-            $this->cli->debug("{red}[DNSMASQ]:{end}: Container was found, but doesn't appear to be running, delete it and try again");
+            $this->cli->debug("{red}[DNSMASQ]{end}: Container was found, but doesn't appear to be running, delete it and try again");
             // we found the container, but it's stopped or exited in some way, so we need to destroy it and recreate it
             $container->stop();
             $container->delete();
@@ -135,9 +131,9 @@ class DnsMasq
             $container = $this->startContainer();
         }
 
-        $this->cli->print("{blu}Started DNSMasq Container (id: {$container->getId()})...{end}\n");
-
 		sleep(2);
+
+        return $container->getid();
     }
 
 	public function stop(bool $delete=true): bool
