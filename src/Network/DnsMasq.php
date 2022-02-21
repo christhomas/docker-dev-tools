@@ -49,33 +49,29 @@ class DnsMasq
     }
 
 	public function listDomains(): array
-	{
-        // create a new object for this container, to interact with it
-        try{
-            $container = $this->getContainer();
+	{    
+        $domains = [];
 
-            $list = $container->exec("find /etc/dnsmasq.d -name \"*.conf\" -type f");
-            $list = array_map('trim', $list);
+        $container = $this->getContainer();
+
+        $list = $container->exec("find /etc/dnsmasq.d -name \"*.conf\" -type f");
+        $list = array_map('trim', $list);
+        $list = array_filter($list);    
             $list = array_filter($list);    
+        $list = array_filter($list);    
 
-            $domains = [];
+        foreach($list as $file){
+            $file = trim($file);
+            
+            if(empty($file)){
+                $this->cli->debug('{red}[DNSMASQ-CONTAINER]:{end} cannot view file inside container as it was empty string, skipping');
+                continue;
+            }
 
-            foreach($list as $file){
-			    $file = trim($file);
-                
-                if(empty($file)){
-                    $this->cli->debug('{red}[DNSMASQ-CONTAINER]:{end} cannot view file inside container as it was empty string, skipping');
-                    continue;
-                }
-
-                $contents = implode("\n", $container->exec("cat $file", true));
-                if(preg_match("/^[^\/]+\/(?P<domain>[^\/]+)\/(?P<ip_address>[^\/]+)/", $contents, $matches)){
-                    $domains[] = ['domain' => $matches['domain'], 'ip_address' => $matches['ip_address']];
-                }
-			}
-        }catch(\Exception $e){
-            // TODO: what should I do n this situation?
-            $this->cli->debug("{red}[DNSMASQ-CONTAINER]: {end} ". $e->getMessage());
+            $contents = implode("\n", $container->exec("cat $file", true));
+            if(preg_match("/^[^\/]+\/(?P<domain>[^\/]+)\/(?P<ip_address>[^\/]+)/", $contents, $matches)){
+                $domains[] = ['domain' => $matches['domain'], 'ip_address' => $matches['ip_address']];
+            }
         }
 
         return $domains;
@@ -182,11 +178,7 @@ class DnsMasq
 
     public function logs(bool $follow, ?string $since=null)
 	{
-		try{
-            $container = DockerContainer::get($this->getContainerName());
-			$container->logs($follow, $since);
-        }catch(\Exception $e){
-            throw new \Exception('Could not find docker container view the logs from: ' . $e->getMessage());
-        }
+        $container = $this->getContainer();
+        $container->logs($follow, $since);
 	}
 }
