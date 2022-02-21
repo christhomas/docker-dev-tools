@@ -14,10 +14,10 @@ class CLI
 	private $script = null;
 	private $channels = [];
 	private $isRoot = false;
+	private $exitCode = 0;
 
 	// TODO: why are these static? they're never used statically in this class?
 	// NOTE: maybe in external code?
-	public static $exitCode = 0;
 	public static $stdout = "";
 	public static $stderr = "";
 
@@ -236,9 +236,9 @@ class CLI
 		return self::$stderr;
 	}
 
-	public function getErrorCode(): int
+	public function getExitCode(): int
 	{
-		return self::$exitCode;
+		return $this->exitCode;
 	}
 
 	public function exec(string $command, bool $firstLine=false, bool $throw=true)
@@ -259,7 +259,7 @@ class CLI
 
 		$code = proc_close($proc);
 
-		self::$exitCode = $code;
+		$this->exitCode = $code;
 
 		$debug = "{red}[EXEC]:{end} $command";
 		$debug = "$debug, {blu}Return Code:{end} $code";
@@ -283,7 +283,7 @@ class CLI
 
 		passthru("$command $redirect", $code);
 
-		self::$exitCode = $code;
+		$this->exitCode = $code;
 
 		if ($code !== 0 && $throw === true){
 			throw new PassthruException($command, $code);
