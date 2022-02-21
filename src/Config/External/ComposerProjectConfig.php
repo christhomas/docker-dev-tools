@@ -4,6 +4,8 @@ namespace DDT\Config\External;
 
 class ComposerProjectConfig extends StandardProjectConfig
 {
+    const defaultFilename = 'composer.json';
+
 	protected function initDataStore(): void
 	{
 		$this->setKey('.', $this->getKey('docker-dev-tools') ?? []);
@@ -11,6 +13,6 @@ class ComposerProjectConfig extends StandardProjectConfig
 
     public function getDefaultFilename(): string
     {
-        return 'composer.json';
+        return self::defaultFilename;
     }
 }

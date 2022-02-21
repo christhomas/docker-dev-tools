@@ -6,6 +6,8 @@ use DDT\Config\BaseConfig;
 
 class StandardProjectConfig extends BaseConfig
 {
+	const defaultFilename = 'ddt-project.json';
+
 	/** @var string The path to the project the config represents */
 	private $path;
 
@@ -19,7 +21,7 @@ class StandardProjectConfig extends BaseConfig
 
 	public function getDefaultFilename(): string
     {
-        return 'ddt-project.json';
+        return self::defaultFilename;
     }
 
 	protected function initDataStore(): void

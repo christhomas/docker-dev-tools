@@ -4,6 +4,9 @@ namespace DDT\Tool;
 
 use DDT\Config\ProjectGroupConfig;
 use DDT\CLI;
+use DDT\Config\External\ComposerProjectConfig;
+use DDT\Config\External\NpmProjectConfig;
+use DDT\Config\External\StandardProjectConfig;
 use DDT\Services\GitService;
 use DDT\Text\Table;
 
@@ -119,9 +122,34 @@ class ProjectTool extends Tool
         }
     }
 
-    public function addProject(string $group, string $path, ?string $name=null, ?string $type='ddt', ?string $git=null, ?string $remote='origin'): void
+    private function autoDetectProjectType(string $path): ?string
+    {
+        $hasComposerJson = file_exists("$path/" . ComposerProjectConfig::defaultFilename);
+        $hasPackageJson = file_exists("$path/" . NpmProjectConfig::defaultFilename);
+        $hasDefault = file_exists("$path/" . StandardProjectConfig::defaultFilename);
+
+        if($hasDefault) {
+            $type = 'ddt';
+        }else if($hasComposerJson && $hasPackageJson){
+            $type = null;
+        }else if($hasComposerJson){
+            $type = 'composer';
+        }else if($hasPackageJson){
+            $type = 'npm';
+        }else{
+            $type = null;
+        }
+
+        return $type;
+    }
+
+    public function addProject(string $group, string $path, ?string $name=null, ?string $type=null, ?string $git=null, ?string $remote='origin'): void
     {
         $this->cli->print("{blu}Adding project{end}\n");
+
+        if($type === null){
+            $type = $this->autoDetectProjectType($path);
+        }
 
         if($this->isProjectType($type) === false){
             $this->cli->print("{red}The type '$type' is not a recognised value, see help for options{end}\n");
@@ -148,7 +176,7 @@ class ProjectTool extends Tool
             }
             
             if($this->config->addProject($group, $name, $path, $type, $remoteUrl, $remote)){
-                $this->cli->success("The project '$name' was successfully added to the group '$group'\n");
+                $this->cli->success("The project '$name' with type '$type' was successfully added to the group '$group'\n");
             }else{
                 $this->cli->failure("The project '$name' failed to be added to the group '$group'\n");
             }

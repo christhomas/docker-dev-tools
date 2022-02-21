@@ -6,9 +6,11 @@ use DDT\Config\BaseConfig;
 
 class ExtensionPackageConfig extends BaseConfig
 {
+    const defautFilename = 'ddt-extension.json';
+
     public function getDefaultFilename(): string
     {
-        return 'ddt-extension.json';
+        return self::defautFilename;
     }
 
     static public function instance(string $filename, ?bool $readonly=false): self

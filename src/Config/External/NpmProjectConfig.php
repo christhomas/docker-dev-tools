@@ -4,6 +4,8 @@ namespace DDT\Config\External;
 
 class NpmProjectConfig extends StandardProjectConfig
 {
+    const defaultFilename = 'package.json';
+
 	protected function initDataStore(): void
 	{
 		$this->setKey('.', $this->getKey('docker-dev-tools') ?? []);
@@ -11,6 +13,6 @@ class NpmProjectConfig extends StandardProjectConfig
 
     public function getDefaultFilename(): string
     {
-        return 'package.json';
+        return self::defaultFilename;
     }
 }

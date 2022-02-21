@@ -6,6 +6,8 @@ use Exception;
 
 class SystemConfig extends BaseConfig
 {
+	const defaultFilename = '.ddt-system.json';
+
     private $extensions;
 	private $projects;
 
@@ -29,7 +31,7 @@ class SystemConfig extends BaseConfig
 
 	public function getDefaultFilename(): string
 	{
-		return '.ddt-system.json';
+		return self::defaultFilename;
 	}
 
 	public function setPath(string $name, string $path): void
