@@ -178,12 +178,20 @@ class DnsTool extends Tool
 
     public function logs(?string $since=null): void
     {
-        $this->dnsMasq->logs(false, $since);
+        try{
+            $this->dnsMasq->logs(false, $since);
+        }catch(DockerContainerNotFoundException $e){
+            $this->cli->failure("The DNS Container is not running");
+        }
     }
 
     public function logsF(?string $since=null): void
     {
-        $this->dnsMasq->logs(true, $since);
+        try{
+            $this->dnsMasq->logs(true, $since);
+        }catch(DockerContainerNotFoundException $e){
+            $this->cli->failure("The DNS Container is not running");
+        }
     }
 
     public function addDomain(string $domain): void
@@ -202,19 +210,25 @@ class DnsTool extends Tool
 
         $this->cli->print("{blu}Adding domain:{end} '{yel}$domain->hostname{end}' with ip address '{yel}$ipAddress{end}' to Dns Resolver: ");
         
-        if($this->dnsMasq->addDomain($domain->hostname, $ipAddress)){
-            $this->dnsMasq->reload();
+        try{
+            if($this->dnsMasq->addDomain($domain->hostname, $ipAddress)){
+                $this->dnsMasq->reload();
 
-            $this->cli->silenceChannel('stdout', function(){
-                $this->refresh();
-            });
+                $this->cli->silenceChannel('stdout', function(){
+                    $this->refresh();
+                });
 
-            $domain = Address::instance($domain->hostname);
-            if($domain->ping() === true){
-                $this->cli->print("{grn}SUCCESS{end}\n");
-            }else{
-                $this->cli->print("{red}FAILURE{end}\n");
+                $this->dnsConfig->addDomain($domain->hostname, $ipAddress);
+
+                $domain = Address::instance($domain->hostname);
+                if($domain->ping() === true){
+                    $this->cli->print("{grn}SUCCESS{end}\n");
+                }else{
+                    $this->cli->print("{red}FAILURE{end}\n");
+                }
             }
+        }catch(DockerContainerNotFoundException $e){
+            $this->cli->failure("\nThe DNS Container is not running");
         }
     }
 
@@ -234,19 +248,25 @@ class DnsTool extends Tool
 
         $this->cli->print("{blu}Removing domain:{end} '{yel}$domain->hostname{end}' with ip address '{yel}$ipAddress{end}' from the Dns Resolver: ");
         
-        if($this->dnsMasq->removeDomain($domain->hostname, $ipAddress)){
-            $this->dnsMasq->reload();
-
-            $this->cli->silenceChannel('stdout', function(){
-                $this->refresh();
-            });
-
-            $domain = Address::instance($domain->hostname);
-            if($domain->ping() === false){
-                $this->cli->print("{grn}SUCCESS{end}\n");
-            }else{
-                $this->cli->print("{red}FAILURE{end}\n");
+        try{
+            if($this->dnsMasq->removeDomain($domain->hostname, $ipAddress)){
+                $this->dnsMasq->reload();
+    
+                $this->cli->silenceChannel('stdout', function(){
+                    $this->refresh();
+                });
+    
+                $this->dnsConfig->removeDomain($domain->hostname, $ipAddress);
+    
+                $domain = Address::instance($domain->hostname);
+                if($domain->ping() === false){
+                    $this->cli->print("{grn}SUCCESS{end}\n");
+                }else{
+                    $this->cli->print("{red}FAILURE{end}\n");
+                }
             }
+        }catch(DockerContainerNotFoundException $e){
+            $this->cli->failure("\nThe DNS Container is not running");
         }
     }
 
