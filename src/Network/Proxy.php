@@ -179,18 +179,21 @@ class Proxy
 		return $list;
 	}
 
-	public function start(?array $networkList=null)
+	public function start(?array $networkList=null): bool
 	{
 		$image = $this->config->getDockerImage();
 		$name = $this->config->getContainerName();
 		$path = $this->config->getToolsPath();
 
-		$this->docker->pruneContainer();
-
 		try{
 			// Remove the container that was previously built
 			// cause otherwise it'll crash with "The container name /xxx" is already in use by container "xxxx"
 			$container = $this->getContainer();
+			if($container->isRunning()){
+				return true;
+			}
+			
+			$this->cli->debug("{red}[PROXY]{end}: The proxy was found, but it's state is that it's not running, so lets kill it and start again\n");
 			$this->cli->print("Deleting Container with name '$name'\n");
 			$container->stop();
 			$container->delete();
@@ -239,19 +242,23 @@ class Proxy
 			}
 
 			$this->cli->print("Running image '$image' as '$name' using container id '$id'\n");
+			return true;
 		}catch(DockerContainerNotFoundException $e){
 			$this->cli->failure("The container '$name' did not start correctly\n");
+			return false;
 		}
 	}
 
-	public function stop()
+	public function stop(): bool
 	{
 		try{
 			$container = $this->getContainer();
 			$container->stop();
 			$container->delete();
+			return true;
 		}catch(DockerInspectException $e){
 			$this->cli->print("{red}".$e->getMessage."{end}\n");
+			return false;
 		}
 	}
 
