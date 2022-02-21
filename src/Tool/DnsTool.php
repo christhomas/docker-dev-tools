@@ -61,9 +61,9 @@ class DnsTool extends Tool
             ),
             'options' => trim(
                 "{cyn}Configuring IP Address and domains:{end}\n".
-                "    add-domain --domain=yourdomain.com: Add a domain to the running DNS server\n".
-                "    remove-domain --domain=yourdomain.com: Remove a domain to the running DNS server\n".
-                "    ip --address=xxx.xxx.xxx.xxx: Use this ip address when configuring the server instead of the default one\n".
+                "    add-domain yourdomain.com: Add a domain to the running DNS server\n".
+                "    remove-domain yourdomain.com: Remove a domain to the running DNS server\n".
+                "    ip 10.254.254.254: Use this ip address when configuring the server instead of the default one\n".
                 "\n".
                 "{cyn}Toggling the DNS Server:{end}\n".
                 "    enable: Enable the DNS Server\n".
@@ -81,8 +81,8 @@ class DnsTool extends Tool
                 "\n".
                 "{cyn}Configuration:{end}\n".
                 "    status: View a list of all the domains that are registered with the DNS server\n".
-                "    container-name[=xxx]: Get the name of this container to use, if passed a parameter it will update the settings with that value\n".
-                "    docker-image[=xxx]: Get the docker image name to use, if passed a parameter it will update the settings with that value\n"
+                "    container-name ddt-dnsmasq: Get the name of this container to use, if passed a parameter it will update the settings with that value\n".
+                "    docker-image ddt-dnsmasq: Get the docker image name to use, if passed a parameter it will update the settings with that value\n"
             ),
             'notes' => trim(
                 "{yel}Enabling, disable, and resetting{end} the DNS Server doesn't change the running status of the\n".
