@@ -94,6 +94,14 @@ class SelfUpdateTool extends Tool
 
     public function run(?string $now=null): void
     {
+        // This little mutex will stop the self-update runner from executing twice, if 
+        // it just so happens to run during bootup, THEN it's the requested functionality
+        // from the user, it'll appear to run twice. This stops that by making sure
+        // it only runs once, either automatically, or when the user requests it, but never both
+        static $blockDoubleRun = false;
+        if($blockDoubleRun === true) return;
+        $blockDoubleRun = true;
+
         $timeout = $this->config->getTimeout();
 
         if($now !== 'now' && time() < $timeout){
