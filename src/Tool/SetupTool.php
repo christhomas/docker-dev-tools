@@ -53,24 +53,21 @@ class SetupTool extends Tool
 
         return [
             'title' => 'Tool Setup and Configuration',
-            'short_description' => 'A tool that manages the installation and upgrade of the docker dev tools',
+            'short_description' => 'A tool that manages the installation of the docker dev tools',
             'description' => 'This tool that manages the installation of the docker dev tools',
             'options' => [
-                "--show-update-timeout: Show you how long until the next automatic self update",
-                "--set-update-period --period='1 minute': Set the timeout period for each update",
-                "--set-update-enabled true|false: Set whether the automatic self update should run or not",
                 "install --path=<path> [--overwrite=true|false]: Install the tools into the path using the either the optional path given with the parameter or defaults to the current directory",
                 "uninstall --path=<path>: Uninstall the tools, given the path from the configuration",
-                "self-update: This will run the self-updater, in the case that the auto-update option is disabled",
                 "set-path --path=<path>: Update where the tools are installed",
                 "test: Open a new sub shell and test whether scripts work with the current system path.",
             ],
             'examples' => implode("\n", [
-                "  - $entrypoint install --path=\$HOME/projects/docker-dev-tools",
+                "  - $entrypoint install --path=\$HOME/projects/docker-dev-tools --overwrite=false",
                 "  - $entrypoint uninstall --path=\$HOME/projects/docker-dev-tools",
                 "  - $entrypoint set-path --path=\$HOME/somewhere/else/if/you/want/docker-dev-tools",
-                "  - $entrypoint set-path --path=\$HOME/projects/docker-dev-tools --overwrite=false",
+                "  - $entrypoint set-path --path=\$HOME/projects/docker-dev-tools",
             ]),
+            'notes' => '',
         ];
     }
 
