@@ -91,16 +91,17 @@ class SelfUpdateTool extends Tool
         return $this->timeout();
     }
 
-    public function run(): void
+    public function run(?string $now=null): void
     {
         $timeout = $this->config->getTimeout();
 
-        if(time() < $timeout){
+        if($now !== 'now' && time() < $timeout){
             $text = DateTimeHelper::nicetime($timeout);
             $this->cli->debug("{red}[UPDATE]{end}: Did not trigger because the timeout has not run out, timeout in $text\n");
             return;
         }
 
+        $this->cli->print("========================================\n");
         $this->cli->print("{blu}Docker Dev Tools{end}: Self Updater\n");
 
         if(!$this->config->isEnabled()){
@@ -115,6 +116,7 @@ class SelfUpdateTool extends Tool
         $relative = DateTimeHelper::nicetime($timeout);
         
         $this->cli->print("{yel}Self Update Complete, next update: $relative{end}\n");
+        $this->cli->print("========================================\n");
     }
 }
 
