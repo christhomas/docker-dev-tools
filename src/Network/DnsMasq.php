@@ -83,16 +83,16 @@ class DnsMasq
 
         $container->exec("/bin/sh -c 'echo 'address=/$domain/$ipAddress' > /etc/dnsmasq.d/$domain.conf'");
 
-        return $this->config->addDomain($domain, $ipAddress);
+        return $container->getExitCode() === 0;
 	}
 
-	public function removeDomain(string $domain, string $ipAddress)
+	public function removeDomain(string $domain, string $ipAddress): bool
 	{
         $container = $this->getContainer();
 
         $container->exec("/bin/sh -c 'f=/etc/dnsmasq.d/$domain.conf && [ -f \$f ] && rm \$f'");
 
-        return $this->config->removeDomain($domain, $ipAddress);
+        return $container->getExitCode() === 0;
 	}
 
     public function reload()
