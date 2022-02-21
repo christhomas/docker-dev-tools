@@ -21,7 +21,7 @@ class DnsService implements DnsServiceInterface
         $this->cli = $cli;
     }
 
-    public function getHardwarePorts(): array
+    private function getHardwarePorts(): array
 	{
 		$interfaces = [];
 

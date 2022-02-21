@@ -4,7 +4,6 @@ namespace DDT\Contract;
 
 interface DnsServiceInterface
 {
-    public function getHardwarePorts(): array;
     public function listIpAddress(): array;
     public function enable(string $dnsIpAddress): bool;
     public function disable(): bool;
