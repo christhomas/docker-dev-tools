@@ -40,9 +40,10 @@ class SelfUpdateTool extends Tool
 
         return [
             'title' => 'Self Update Tool',
-            'short_description' => 'A tool that manages the installation and upgrade of the docker dev tools',
-            'description' => 'This tool that manages the installation of the docker dev tools',
+            'short_description' => 'A tool that pull updates to the docker dev tools',
+            'description' => 'A tool that pull updates to the docker dev tools',
             'options' => [
+                "now: Will manually trigger an update",
                 "timeout: Show you how long until the next automatic self update",
                 "reset: Reset the countdown timer",
                 "period '1 minute': Set the timeout period for each update",
