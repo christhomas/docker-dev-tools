@@ -35,6 +35,15 @@ try{
 		return false;
 	});
 
+	register_shutdown_function(function(){
+		$error = error_get_last();
+
+		//check if it's a core/fatal error, otherwise it's a normal shutdown
+		if($error !== NULL && $error['type'] === E_ERROR) {
+			print("There was a fatal error that could not be handled: " . $error['message'] . "\n");
+		}
+	});
+
 	function container(?string $ref = null, ?array $args = [])
 	{
 		if(Container::$instance === null){
