@@ -101,6 +101,6 @@ class GitService
 
 		$this->cli->exec("git -C $dir fetch $prune");
 
-		return $this->cli->getErrorCode() === 0;
+		return $this->cli->getExitCode() === 0;
 	}
 }
