@@ -10,4 +10,14 @@ class ExtensionPackageConfig extends BaseConfig
     {
         return 'ddt-extension.json';
     }
+
+    static public function instance(string $filename, ?bool $readonly=false): self
+    {
+        return container(self::class, ['filename' => $filename, 'readonly' => $readonly]);
+    }
+
+    public function getTest(): string
+    {
+        return $this->getKey('.test') ?? 'echo no test specified';
+    }
 }

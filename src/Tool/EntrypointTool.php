@@ -3,6 +3,7 @@
 namespace DDT\Tool;
 
 use DDT\CLI;
+use DDT\Config\SystemConfig;
 use DDT\Exceptions\Autowire\CannotAutowireParameterException;
 use DDT\Exceptions\Tool\ToolNotFoundException;
 
@@ -14,6 +15,13 @@ class EntrypointTool extends Tool
 
         $this->setDebug((bool)$cli->getArg('--debug', false, true));
         $this->setQuiet((bool)$cli->getArg('--quiet', false, true));
+
+        $this->setToolCommand('--version', 'getVersion');
+    }
+
+    public function getVersion(SystemConfig $config): string
+    {
+        return $config->getVersion();
     }
 
     public function setDebug(bool $enable): void
@@ -50,6 +58,12 @@ class EntrypointTool extends Tool
     public function handle()
     {        
         try{
+            // TODO: need to support ddt --version commands
+            // right now the entrypoint is too linear in that it assumes everything running is
+            // inside a tool, but what if the entrypoint has it's own functionality too?
+            // so this is too much of a customised setup, I would like to build a more 
+            // generic code which can run with flexible argument streams
+
             $toolArg = $this->cli->shiftArg();
 
             // There were no commands or arguments, show main help
@@ -63,7 +77,7 @@ class EntrypointTool extends Tool
             if($toolName === $this->name) {
                 return $this->cli->print($this->help());
             }
-        
+
             // Obtain the tool, throw exception if not found
             $tool = $this->getTool($toolName);
             if(!$tool instanceof Tool){
@@ -71,7 +85,7 @@ class EntrypointTool extends Tool
             }
 
             $argList = $this->cli->getArgList();
-            
+
             $requestedCommand = null;
             $defaultCommand = $tool->getToolDefaultCommand();
             
