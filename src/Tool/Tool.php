@@ -51,6 +51,11 @@ abstract class Tool
         $this->setToolCommand('help');
 	}
 
+    public function getToolName(): string
+    {
+        return $this->name;
+    }
+
     public function setEntrypoint(string $script): void 
     {
         $this->entrypoint = $script;
@@ -59,6 +64,11 @@ abstract class Tool
     public function getEntrypoint(): string 
     {
         return $this->entrypoint;
+    }
+
+    public function getToolEntrypoint(): string
+    {
+        return $this->getEntrypoint() . " " . $this->getToolName();
     }
 
     public function setDebug(bool $enable): void
@@ -155,11 +165,6 @@ abstract class Tool
             $this->cli->debug("{red}".$e->getMessage()."{end}");
             throw new ToolNotFoundException($name, 0, $e);
         }
-    }
-
-    public function getToolName(): string
-    {
-        return $this->name;
     }
 
     public function getToolMetadata(): array
