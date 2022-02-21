@@ -3,19 +3,19 @@
 namespace DDT\Tool;
 
 use DDT\CLI;
-use DDT\Config\SystemConfig;
+use DDT\Config\ProxyConfig;
 use DDT\Network\Proxy;
 use DDT\Text\Table;
 
 class ProxyTool extends Tool
 {
-    /** @var SystemConfig */
+    /** @var ProxyConfig */
     private $config;
 
     /** @var Proxy */
     private $proxy;
 
-    public function __construct(CLI $cli, SystemConfig $config, Proxy $proxy)
+    public function __construct(CLI $cli, ProxyConfig $config, Proxy $proxy)
     {
         parent::__construct('proxy', $cli);
 
@@ -23,8 +23,11 @@ class ProxyTool extends Tool
         $this->proxy = $proxy;
 
         foreach([
-            'start', 'stop', 'restart', 'logs', 'logs-f', 'add-network', 
-            'remove-network', 'nginx-config', 'status', 'container-name', 'docker-image'
+            'start', 'stop', 'restart', 
+            'logs', 'logs-f', 
+            'add-network', 'remove-network', 
+            'nginx-config', 'status', 
+            'container-name', 'docker-image'
         ] as $command){
             $this->setToolCommand($command);
         }
@@ -120,7 +123,6 @@ class ProxyTool extends Tool
 
         $this->proxy->addNetwork($network);
         $this->status();
-        // Format::networkList($proxy->getNetworks());
     }
 
     public function removeNetwork(string $network)
@@ -135,7 +137,6 @@ class ProxyTool extends Tool
 
         $this->proxy->removeNetwork($network);
         $this->status();
-        // Format::networkList($proxy->getNetworks());
     } 
 
     public function nginxConfig(?bool $colour=true)
@@ -184,18 +185,28 @@ class ProxyTool extends Tool
     public function containerName(?string $name=null)
     {
         if(empty($name)){
-            return $this->proxy->getContainerName();
+            return $this->config->getContainerName();
         }
 
-        $this->proxy->setContainerName($name);
+        $this->cli->print("{blu}Setting ContainerName {end}: $name\n");
+        if($this->config->setContainerName($name)){
+            $this->cli->success("Succeeded to set container name to '$name'. Please restart proxy to see changes");
+        }else{
+            $this->cli->failure("Failed to set container name\n");
+        }
     }
 
     public function dockerImage(?string $image=null)
     {
         if(empty($image)){
-            return $this->proxy->getDockerImage();
+            return $this->config->getDockerImage();
         }
 
-        $this->proxy->setDockerImage($image);
+        $this->cli->print("{blu}Setting Docker Image{end}: $image\n");
+        if($this->config->setDockerImage($image)){
+            $this->cli->success("Succeeded to set docker image name to '$image'. Please restart proxy to see changes");
+        }else{
+            $this->cli->failure("Failed to set docker image\n");
+        }
     }
 }

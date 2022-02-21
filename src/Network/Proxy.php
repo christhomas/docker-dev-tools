@@ -33,34 +33,14 @@ class Proxy
 		$this->docker = $docker;
 	}
 
-	public function setDockerImage(string $image): bool
-	{
-		return $this->config->setDockerImage($image);
-	}
-
-	public function getDockerImage(): string
-	{
-		return $this->config->getDockerImage();
-	}
-
-	public function setContainerName(string $name): bool
-	{
-		return $this->config->setContainerName($name);
-	}
-
-	public function getContainerName(): string
-	{
-		return $this->config->getContainerName();
-	}
-
 	public function getContainer(): DockerContainer
 	{
-		return DockerContainer::get($this->getContainerName());
+		return DockerContainer::get($this->config->getContainerName());
 	}
 
 	public function getContainerId(): ?string
 	{
-        $data = $this->docker->inspect("container", $this->getContainerName());
+        $data = $this->docker->inspect("container", $this->config->getContainerName());
 
         return is_array($data) && array_key_exists("Id", $data) ? $data["Id"] : null;
 	}
@@ -109,7 +89,7 @@ class Proxy
 
 		// remove itself from the list, cause thats redundant
 		$list = array_filter($list, function($c){
-			return $c !== $this->getContainerName();
+			return $c !== $this->config->getContainerName();
 		});
 
 		$list = array_map(function($c) use ($network) {
@@ -201,8 +181,8 @@ class Proxy
 
 	public function start(?array $networkList=null)
 	{
-		$image = $this->getDockerImage();
-		$name = $this->getContainerName();
+		$image = $this->config->getDockerImage();
+		$name = $this->config->getContainerName();
 		$path = $this->config->getToolsPath();
 
 		$this->docker->pruneContainer();
