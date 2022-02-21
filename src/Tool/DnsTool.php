@@ -278,7 +278,7 @@ class DnsTool extends Tool
 
         $list = $this->dnsService->listIpAddress();
 
-        return implode("\n", $list)."\n";
+        return implode("\n", $list);
     }
 
     public function ping()
