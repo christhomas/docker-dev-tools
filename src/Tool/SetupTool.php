@@ -229,7 +229,7 @@ class SetupTool extends Tool
 		$systemConfig->write();
 
         $this->cli->print("{grn}Testing installation, this next operation should succeed{end}\n");
-        $this->test('ddt --are-you-ok');
+        $this->test($this->getEntrypoint().' --version');
     }
 
     public function uninstall(SystemConfig $systemConfig)
@@ -251,7 +251,7 @@ class SetupTool extends Tool
 
         $this->cli->print("{grn}Testing installation{end}: This should fail if uninstallation has completed ok\n");
         if($this->cli->silenceChannel('stdout', function(){
-            return $this->test('ddt --are-you-ok');
+            return $this->test($this->getEntrypoint() . ' --version');
         }) === false){
             $this->cli->box("Uninstallation has completed and tested successfully", "blk", "grn");
         }else{
