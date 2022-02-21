@@ -86,7 +86,7 @@ class RunService
 					}
 		
 					// Otherwise, cd into the project path and run the script as specified
-					$this->cli->print("\n{blu}Run Script:{end} group: {yel}$group{end}, project: {yel}$project{end}, script: {yel}$script{end}, extra args: {yel}$extraArgs{end}\n");
+					$this->cli->print("\n{blu}Run Script:{end} group: {yel}$group{end}, project: {yel}$project{end}, script: {yel}$script{end}, extra args: {yel}'$extraArgs'{end}\n");
 
 					// TODO: how to handle when a script fails?
 					$this->cli->passthru("cd $path; $command $extraArgs");
@@ -126,9 +126,19 @@ class RunService
 				}
 			}
 
-			// Run the script for this dependency
-			// TODO: how to handle a the return value from this?
-			$this->run($depScript, $depGroup, $project, $extraArgs);
+			if(is_string($depScript)){
+				$depScript = [$depScript];
+			}
+
+			if(is_array($depScript)){
+				foreach($depScript as $s){
+					// Run the script for this dependency
+					// TODO: how to handle a the return value from this?
+					$this->run($s, $depGroup, $project, $extraArgs);
+				}
+			}else{
+				$this->cli->debug("{red}[RUNSERVICE]{end}: Unexpected script configuration, must be a string|string[] value\n");
+			}
 		}
 		
 		// Lol, I don't know how to deal with all the return values yet
