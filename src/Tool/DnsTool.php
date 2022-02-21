@@ -9,7 +9,7 @@ use DDT\Contract\DnsServiceInterface;
 use DDT\Network\Address;
 use DDT\Network\DnsMasq;
 use DDT\Text\Table;
-use DDT\Text\Text;
+use DDT\Exceptions\Docker\DockerContainerNotFoundException;
 
 class DnsTool extends Tool
 {
@@ -287,9 +287,7 @@ class DnsTool extends Tool
 
         foreach($list as $ipAddress){
             $address = Address::instance($ipAddress);
-
             $address->ping();
-
             $this->cli->print((string)$address);
         }
 
@@ -333,19 +331,47 @@ class DnsTool extends Tool
     {
         $this->cli->print("{blu}Registered domains:{end}\n");
 
-        $domainList = $this->dnsMasq->listDomains();
+        try{
+            $configDomainList = $this->dnsConfig->listDomains();
+            
+            $serverDomainList = $this->dnsMasq->listDomains();
+            $serverDomainList = array_reduce($serverDomainList, function($a, $d){
+                if(!array_key_exists($d['ip_address'], $a)){
+                    $a[$d['ip_address']] = [];
+                }
+                $a[$d['ip_address']][] = $d['domain'];
+                $a[$d['ip_address']] = array_unique($a[$d['ip_address']]);
+                return $a;
+            }, []);
+        }catch(DockerContainerNotFoundException $e){
+            $serverDomainList = [];
+        }
 
         $table = container(Table::class);
-        $table->setRightPadding(10);
-        $table->addRow(['{yel}Domain{end}', '{yel}IP Address{end}']);
+        
+        $table->addRow(array_map(function($r){ 
+            return "{yel}$r{end}"; 
+        }, ['Domain', 'IP Address', 'Enabled', 'Status']));
 
-        $reply = [];
-        foreach($domainList as $item){
-            if(!array_key_exists($item['ip_address'], array_keys($reply))){
-                $reply[$item['ip_address']] = true;
+        foreach($configDomainList as $ipAddress => $domainList){
+            foreach($domainList as $domain){
+                $address = Address::instance($domain);
+                $address->ping();
+
+                $exists = array_key_exists($ipAddress, $serverDomainList);
+                $found = in_array($domain, $serverDomainList[$ipAddress]);
+                $enabled = $exists && $found ? 'yes' : '{red}no{end}';
+
+                $status = '{grn}good{end}';
+                if($domain !== $address->address) $status = '{red}domain does not match address{end}';
+                if($ipAddress !== $address->ip_address) $status = '{red}ip_address from ping ('.$address->ip_address.') does not match{end}';
+                if(!$address->can_resolve) $status = '{red}could not resolve{end}';
+                if(!$address->status) $status = '{red}error pinging address{end}';
+
+                $this->cli->debug("{red}[PING]{end}: $address\n");
+
+                $table->addRow([$domain, $ipAddress, $enabled, $status]);
             }
-
-            $table->addRow(["{wht}{$item['domain']}{end}", "{wht}{$item['ip_address']}{end}"]);
         }
         
         $this->cli->print($table->render(true));
