@@ -97,7 +97,7 @@ class EntrypointTool extends Tool
                     $response = $tool->invoke($methodName, $argList);
                 }
 
-                $response = is_string($response) ? $response : '' . "\n";
+                $response = (is_string($response) ? $response : '') . "\n";
                 
                 $this->cli->print($response);
                 return $response;
