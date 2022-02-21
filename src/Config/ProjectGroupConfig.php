@@ -3,7 +3,7 @@
 namespace DDT\Config;
 
 use DDT\Config\External\ComposerProjectConfig;
-use DDT\Config\External\NpmProjectConfig;
+use DDT\Config\External\NodeProjectConfig;
 use DDT\Config\External\StandardProjectConfig;
 use DDT\Exceptions\Project\ProjectNotFoundException;
 
@@ -143,8 +143,8 @@ class ProjectGroupConfig
 					$config = container(StandardProjectConfig::class, ["filename" => $path]);
 				}
 				
-				if($type === "npm"){
-					$config = container(NpmProjectConfig::class, ["filename" => $path]);
+				if($type === "node"){
+					$config = container(NodeProjectConfig::class, ["filename" => $path]);
 				}
 				
 				if($type === "composer"){

@@ -5,7 +5,7 @@ namespace DDT\Tool;
 use DDT\Config\ProjectGroupConfig;
 use DDT\CLI;
 use DDT\Config\External\ComposerProjectConfig;
-use DDT\Config\External\NpmProjectConfig;
+use DDT\Config\External\NodeProjectConfig;
 use DDT\Config\External\StandardProjectConfig;
 use DDT\Services\GitService;
 use DDT\Text\Table;
@@ -50,7 +50,7 @@ class ProjectTool extends Tool
                 "\tadd-project --name=<project-name>: Will add a new project that already exists on the disk.\n".
                 "\t--group=<group>: (REQUIRED) The group to which this project will be added\n".
                 "\t--path=<path>: (REQUIRED) The location on the filesystem for this project\n".
-                "\t--type=<npm|composer|ddt>: (OPTIONAL: default=ddt) One of the supported project types. {yel}(See Project Type list below){end}\n".
+                "\t--type=node|composer|ddt>: (OPTIONAL: default=ddt) One of the supported project types. {yel}(See Project Type list below){end}\n".
                 "\n".
                 "{cyn}Removing Projects{end}:\n".
                 "\tremove-project --name=project-name: Remove the project from the group given.\n".
@@ -59,7 +59,7 @@ class ProjectTool extends Tool
                 "\n".
                 "{cyn}Project Types{end}:\n".
                 "\tThese just define where the configuration will be stored, it has one of the following values:\n\n".
-                "\tnpm: This project type will use the 'package.json' file.\n".
+                "\tnode: This project type will use the 'package.json' file.\n".
                 "\tcomposer: This project type will use the 'composer.json' file.\n".
                 "\tddt: {yel}(default if no type given){end} This project will use the 'ddt-project.json' file\n"
             ),
@@ -68,7 +68,7 @@ class ProjectTool extends Tool
 
     public function isProjectType(string $type=null): bool
     {
-        return in_array($type, ['composer', 'npm', 'ddt']);
+        return in_array($type, ['composer', 'node', 'ddt']);
     }
 
     public function list(): void
@@ -125,7 +125,7 @@ class ProjectTool extends Tool
     private function autoDetectProjectType(string $path): ?string
     {
         $hasComposerJson = file_exists("$path/" . ComposerProjectConfig::defaultFilename);
-        $hasPackageJson = file_exists("$path/" . NpmProjectConfig::defaultFilename);
+        $hasPackageJson = file_exists("$path/" . NodeProjectConfig::defaultFilename);
         $hasDefault = file_exists("$path/" . StandardProjectConfig::defaultFilename);
 
         if($hasDefault) {
@@ -135,7 +135,7 @@ class ProjectTool extends Tool
         }else if($hasComposerJson){
             $type = 'composer';
         }else if($hasPackageJson){
-            $type = 'npm';
+            $type = 'node';
         }else{
             $type = null;
         }

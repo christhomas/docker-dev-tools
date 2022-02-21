@@ -2,7 +2,7 @@
 
 namespace DDT\Config\External;
 
-class NpmProjectConfig extends StandardProjectConfig
+class NodeProjectConfig extends StandardProjectConfig
 {
     const defaultFilename = 'package.json';
 
