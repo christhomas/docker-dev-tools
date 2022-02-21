@@ -19,6 +19,7 @@ class Docker
     private $config;
 
 	private $profile;
+	private $exitCode = 0;
     private $command = 'docker';
 
     const DOCKER_NOT_RUNNING = "The docker daemon is not running";
@@ -107,12 +108,21 @@ class Docker
 		return implode(' ', array_filter([$this->command, $this->profile->toCommandLine(), $command]));
 	}
 
+	public function getExitCode(): int
+	{
+		return $this->exitCode;
+	}
+
 	public function exec(string $command, bool $firstLine=false)
 	{
 		try{
 			$command = $this->toCommandLine($command);
 
-			return $this->cli->exec($command);
+			$output = $this->cli->exec($command);
+			
+			$this->exitCode = $this->cli->getExitCode();
+			
+			return $output;
 		}catch(ExecException $e){
 			if(strpos(strtolower($e->getStderr()), 'cannot connect to the docker daemon') !== false){
 				throw new DockerNotRunningException();
@@ -127,7 +137,9 @@ class Docker
 		try{
 			$command = $this->toCommandLine($command);
 
-			return $this->cli->passthru($command);	
+			$this->exitCode = $this->cli->passthru($command);
+
+			return $this->exitCode;
 		}catch(\Exception $e){
 			throw new DockerException($e->getMessage(), $e->getCode(), $e->getPrevious());
 		}
