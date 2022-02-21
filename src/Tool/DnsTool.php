@@ -41,7 +41,7 @@ class DnsTool extends Tool
             'add-domain', 'remove-domain',
             'ip', 'ping', 'status',
             'container-name', 'docker-image',
-            'list-devices', 'set-device', 'remove-device'
+            // 'list-devices', 'set-device', 'remove-device'
         ] as $command){
             $this->setToolCommand($command);
         }
