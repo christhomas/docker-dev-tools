@@ -4,6 +4,7 @@ namespace DDT\Tool;
 
 use DDT\CLI;
 use DDT\Config\ExtensionConfig;
+use DDT\Config\External\ExtensionPackageConfig;
 use DDT\Exceptions\Config\ConfigWrongTypeException;
 use DDT\Exceptions\Filesystem\DirectoryExistsException;
 use DDT\Exceptions\Filesystem\DirectoryNotExistException;
@@ -33,7 +34,7 @@ class ExtensionTool extends Tool
 
     public function getToolMetadata(): array
     {
-        $entrypoint = $this->cli->getScript(false) . " " . $this->getToolName();
+        $entrypoint = $this->getToolEntrypoint();
 
         return [
             'title' => 'Extension Management Tool',
@@ -43,8 +44,8 @@ class ExtensionTool extends Tool
                 "or update them. At this time the tool only supports extensions from GIT repositories\n"
             ),
             'options' => [
-                "install --name=<name> --url=<url>: Will install a new extension, requires two parameters, --name and --url, only git urls are supported",
-                "uninstall --name<name>: Will uninstall an extension with the given name",
+                "install <name> <url>: Will install a new extension with the given name, and git clone from the url",
+                "uninstall <name>: Will uninstall an extension with the given name",
                 "list: Will list the installed extensions",
                 "update: Will update all extensions from their repository urls given during installation",
             ],
@@ -55,7 +56,34 @@ class ExtensionTool extends Tool
         ];
     }
 
-    public function install(string $name, string $url, string $test)
+    public function list()
+    {
+        // get list of configured extensions
+        // get list of extensions from the filesystem
+        // foreach configured extension, test whether things work
+        // when an extension is found, remove it from the list of extensions in the filesystem
+        // the remaining extensions from the filesystem, are they executable?
+        // we should show a table of information about the state of each extension found
+        // we do like a venn diagram of configured and installed extensions regarding their status
+        try{
+            $extensionList = $this->config->list();
+
+            /** @var Table $table */
+            $table = container(Table::class);
+            // table headers
+            $table->addRow(["{yel}Name{end}", "{yel}Url{end}", "{yel}Path{end}"]);
+            // table body
+            foreach($extensionList as $name => $e){
+                $table->addRow([$name, $e['url'], $e['path']]);
+            }
+
+            $this->cli->print($table->render(true));
+        }catch(ConfigWrongTypeException $e){
+            $this->cli->failure($e->getMessage());
+        }
+    }
+
+    public function install(string $name, string $url)
     {
         $this->cli->print("Installing new ExtensionManager '{yel}$name{end}' from url '{yel}$url{end}'\n");
 
@@ -63,6 +91,9 @@ class ExtensionTool extends Tool
 
         try{
             if($this->gitService->clone($url, $path)){
+                $extensionConfig = ExtensionPackageConfig::instance($path);
+                $test = $extensionConfig->getTest();
+
                 /** @var SetupTool */
                 $setupTool = $this->getTool('setup');
                 $this->cli->print("Removing extension '$name' with path '$path' from system files\n");
@@ -182,32 +213,5 @@ class ExtensionTool extends Tool
 
 		return false;
         */
-    }
-
-    public function list()
-    {
-        // get list of configured extensions
-        // get list of extensions from the filesystem
-        // foreach configured extension, test whether things work
-        // when an extension is found, remove it from the list of extensions in the filesystem
-        // the remaining extensions from the filesystem, are they executable?
-        // we should show a table of information about the state of each extension found
-        // we do like a venn diagram of configured and installed extensions regarding their status
-        try{
-            $extensionList = $this->config->list();
-
-            /** @var Table $table */
-            $table = container(Table::class);
-            // table headers
-            $table->addRow(["{yel}Name{end}", "{yel}Url{end}", "{yel}Path{end}"]);
-            // table body
-            foreach($extensionList as $name => $e){
-                $table->addRow([$name, $e['url'], $e['path']]);
-            }
-
-            $this->cli->print($table->render(true));
-        }catch(ConfigWrongTypeException $e){
-            $this->cli->failure($e->getMessage());
-        }
     }
 }
