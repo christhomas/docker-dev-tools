@@ -5,6 +5,7 @@ namespace DDT\Tool;
 use DDT\CLI;
 use DDT\Config\ProxyConfig;
 use DDT\Exceptions\Docker\DockerContainerNotFoundException;
+use DDT\Exceptions\Docker\DockerInspectException;
 use DDT\Network\Proxy;
 use DDT\Text\Table;
 
@@ -103,11 +104,16 @@ class ProxyTool extends Tool
 
     public function reload()
     {
-        if($this->proxy->reload()){
-            $this->cli->success("The proxy has reloaded the configuration\n");
-        }else{
-            $this->cli->failure("The proxy failed to reload\n");
-        }
+        try{
+            if($this->proxy->reload()){
+                $this->cli->success("The proxy has reloaded the configuration\n");
+            }else{
+                $this->cli->failure("The proxy failed to reload\n");
+            }
+		}catch(DockerContainerNotFoundException $e){
+			$this->cli->print("{red}".$e->getMessage."{end}\n");
+			return false;
+		}
     }
 
     public function restart()

@@ -181,6 +181,19 @@ class DockerContainer
         return $this->docker->delete($this->getId());
     }
 
+    public function sighup(string $process): bool
+    {
+        $psid = $this->exec("ps | grep '".$process."' | awk '{print \$1}'");
+        $psid = (int)current($psid);
+
+        if(is_int($psid) && $psid > 0){
+            $this->exec("kill -s SIGHUP $psid");
+            return $this->getExitCode() === 0;
+        }
+
+        return false;
+    }
+
     public function getExitCode(): int
     {
         return $this->exitCode;

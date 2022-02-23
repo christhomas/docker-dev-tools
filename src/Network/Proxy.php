@@ -264,14 +264,8 @@ class Proxy
 
 	public function reload(): bool
 	{
-		try{
-			$container = $this->getContainer();
-			$container->exec('nginx -s reload');
-			return $container->getExitCode() === 0;
-		}catch(DockerInspectException $e){
-			$this->cli->print("{red}".$e->getMessage."{end}\n");
-			return false;
-		}
+		$container = $this->getContainer();
+		return $container->sighup('docker-gen');
 	}
 
 	public function logs(bool $follow, ?string $since=null)
