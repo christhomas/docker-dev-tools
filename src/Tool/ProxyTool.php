@@ -24,7 +24,7 @@ class ProxyTool extends Tool
         $this->proxy = $proxy;
 
         foreach([
-            'start', 'stop', 'restart', 
+            'start', 'stop', 'restart', 'reload',
             'logs', 'logs-f', 
             'add-network', 'remove-network', 
             'nginx-config', 'status', 
@@ -49,6 +49,7 @@ class ProxyTool extends Tool
                 "start: Run the Nginx proxy, with an optional assignment for the network name to use\n".
                 "stop: Stop the Nginx proxy\n".
                 "restart: Restart the proxy\n".
+                "reload: Reload the NGINX Configuration\n".
                 "\n".
                 "{cyn}Logging:{end}\n".
                 "logs: View the logs from the Nginx proxy container\n".
@@ -97,6 +98,15 @@ class ProxyTool extends Tool
             $this->cli->passthru('docker ps');
         }catch(DockerContainerNotFoundException $e){
             $this->cli->failure("The Proxy Container is not running");
+        }
+    }
+
+    public function reload()
+    {
+        if($this->proxy->reload()){
+            $this->cli->success("The proxy has reloaded the configuration\n");
+        }else{
+            $this->cli->failure("The proxy failed to reload\n");
         }
     }
 
