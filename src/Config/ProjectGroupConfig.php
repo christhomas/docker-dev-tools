@@ -77,16 +77,16 @@ class ProjectGroupConfig
 			$group = $this->config->getKey($groupKey);
 			
 			$group[$project] = [
-				"path" => $path,
-				"repo" => [
-					"url" => $repo,
-					"remote" => $remote
+				'path' => $path,
+				'repo' => [
+					'url' => $repo,
+					'remote' => $remote
 				],
-				"type" => $type,
+				'type' => $type,
 			];
 			
 			if(empty($repo)){
-				unset($group[$project]["repo"]);
+				unset($group[$project]['repo']);
 			}
 
 			$this->config->setKey($groupKey, $group);
@@ -135,24 +135,20 @@ class ProjectGroupConfig
 			$groupList = $this->config->getKey($groupKey);
 
 			if(array_key_exists($project, $groupList)){
-				$type = $groupList[$project]['type'] ?? "ddt";
+				$type = $groupList[$project]['type'] ?? 'ddt';
 				$path = $groupList[$project]['path'];
-				$config = null;
+				$args = ['filename' => $path, 'group' => $group, 'project' => $project];
 
-				if($type === "ddt"){
-					$config = container(StandardProjectConfig::class, ["filename" => $path]);
+				if($type === 'ddt'){
+					return container(StandardProjectConfig::class, $args);
 				}
 				
-				if($type === "node"){
-					$config = container(NodeProjectConfig::class, ["filename" => $path]);
+				if($type === 'node'){
+					return container(NodeProjectConfig::class, $args);
 				}
 				
-				if($type === "composer"){
-					$config = container(ComposerProjectConfig::class, ["filename" => $path]);
-				}
-
-				if($config instanceof StandardProjectConfig){
-					return $config;
+				if($type === 'composer'){
+					return container(ComposerProjectConfig::class, $args);
 				}
 			}
 		}

@@ -11,12 +11,31 @@ class StandardProjectConfig extends BaseConfig
 	/** @var string The path to the project the config represents */
 	private $path;
 
-	public function __construct(string $filename)
+	/** @var string The group this project belongs to */
+	private $group;
+
+	/** @var string The name of this project */
+	private $project;
+
+	public function __construct(string $filename, string $group, string $project)
 	{
 		parent::__construct($filename);
 
 		$this->setPath($filename);
 		$this->initDataStore();
+
+		$this->group = $group;
+		$this->project = $project;
+	}
+
+	public function getGroup(): string
+	{
+		return $this->group;
+	}
+
+	public function getProject(): string
+	{
+		return $this->project;
 	}
 
 	public function getDefaultFilename(): string
@@ -31,8 +50,7 @@ class StandardProjectConfig extends BaseConfig
 
 	public function write(?string $filename=null): bool
 	{
-		// do nothing
-		// these files cannot be saved, but pretend everything is ok ;)
+		// do nothing, these files cannot be saved, but pretend everything is ok ;)
 		return true;
 	}
 
@@ -49,6 +67,11 @@ class StandardProjectConfig extends BaseConfig
 	public function listScripts(): array
 	{
 		return $this->getKey('.scripts') ?? [];
+	}
+
+	public function getScript(string $name)
+	{
+		return $this->getKey(".scripts.$name");
 	}
 
 	public function getDependencies(?string $script = null): array
