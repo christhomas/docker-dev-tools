@@ -51,12 +51,17 @@ class RunTool extends Tool
             foreach($groupList as $project => $projectList){
                 $projectConfig = $config->getProjectConfig($group, $project);
                 foreach($projectConfig->listScripts() as $script => $scriptCommand){
+                    if(is_array($scriptCommand)) {
+                        $scriptCommand = '{grn}* sequence({end}' . implode(', ', $scriptCommand) . '{grn}){end}';
+                    }
+
                     $table->addRow([$group, $project, $script, $scriptCommand]);
                 }
             }
         }
         
         $this->cli->print($table->render());
+        $this->cli->print("{grn}* A sequence is a set of command names which are run in sequence{end}\n");
     }
 
     public function script(ProjectGroupConfig $config, RunService $runService, string $script, string $group, ?string $project=null): void
