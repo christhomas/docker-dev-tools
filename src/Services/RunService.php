@@ -75,7 +75,7 @@ class RunService
 				$this->pushJob($projectConfig, $script);
 
 				// Before attempting to run the script required, process it's dependencies
-				if($this->runDependencies($projectConfig, $group, $script, $extraArgs) === true){
+				if($this->runDependencies($projectConfig, $script, $extraArgs) === true){
 					// Now all dependencies are run, obtain the actual commandline to run
 					$this->runCommand($projectConfig, $script, $extraArgs);
 				}
@@ -124,8 +124,13 @@ class RunService
 		}
 	}
 
-	public function runDependencies(StandardProjectConfig $projectConfig, string $group, string $script, ?ArgumentList $extraArgs=null): bool
+	public function runDependencies(StandardProjectConfig $projectConfig, string $script, ?ArgumentList $extraArgs=null): bool
 	{
+		if($projectConfig->shouldRunDependencies($script) === false){
+			$this->cli->debug("{red}[RUNSERVICE]{end}: Found token to skip dependencies\n");
+			return true;
+		}
+
 		// First, get all this projects dependencies, so you can loop through them
 		$dependencies = $projectConfig->getDependencies($script);
 
@@ -133,7 +138,7 @@ class RunService
 			// We make copies of these variables because they can be overridden per dependency
 			// We don't want to alter the original variables, 
 			// because each dependency can have a different group and script to the parent
-			$depGroup = array_key_exists('group', $d) ? $d['group'] : $group;
+			$depGroup = array_key_exists('group', $d) ? $d['group'] : $projectConfig->getGroup();
 			$depScript = $script;
 
 			// Make some debugging text easier to read like this
