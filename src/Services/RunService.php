@@ -77,29 +77,50 @@ class RunService
 				// Before attempting to run the script required, process it's dependencies
 				if($this->runDependencies($projectConfig, $group, $script, $extraArgs) === true){
 					// Now all dependencies are run, obtain the actual commandline to run
-					$path = $projectConfig->getPath();
-					$command = $projectConfig->getKey(".scripts.$script");
-
-					// If the command line is empty, this is a probable bug in the configuration, the value is set incorrectly
-					if(empty($command)){
-						throw new ProjectScriptInvalidException($group, $project, $script);
-					}
-		
-					// Otherwise, cd into the project path and run the script as specified
-					$this->cli->print("\n{blu}Run Script:{end} group: {yel}$group{end}, project: {yel}$project{end}, script: {yel}$script{end}, extra args: {yel}'$extraArgs'{end}\n");
-
-					// TODO: how to handle when a script fails?
-					$this->cli->passthru("cd $path; $command $extraArgs");
+					$this->runCommand($projectConfig, $script, $extraArgs);
 				}
 			}else{
 				// show an error about non-entrant scripts, so we don't do any infinite loops
 				$key = $this->makeKey($projectConfig, $script);
 				$this->cli->debug("{red}[RUNSERVICE]:{end} Script already running: $key\n");
 			}
+		}catch(ProjectScriptInvalidException $e){
+			$this->cli->debug("{red}".get_class($e)."{end} => {$e->getMessage()}\n");
+			$this->cli->debug("{yel}No Script Found:{end} group: {yel}{$e->getGroup()}{end}, project: {yel}{$e->getProject()}{end}, script: {yel}{$e->getScript()}{end}, extra args: {yel}'$extraArgs'{end}");
 		}catch(\Exception $e){
 			// Oh, exception happened :( oopsie
 			$this->cli->print("{red}".get_class($e)."{end} => {$e->getMessage()}\n");
 			return false;
+		}
+	}
+
+	public function runCommand(StandardProjectConfig $projectConfig, string $script, ?ArgumentList $extraArgs=null)
+	{
+		$group		= $projectConfig->getGroup();
+		$project	= $projectConfig->getProject();
+		$path		= $projectConfig->getPath();
+		$command	= $projectConfig->getScript($script);
+
+		// If the command line is empty, this is a probable bug in the configuration, the value is set incorrectly
+		if(empty($command)){
+			throw new ProjectScriptInvalidException($group, $project, $script);
+		}
+
+		// Otherwise, cd into the project path and run the script as specified
+		$this->cli->print("\n{blu}Run Script:{end} group: {yel}$group{end}, project: {yel}$project{end}, script: {yel}$script{end}, extra args: {yel}'$extraArgs'{end}\n");
+
+		if(is_string($command)){
+			$command = [$command];
+		}else{
+			$command = array_map(function($c) use ($projectConfig) {
+				return $projectConfig->getScript($c);
+			}, $command);
+		}
+
+		foreach($command as $commandLine){
+			// TODO: how to handle when a script fails?
+			// TODO: how to handle when a script returns important information?
+			$this->cli->passthru("cd $path; $commandLine $extraArgs");
 		}
 	}
 
