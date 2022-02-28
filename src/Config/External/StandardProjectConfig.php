@@ -7,6 +7,7 @@ use DDT\Config\BaseConfig;
 class StandardProjectConfig extends BaseConfig
 {
 	const defaultFilename = 'ddt-project.json';
+	const no_deps = 'DDT_NO_DEPS=true';
 
 	/** @var string The path to the project the config represents */
 	private $path;
@@ -71,7 +72,26 @@ class StandardProjectConfig extends BaseConfig
 
 	public function getScript(string $name)
 	{
-		return $this->getKey(".scripts.$name");
+		$script = $this->getKey(".scripts.$name");
+
+		if(!empty($script) && is_string($script)){
+			$script = trim(str_replace(self::no_deps, '', $script));
+		}
+
+		return $script;
+	}
+
+	public function shouldRunDependencies(?string $script = null): bool
+	{
+		// Don't use $this->getScript here, because for external purposes, it's stripping out the no_deps string before passing it back
+		// I don't want to change this behaviour, so we sidestep it by using the getKey function directly instead.
+		$command = $this->getKey(".scripts.$script");
+
+		if(!empty($command) && is_string($command) && strpos($command, self::no_deps) !== false) {
+			return false;
+		}
+
+		return true;
 	}
 
 	public function getDependencies(?string $script = null): array
