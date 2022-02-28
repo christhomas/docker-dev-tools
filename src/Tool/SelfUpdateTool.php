@@ -27,7 +27,7 @@ class SelfUpdateTool extends Tool
         $this->toolsPath = $systemConfig->getPath('tools');
         $this->gitService = $gitService;
 
-        $this->setToolCommand('run', null, true);
+        $this->setToolCommand('now');
         $this->setToolCommand('reset');
         $this->setToolCommand('timeout');
         $this->setToolCommand('period');
@@ -93,24 +93,21 @@ class SelfUpdateTool extends Tool
         return $this->timeout();
     }
 
-    public function run(?string $now=null): void
+    public function run(): void
     {
-        // This little mutex will stop the self-update runner from executing twice, if 
-        // it just so happens to run during bootup, THEN it's the requested functionality
-        // from the user, it'll appear to run twice. This stops that by making sure
-        // it only runs once, either automatically, or when the user requests it, but never both
-        static $blockDoubleRun = false;
-        if($blockDoubleRun === true) return;
-        $blockDoubleRun = true;
-
         $timeout = $this->config->getTimeout();
 
-        if($now !== 'now' && time() < $timeout){
+        if(time() < $timeout){
             $text = DateTimeHelper::nicetime($timeout);
             $this->cli->debug("{red}[UPDATE]{end}: Did not trigger because the timeout has not run out, timeout in $text\n");
             return;
         }
 
+        $this->now();
+    }
+
+    public function now(): void
+    {
         $this->cli->print("========================================\n");
         $this->cli->print("{blu}Docker Dev Tools{end}: Self Updater\n");
 
@@ -121,7 +118,9 @@ class SelfUpdateTool extends Tool
 
         $this->gitService->pull($this->toolsPath);
 
-        $timeout = $this->reset();
+        $timeout = $this->cli->silenceChannel('stdout', function(){
+            return $this->reset();
+        });
         
         $relative = DateTimeHelper::nicetime($timeout);
         
