@@ -56,9 +56,17 @@ class IpTool extends Tool
 		];
 	}
 
+	private function failOnInvalid(string $ipAddress): void
+	{
+		if(in_array($ipAddress, ['', 'localhost', '127.0.0.1', '127.001'])){
+			$this->cli->failure("{red}The requested value of '$ipAddress' would lead to an invalid configuration, see notes in help{end}");
+		}
+	}
+
 	public function set(string $ipAddress): void
 	{
-		$ipAddress = $ipAddress['name'];
+		$this->failOnInvalid($ipAddress);
+
 		$this->cli->print("Writing IP Address '{yel}$ipAddress{end}': ");
 
 		$this->config->set($ipAddress);
@@ -79,9 +87,7 @@ class IpTool extends Tool
 	{
 		$ipAddress = $this->config->get();
 
-		if(empty($ipAddress)){
-			throw new \Exception('There is no ip address configured, you must use the \'set\' command to configure one');
-		}
+		$this->failOnInvalid($ipAddress);
 
 		$this->cli->sudo();
 		$this->cli->print("Installing IP Address '{yel}$ipAddress{end}': ");
@@ -97,9 +103,7 @@ class IpTool extends Tool
 	{
 		$ipAddress = $this->config->get();
 
-		if(empty($ipAddress)){
-			throw new \Exception('There is no ip address configured, you must use the \'set\' command to configure one');
-		}
+		$this->failOnInvalid($ipAddress);
 
 		$this->cli->sudo();
 		$this->cli->print("Uninstalling IP Address '{yel}$ipAddress{end}': ");
