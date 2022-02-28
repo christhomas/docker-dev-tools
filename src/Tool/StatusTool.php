@@ -31,15 +31,15 @@ class StatusTool extends Tool
         return [
             'title' => 'System Status',
             'short_description' => 'A tool to provide a quick status breakdown of resources',
-            'description' => trim(implode("\n", [
-                "This tool will provide a series of status feedbacks from various tools like".
-                "the proxy, the dns, and various installed projects, with the ability to call". 
+            'description' => [
+                "This tool will provide a series of status feedbacks from various tools like",
+                "the proxy, the dns, and various installed projects, with the ability to call", 
                 "specific groups of projects"
-            ])),
-            'examples' => implode("\n", [
+            ],
+            'examples' => [
                 "{yel}Usage Example:{end} $entrypoint - Will return status information the proxy, the dns, and for every project in every group (could be a large list)",
                 "{yel}Usage Example:{end} $entrypoint <group> - Will return status information for the proxy, the dns, and a specific group of projects",
-            ])
+            ],
         ];
     }
 

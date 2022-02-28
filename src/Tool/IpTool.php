@@ -33,26 +33,26 @@ class IpTool extends Tool
 		return [
 			'title' => 'IP Address Tool',
 			'short_description' => 'A tool to configure and control local ip addresses used to enable the dns server',
-			'description' => trim(
-				"This tool creates an alias for {yel}localhost{end}/{yel}127.0.0.1{end} on your machine which is\n".
-				"addressable from your local machine and from inside docker containers. This is useful when wanting\n".
-				"to connect xdebug from your software running inside a container, to your local machine where your\n".
-				"IDE Is listening for incoming connections\n"
-			),
-			'options' => implode("\n",[
+			'description' => [
+				"This tool creates an alias for {yel}localhost{end}/{yel}127.0.0.1{end} on your machine which is",
+				"addressable from your local machine and from inside docker containers. This is useful when wanting",
+				"to connect xdebug from your software running inside a container, to your local machine where your",
+				"IDE Is listening for incoming connections",
+			],
+			'options' => [
 				"set <ip-address>: Set into the configuration the IP Address, this value will be remembered and used in the future",
 				"get: Get the Currently configured IP Address.",
 				"add: Add '{yel}<ip-address>{end}' as an ip alias for '{yel}127.0.0.1{end}'",
 				"remove: Remove '{yel}<ip-address>{end}' from your computer",
 				"reset: Remove and Add the configuration again, just in case it broke somehow",
 				"ping: Ping the configured ip address",
-			]),
-			'notes' => trim(
-				"Please don't use '{yel}localhost{end}' or '{yel}127.0.0.1{end}'\n".
-				"\n".
-				"The problem is that inside a docker container, '{yel}localhost{end}' and '{yel}127.0.0.1{end}' resolves to itself.\n".
-				"This means you have no ip address which is addressable from your local machine, or inside docker containers.\n"
-			)
+			],
+			'notes' => [
+				"Please don't use '{yel}localhost{end}' or '{yel}127.0.0.1{end}'\n",
+				"The problem is that inside a docker container, '{yel}localhost{end}' and '{yel}127.0.0.1{end}' resolves to itself.",
+				"This means you have no ip address which is addressable from your local machine, or inside docker containers.",
+				"** For this reason the tool will refuse to work with these addresses and fail **",
+			],
 		];
 	}
 

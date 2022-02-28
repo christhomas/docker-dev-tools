@@ -24,18 +24,18 @@ class RunTool extends Tool
         return [
             'title' => 'Script Runner',
             'short_description' => 'A tool to run scripts configured as part of projects',
-            'description' => implode("\n", [
+            'description' => [
                 "This tool allows projects to define scripts that will do actions, similar to 'yarn start'.",
                 "However this tool allows projects to define dependencies and this allows projects to start",
                 "and stop their dependencies as each project requires. Making developing with complex stacks",
                 "of software easier because developers can develop orchestrated stacks of software to run on",
                 "demand instead of requiring each developer to know each project and each dependency and how",
                 "to start them",
-            ]),
+            ],
             'examples' => [
                 "{yel}{$this->getEntrypoint()} run{end}: This help",
                 "{yel}{$this->getEntrypoint()} run --script=start --group=mycompany --project=backendapi{end}: Run the 'start' script from the 'backendapi' project in the 'mycompany' group",
-                "{yel}{$this->getEntrypoint()} run <script> <group> <project>{end}: The same command as above, but using anonymous parameters",
+                "{yel}{$this->getEntrypoint()} run start mycompany api-project{end}: The same command as above, but using anonymous parameters",
                 "{yel}{$this->getEntrypoint()} run --list{end}: Will output all the possible scripts that it's possible to run",
             ],
         ];

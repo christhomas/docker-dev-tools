@@ -218,7 +218,7 @@ abstract class Tool
 
         $description = array_key_exists('description', $metadata) ? $metadata['description'] : null;
         if(!empty($description)){
-            $description = "\t" . implode("\n\t", explode("\n", $description));
+            $description = is_array($description) ? ("\t" . implode("\n\t", $description)) : $description;
             $section[] = "{blu}Description:{end}\n$description";
         }
         

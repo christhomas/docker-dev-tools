@@ -40,36 +40,36 @@ class ProxyTool extends Tool
         return [
             'title' => 'Frontend Proxy Tool',
             'short_description' => 'A tool to control how the local proxy is configured and control whether it is running or not',
-            'description' => trim(
-                "This tool will start a docker container and listen on DNS Port 53 and handle\n".
-                "requests for your local development networks. Whilst pushing upstream all\n".
-                "other requests it can't resolve to an online DNS server\n"
-            ),
-            'options' => trim(
-                "{cyn}Running of the NGINX Front End Proxy Container:{end}\n".
-                "start: Run the Nginx proxy, with an optional assignment for the network name to use\n".
-                "stop: Stop the Nginx proxy\n".
-                "restart: Restart the proxy\n".
-                "reload: Reload the NGINX Configuration\n".
-                "\n".
-                "{cyn}Logging:{end}\n".
-                "logs: View the logs from the Nginx proxy container\n".
-                "logs-f: View and follow the logs from the Nginx proxy container\n".
-                "\n".
-                "{cyn}Network Configuration:{end}\n".
-                "add-network <network-name>: Add a new network to a running proxy without needing to restart it\n".
-                "remove-network <network-name>: Remove an existing network from the proxy container so it stops monitoring it\n".
-                "\n".
-                "{cyn}Configuration:{end}\n".
-                "nginx-config: Output the raw /etc/nginx/conf.d/default.conf which is generated when containers start and stop\n".
-                "status: Show the domains that the Nginx proxy will respond to\n".
-                "container-name: Get/Set the name to give to this container. Pass a second parameter for the container name if you wish to set it\n".
-                "docker-image: Get/Set the docker image name to run. Pass a second parameter for the docker image if you with to set it\n"
-            ),
-            'examples' => trim(
-                "{yel}Usage Example:{end} ddt proxy logs-f {grn}- follow the log output for the proxy{end}\n".
-                "{yel}Usage Example:{end} ddt proxy start {grn}- start the proxy{end}\n"
-            )
+            'description' => [
+                "This tool will start a docker container and listen on DNS Port 53 and handle",
+                "requests for your local development networks. Whilst pushing upstream all",
+                "other requests it can't resolve to an online DNS server",
+            ],
+            'options' => [
+                "{cyn}Running of the NGINX Front End Proxy Container:{end}",
+                "\tstart: Run the Nginx proxy, with an optional assignment for the network name to use",
+                "\tstop: Stop the Nginx proxy",
+                "\trestart: Restart the proxy",
+                "\treload: Reload the NGINX Configuration\n",
+
+                "{cyn}Logging:{end}",
+                "\tlogs: View the logs from the Nginx proxy container",
+                "\tlogs-f: View and follow the logs from the Nginx proxy container\n",
+
+                "{cyn}Network Configuration:{end}",
+                "\tadd-network <network-name>: Add a new network to a running proxy without needing to restart it",
+                "\tremove-network <network-name>: Remove an existing network from the proxy container so it stops monitoring it\n",
+
+                "{cyn}Configuration:{end}",
+                "\tnginx-config: Output the raw /etc/nginx/conf.d/default.conf which is generated when containers start and stop",
+                "\tstatus: Show the domains that the Nginx proxy will respond to",
+                "\tcontainer-name: Get/Set the name to give to this container. Pass a second parameter for the container name if you wish to set it",
+                "\tdocker-image: Get/Set the docker image name to run. Pass a second parameter for the docker image if you with to set it",
+            ],
+            'examples' => [
+                "{yel}Usage Example:{end} ddt proxy logs-f {grn}- follow the log output for the proxy{end}",
+                "{yel}Usage Example:{end} ddt proxy start {grn}- start the proxy{end}",
+            ],
         ];
     }
 

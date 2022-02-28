@@ -33,7 +33,7 @@ class ComposerTool extends Tool
         return [
             'title' => 'A totally useless composer wrapper',
             'short_description' => 'A docker wrapper for composer for people who cannot install dependencies because of insufficient php version',
-            'description' => implode("\n", [
+            'description' => [
                 'The only reason this tool exists is because some people do not have the required PHP version install on their',
                 'computer and it cannot or they do not want to upgrade this php for some reason. This leaves a big problem when',
                 'wanting to work with projects that require higher levels of PHP, installing packages will not work or running',
@@ -41,10 +41,10 @@ class ComposerTool extends Tool
                 '',
                 'However, this tool uses docker to augment the users local system so composer will run in a container, with a slight',
                 'performance overhead, but with the benefit of being able to run composer without local computer or user restrictions.',
-            ]),
+            ],
             'options' => [
                 'This tool provides a passthrough-like interface to composer, whatever the user puts into the command line, is passed to composer',
-                'As such, all composer functionality applies here, run composer -h for information on what is available',
+                'As such, all composer functionality applies here, run `ddt composer -h` for information on what is available',
             ]
         ];
     }

@@ -34,48 +34,44 @@ class DockerTool extends Tool
         return [
             'title' => 'Docker Helper',
             'short_description' => 'A tool to interact with docker enhanced by the dev tools to provide extra functionality',
-            'description' => trim(
-                "This tool will manage the configured docker execution profiles that you can use in other tools.\n".
-                "Primarily the tool was created for the purpose of wrapping up and simplifying the ability to\n".
-                "execute docker commands on other docker servers hosted elsewhere.\n".
-                "\n".
-                "These profiles contain connection information to those remote docker profiles and make it\n".
-                "easy to integrate working with those remote servers into other tools without spreading\n".
-                "the connection information into various places throughout your custom toolsets\n"
-            ),
-            'options' => trim(
-                "{cyn}Managing Profiles{end}\n".
-                "add-profile <name> <host> <port> <tlscacert> <tlscert> <tlskey>: See 'Adding Profiles' for more details\n".
-                "remove-profile <name>: The name of the profile to remove\n".
-                "list-profile(s): List all the registered profiles\n".
-                "\n".
-                "{cyn}Adding Profiles, the following options are available{end}\n".
-                "--host=xxx: The host of the docker server (or IP Address)\n".
-                "--port=xxx: The port, when using TLS, it must be 2376\n".
-                "--tlscacert=xxx: The filename of this tls cacert (cacert, not cert)\n".
-                "--tlscert=xxx: The filename of the tls cert\n".
-                "--tlskey=xxx: The filename of the tls key\n".
-                "\n".   
-                "{cyn}Using Profiles{end}\n".
-                "--get-json=xxx: To obtain a profile as a JSON string\n".
-                "--profile=xxx: To execute a command using this profile (all following arguments are sent directly to docker executable without modification\n"
-            ),
-            'notes' => trim(
-                "The parameter {yel}--add-profile{end} depends on: {yel}name, host, port, tlscacert, tlscert, tlskey{end} options\n".
-                "and unfortunately you can't create a profile without all of those paraameters at the moment\n".
-                "\n".
-                "If you don't pass a profile to execute under, it'll default to your local docker server. Which means you can use this\n".
-                "tool as a wrapper and optionally pass commands to various dockers by just adjusting the command parameters and\n".
-                "adding the {yel}--profile=staging{end} or not\n"
-            ),
-            'examples' => trim(
-                "{yel}Usage Examples: {end}\n".
-                "$entrypoint profile --name=staging exec -it phpfpm sh\n".
-                "$entrypoint add-profile --name=staging --host=mycompany.com --port=2376 --tlscacert=cacert.pem --tlscert=cert.pem --tlskey=key.pem\n".
-                "$entrypoint remove-profile --name=staging\n".
-                "$entrypoint get-profile --name=staging\n".
-                "$entrypoint list-profile\n"
-            )
+            'description' => [
+                "This tool will manage the configured docker execution profiles that you can use in other tools.",
+                "Primarily the tool was created for the purpose of wrapping up and simplifying the ability to",
+                "execute docker commands on other docker servers hosted elsewhere.\n",
+                "These profiles contain connection information to those remote docker profiles and make it",
+                "easy to integrate working with those remote servers into other tools without spreading",
+                "the connection information into various places throughout your custom toolsets",
+            ],
+            'options' => [
+                "{cyn}Managing Profiles{end}",
+                "add-profile <name> <host> <port> <tlscacert> <tlscert> <tlskey>: See 'Adding Profiles' for more details",
+                "remove-profile <name>: The name of the profile to remove",
+                "list-profile(s): List all the registered profiles\n",
+                "{cyn}Adding Profiles, the following options are available{end}",
+                "--host=xxx: The host of the docker server (or IP Address)",
+                "--port=xxx: The port, when using TLS, it must be 2376",
+                "--tlscacert=xxx: The filename of this tls cacert (cacert, not cert)",
+                "--tlscert=xxx: The filename of the tls cert",
+                "--tlskey=xxx: The filename of the tls key\n",
+                "{cyn}Using Profiles{end}",
+                "--get-json=xxx: To obtain a profile as a JSON string",
+                "--profile=xxx: To execute a command using this profile (all following arguments are sent directly to docker executable without modification",
+            ],
+            'notes' => [
+                "The parameter {yel}--add-profile{end} depends on: {yel}name, host, port, tlscacert, tlscert, tlskey{end} options",
+                "and unfortunately you can't create a profile without all of those paraameters at the moment\n",
+                "If you don't pass a profile to execute under, it'll default to your local docker server. Which means you can use this",
+                "tool as a wrapper and optionally pass commands to various dockers by just adjusting the command parameters and",
+                "adding the {yel}--profile=staging{end} or not",
+            ],
+            'examples' => [
+                "{yel}Usage Examples: {end}",
+                "$entrypoint profile --name=staging exec -it phpfpm sh",
+                "$entrypoint add-profile --name=staging --host=mycompany.com --port=2376 --tlscacert=cacert.pem --tlscert=cert.pem --tlskey=key.pem",
+                "$entrypoint remove-profile --name=staging",
+                "$entrypoint get-profile --name=staging",
+                "$entrypoint list-profile",
+            ],
         ];
     }
 

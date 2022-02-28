@@ -54,49 +54,48 @@ class DnsTool extends Tool
             'title' => 'DNS Tool',
             'description' => '',
             'short_description' => 'A tool to manage the DNS configuration used when the system is running',
-            'description' => trim(
-                "This tool will start a docker container and listen on DNS Port 53 and handle\n".
-                "requests for your local development networks. Whilst pushing upstream all\n".
-                "other requests it can't resolve to an online DNS server"
-            ),
+            'description' => [
+                "This tool will start a docker container and listen on DNS Port 53 and handle",
+                "requests for your local development networks. Whilst pushing upstream all",
+                "other requests it can't resolve to an online DNS server",
+            ],
             'options' => trim(
                 "{cyn}Configuring IP Address and domains:{end}\n".
-                "    add-domain yourdomain.com: Add a domain to the running DNS server\n".
-                "    remove-domain yourdomain.com: Remove a domain to the running DNS server\n".
-                "    ip 10.254.254.254: Use this ip address when configuring the server instead of the default one\n".
+                "\tadd-domain yourdomain.com: Add a domain to the running DNS server\n".
+                "\tremove-domain yourdomain.com: Remove a domain to the running DNS server\n".
+                "\tip 10.254.254.254: Use this ip address when configuring the server instead of the default one\n".
                 "\n".
                 "{cyn}Toggling the DNS Server:{end}\n".
-                "    enable: Enable the DNS Server\n".
-                "    disable: Disable the DNS Server\n".
-                "    refresh: Toggles the DNS Server as disabled then enabled as well as refreshing the dns cache\n".
+                "\tenable: Enable the DNS Server\n".
+                "\tdisable: Disable the DNS Server\n".
+                "\trefresh: Toggles the DNS Server as disabled then enabled as well as refreshing the dns cache\n".
                 "\n".
                 "{cyn}Running of the DNS Server Container:{end}\n".
-                "    start: Setup the DNS servers and start the DNS container\n".
-                "    restart: Restart the DNS Container\n".
-                "    stop: Stop the DNS container\n".
+                "\tstart: Setup the DNS servers and start the DNS container\n".
+                "\trestart: Restart the DNS Container\n".
+                "\tstop: Stop the DNS container\n".
                 "\n".    
                 "{cyn}Logging:{end}\n".
-                "    logs: View the logs from the DNS container\n".
-                "    logs-f: View and follow the logs from the DNS container\n".
+                "\tlogs: View the logs from the DNS container\n".
+                "\tlogs-f: View and follow the logs from the DNS container\n".
                 "\n".
                 "{cyn}Configuration:{end}\n".
-                "    status: View a list of all the domains that are registered with the DNS server\n".
-                "    container-name ddt-dnsmasq: Get the name of this container to use, if passed a parameter it will update the settings with that value\n".
-                "    docker-image ddt-dnsmasq: Get the docker image name to use, if passed a parameter it will update the settings with that value\n"
+                "\tstatus: View a list of all the domains that are registered with the DNS server\n".
+                "\tcontainer-name ddt-dnsmasq: Get the name of this container to use, if passed a parameter it will update the settings with that value\n".
+                "\tdocker-image ddt-dnsmasq: Get the docker image name to use, if passed a parameter it will update the settings with that value\n"
             ),
-            'notes' => trim(
-                "{yel}Enabling, disable, and resetting{end} the DNS Server doesn't change the running status of the\n".
-                "DNS Container. It's just changing your system configuration from using the DNS Server or\n".
-                "going back to your default computer DNS settings. It's useful when you need to quickly toggle back\n".
-                "to the system defaults because the DNS Server might interfere with running a VPN. So you can quickly\n".
-                "disable it, do your other work. Then re-enable it when you need to get back to working with the\n".
-                "development environment. It's like a soft reset of your DNS configuration so you can temporarily\n".
-                "do something.\n".
-                "\n".
-                "{yel}Starting, Stopping, and Restarting{end} implies also {yel}enabling and disabling{end} the\n".
-                "DNS Server like explained above. However it does the extra step of Starting or Stopping the\n".
-                "docker container as well. So it's more like a hard reset.\n"
-            )
+            'notes' => [
+                "{yel}Enabling, disable, and resetting{end} the DNS Server doesn't change the running status of the",
+                "DNS Container. It's just changing your system configuration from using the DNS Server or",
+                "going back to your default computer DNS settings. It's useful when you need to quickly toggle back",
+                "to the system defaults because the DNS Server might interfere with running a VPN. So you can quickly",
+                "disable it, do your other work. Then re-enable it when you need to get back to working with the",
+                "development environment. It's like a soft reset of your DNS configuration so you can temporarily",
+                "do something.\n",
+                "{yel}Starting, Stopping, and Restarting{end} implies also {yel}enabling and disabling{end} the",
+                "DNS Server like explained above. However it does the extra step of Starting or Stopping the",
+                "docker container as well. So it's more like a hard reset.",
+            ],
         ];
     }
 

@@ -49,12 +49,13 @@ class SelfUpdateTool extends Tool
                 "period '1 minute': Set the timeout period for each update",
                 "enabled true|false: Set whether the automatic self update should run or not",
             ],
-            'examples' => implode("\n", [
-                "  - $entrypoint timeout",
-                "  - $entrypoint reset",
-                "  - $entrypoint period \"7 days\"",
-                "  - $entrypoint enabled true|false",
-            ]),
+            'examples' => [
+                "- $entrypoint now",
+                "- $entrypoint timeout",
+                "- $entrypoint reset",
+                "- $entrypoint period \"7 days\"",
+                "- $entrypoint enabled true|false",
+            ],
         ];
     }
 

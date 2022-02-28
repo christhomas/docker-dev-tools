@@ -39,10 +39,10 @@ class ExtensionTool extends Tool
         return [
             'title' => 'Extension Management Tool',
             'short_description' => 'A tool to manage tool extensions and update them',
-            'description' => trim(
-                "This tool will manage extensions installed within the tools. It can install, uninstall,\n".
-                "or update them. At this time the tool only supports extensions from GIT repositories\n"
-            ),
+            'description' => [
+                "This tool will manage extensions installed within the tools. It can install, uninstall,",
+                "or update them. At this time the tool only supports extensions from GIT repositories",
+            ],
             'options' => [
                 "install <name> <url>: Will install a new extension with the given name, and git clone from the url",
                 "uninstall <name>: Will uninstall an extension with the given name",

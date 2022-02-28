@@ -35,34 +35,34 @@ class ProjectTool extends Tool
         return [
             'tool' => 'Project Management Tool',
             'short_description' => 'A tool to manage projects installed and control them using scripts and hooks',
-            'description' => trim(
-                "This tool allows projects to be installed and managed by the tooling system.\n".
-                "It can run scripts, and perform actions upon the projects, using functionality\n".
-                "or scripts installed within the projects themselves\n"
-            ),
-            'options' => trim(
-                "{cyn}Managing Groups{end}:\n".
-                "\tlist: List the project groups\n".
-                "\tadd-group --name=group-name: Create a new project group.\n".
-                "\tremove-group --name=group-name: Remove a project group.\n".
-                "\n".
-                "{cyn}Adding Projects{end}:\n".
-                "\tadd-project --name=<project-name>: Will add a new project that already exists on the disk.\n".
-                "\t--group=<group>: (REQUIRED) The group to which this project will be added\n".
-                "\t--path=<path>: (REQUIRED) The location on the filesystem for this project\n".
-                "\t--type=node|composer|ddt>: (OPTIONAL: default=ddt) One of the supported project types. {yel}(See Project Type list below){end}\n".
-                "\n".
-                "{cyn}Removing Projects{end}:\n".
-                "\tremove-project --name=project-name: Remove the project from the group given.\n".
-                "\t--group: (REQUIRED) The group from which this project will be removed\n".
-                "\t--delete: (OPTIONAL) {red}**DANGEROUS**{end} This option will not only remove the project from a group, but delete the files from disk\n".
-                "\n".
-                "{cyn}Project Types{end}:\n".
-                "\tThese just define where the configuration will be stored, it has one of the following values:\n\n".
-                "\tnode: This project type will use the 'package.json' file.\n".
-                "\tcomposer: This project type will use the 'composer.json' file.\n".
-                "\tddt: {yel}(default if no type given){end} This project will use the 'ddt-project.json' file\n"
-            ),
+            'description' => [
+                "This tool allows projects to be installed and managed by the tooling system.",
+                "It can run scripts, and perform actions upon the projects, using functionality",
+                "or scripts installed within the projects themselves",
+            ],
+            'options' => [
+                "{cyn}Managing Groups{end}:",
+                "\tlist: List the project groups",
+                "\tadd-group --name=group-name: Create a new project group.",
+                "\tremove-group --name=group-name: Remove a project group.\n",
+
+                "{cyn}Adding Projects{end}:",
+                "\tadd-project --name=<project-name>: Will add a new project that already exists on the disk.",
+                "\t--group=<group>: (REQUIRED) The group to which this project will be added",
+                "\t--path=<path>: (REQUIRED) The location on the filesystem for this project",
+                "\t--type=node|composer|ddt>: (OPTIONAL: default=ddt) One of the supported project types. {yel}(See Project Type list below){end}\n",
+
+                "{cyn}Removing Projects{end}:",
+                "\tremove-project --name=project-name: Remove the project from the group given.",
+                "\t--group: (REQUIRED) The group from which this project will be removed",
+                "\t--delete: (OPTIONAL) {red}**DANGEROUS**{end} This option will not only remove the project from a group, but delete the files from disk\n",
+
+                "{cyn}Project Types{end}:",
+                "\tThese just define where the configuration will be stored, it has one of the following values:\n",
+                "\tnode: This project type will use the 'package.json' file.",
+                "\tcomposer: This project type will use the 'composer.json' file.",
+                "\tddt: {yel}(default if no type given){end} This project will use the 'ddt-project.json' file",
+            ],
         ];
     }
 

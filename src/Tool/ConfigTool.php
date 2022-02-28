@@ -44,21 +44,22 @@ class ConfigTool extends Tool
 				"version: Output some information about the configuration that is deemed useful",
 				"help: This information, also if no sub command is given help is automatically shown",
 			],
-			'examples' => trim(
-				"Basic commands are simple to understand:\n".
-				"\t- {$entrypoint} filename (will output where the system configuration file is located)\n".
-				"\t- {$entrypoint} version (will output version information, etc)\n".
-				"\n".
-				"To query parts of the configuration:\n".
-				"\t- {$entrypoint} get (with no specific key mentioned, will output entire configuration)\n".
-				"\t- {$entrypoint} get --key=.type\n".
-				"\t- {$entrypoint} get --key=.this.0.must.be.3.valid\n".
-				"\n".	
-				"The last one will do a recursive lookup drilling down each level that are split by the dots\n".
-				"\t- key(this) -> index(0) -> key(must) -> key(be) -> index(3) -> key(valid)\n".
-				"\n".
-				"The json for the above example could be:\n".
-				"{cyn}".str_replace("    ", "\t", json_encode([
+			'examples' => array_merge([
+				"Basic commands are simple to understand:",
+				"\t- {$entrypoint} filename (will output where the system configuration file is located)",
+				"\t- {$entrypoint} version (will output version information, etc)\n",
+
+				"To query parts of the configuration:",
+				"\t- {$entrypoint} get (with no specific key mentioned, will output entire configuration)",
+				"\t- {$entrypoint} get .type",
+				"\t- {$entrypoint} get .this.0.must.be.3.valid\n",
+
+				"The last one will do a recursive lookup drilling down each level that are split by the dots",
+				"\t- key(this) -> index(0) -> key(must) -> key(be) -> index(3) -> key(valid)\n",
+
+				"The json for the above example could be:",
+				"{cyn}"
+			], explode("\n", str_replace("    ", "\t", json_encode([
 					"this" => [
 						[
 							"must" => [
@@ -75,10 +76,11 @@ class ConfigTool extends Tool
 							]
 						]
 					]
-				], JSON_PRETTY_PRINT))."{end}\n".
-				"bash# {$entrypoint} get=.this.0.must.be.3.valid\n".
-				"\"this one! this is index 3\"\n"
-			),
+			], JSON_PRETTY_PRINT))), [
+				"{end}",
+				"bash# {$entrypoint} get this.0.must.be.3.valid",
+				"\"this one! this is index 3\"",
+			]),
 			'notes' => [
 				"All keys begin with '.' (dot), e.g: '.description'",
 				"Keys are a dotted syntax that allows you to pluck out a segment of the configuration",

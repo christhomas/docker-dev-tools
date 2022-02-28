@@ -61,12 +61,12 @@ class SetupTool extends Tool
                 "set-path --path=<path>: Update where the tools are installed",
                 "test: Open a new sub shell and test whether scripts work with the current system path.",
             ],
-            'examples' => implode("\n", [
-                "  - $entrypoint install --path=\$HOME/projects/docker-dev-tools --overwrite=false",
-                "  - $entrypoint uninstall --path=\$HOME/projects/docker-dev-tools",
-                "  - $entrypoint set-path --path=\$HOME/somewhere/else/if/you/want/docker-dev-tools",
-                "  - $entrypoint set-path --path=\$HOME/projects/docker-dev-tools",
-            ]),
+            'examples' => [
+                "- $entrypoint install --path=\$HOME/projects/docker-dev-tools --overwrite=false",
+                "- $entrypoint uninstall --path=\$HOME/projects/docker-dev-tools",
+                "- $entrypoint set-path --path=\$HOME/somewhere/else/if/you/want/docker-dev-tools",
+                "- $entrypoint set-path --path=\$HOME/projects/docker-dev-tools",
+            ],
             'notes' => '',
         ];
     }
