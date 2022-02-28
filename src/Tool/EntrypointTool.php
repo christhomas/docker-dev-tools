@@ -58,6 +58,8 @@ class EntrypointTool extends Tool
     public function handle()
     {        
         try{
+            $requestedCommand = null;
+
             // TODO: need to support ddt --version commands
             // right now the entrypoint is too linear in that it assumes everything running is
             // inside a tool, but what if the entrypoint has it's own functionality too?
@@ -86,21 +88,18 @@ class EntrypointTool extends Tool
 
             $argList = $this->cli->getArgList();
 
-            $requestedCommand = null;
-            $defaultCommand = $tool->getToolDefaultCommand();
-            
             // If there are arguments, pick the first and resolve it to a command method
             if($this->cli->countArgs()){
-                $requestedCommand = $tool->getToolCommand($argList[0]['name']);
+                $requestedCommand = $argList[0]['name'];
+                $methodName = $tool->getToolCommand($requestedCommand);
             }
 
-            if($requestedCommand === null){
+            if($methodName === null){
                 // If it does not resolve into a command method, fall back to the default command method
-                $methodName = $defaultCommand;
+                $methodName = $tool->getToolDefaultCommand();
             }else{
                 // If the argument contained a valid command method, we should slice this parameter off the list
                 // This is so it doesn't get consumed twice
-                $methodName = $requestedCommand;
                 $argList = array_slice($argList, 1);
             }
 
@@ -118,7 +117,10 @@ class EntrypointTool extends Tool
             }
 
             $this->cli->print($tool->help());
-            $this->cli->failure("The requested command '$requestedCommand' from tool '$toolName' does not exist, check your spelling against the help");
+
+            if($requestedCommand){
+                $this->cli->failure("The requested command '$requestedCommand' from tool '$toolName' does not exist, check your spelling against the help");
+            }
         }catch(CannotAutowireParameterException $e){
             $this->cli->print($tool->help());
             $commandName = $tool->getToolCommandName($e->getMethodName());
